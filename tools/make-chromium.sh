@@ -28,12 +28,12 @@ python tools/make-chromium-meta.py $DES/
 if [ "$1" = all ]; then
     echo "*** uBlock0.chromium: Creating plain package..."
     pushd $DES/ > /dev/null
-    zip ../$(basename $DES).crx -qr *
+    zip ../$(basename $DES).zip -qr *
     popd > /dev/null
 elif [ -n "$1" ]; then
     echo "*** uBlock0.chromium: Creating versioned package..."
     pushd $DES/ > /dev/null
-    zip ../uBlock0_"$1".chromium.crx -qr *
+    zip ../uBlock0_"$1".chromium.zip -qr *
     popd > /dev/null
 fi
 
