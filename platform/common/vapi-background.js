@@ -1652,3 +1652,44 @@ vAPI.cloud = (( ) => {
 })();
 
 /******************************************************************************/
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Navigator/connection
+// *Chromium only
+vAPI.connection = {
+    isNarrow: function() {
+        let highBand = true;
+        if (this.effectiveTypeNarrow) {
+            highBand = false;
+        } else if (this.rtt >= 150) {
+            highBand = false;
+        } else if (this.downlink < 1.5) {
+            highBand = false;
+        }
+        return !highBand;
+    },
+    start: function() {
+        const prop = navigator.connection;
+        if (prop) {
+            prop.addEventListener("change", () => {
+                if (prop) {
+                    if (prop.rtt) {
+                        this.rtt = prop.rtt;
+                    }
+                    if (prop.downlink) {
+                        this.downlink = prop.downlink;
+                    }
+                    if (prop.effectiveType) {
+                        this.effectiveTypeNarrow = /2g|3g/.test(prop.effectiveType);
+                    }
+                }
+            });
+        }
+    },
+    rtt: 1,
+    downlink: 100.0,
+    effectiveTypeNarrow: false,
+};
+
+vAPI.connection.start();
+
+/******************************************************************************/

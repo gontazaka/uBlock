@@ -1036,6 +1036,7 @@ const foilFloc = function(fctxt, responseHeaders) {
 
 const foilLargeMediaElement = function(details, fctxt, pageStore) {
     if ( details.fromCache === true ) { return; }
+    if ( vAPI.connection.isNarrow() === false) { return };
 
     let size = 0;
     if ( µb.userSettings.largeMediaSize !== 0 ) {
