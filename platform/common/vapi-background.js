@@ -1614,37 +1614,19 @@ vAPI.cloud = (( ) => {
 // *Chromium only
 vAPI.connection = {
     isNarrow: function() {
-        let highBand = true;
-        if (this.effectiveTypeNarrow) {
-            highBand = false;
-        } else if (this.rtt >= 150) {
-            highBand = false;
-        } else if (this.downlink < 1.5) {
-            highBand = false;
-        }
-        return !highBand;
+        return isNarrowBand;
     },
     start: function() {
         const prop = navigator.connection;
         if (prop) {
             prop.addEventListener("change", () => {
-                if (prop) {
-                    if (prop.rtt) {
-                        this.rtt = prop.rtt;
-                    }
-                    if (prop.downlink) {
-                        this.downlink = prop.downlink;
-                    }
-                    if (prop.effectiveType) {
-                        this.effectiveTypeNarrow = /2g|3g/.test(prop.effectiveType);
-                    }
+                if (prop?.effectiveType) {
+                    this.isNarrowBand = /(2g|3g)$/.test(prop.effectiveType);
                 }
             });
         }
     },
-    rtt: 1,
-    downlink: 100.0,
-    effectiveTypeNarrow: false,
+    isNarrowBand = true,
 };
 
 vAPI.connection.start();
