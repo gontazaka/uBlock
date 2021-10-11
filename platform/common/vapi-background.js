@@ -1614,7 +1614,7 @@ vAPI.cloud = (( ) => {
 // *Chromium only
 vAPI.connection = {
     isNarrow: function() {
-        return isNarrowBand;
+        return this.isNarrowBand;
     },
     start: function() {
         const prop = navigator.connection;
@@ -1626,7 +1626,7 @@ vAPI.connection = {
             });
         }
     },
-    isNarrowBand = true,
+    isNarrowBand: true,
 };
 
 vAPI.connection.start();
