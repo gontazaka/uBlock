@@ -1617,11 +1617,11 @@ vAPI.connection = {
         return this.isNarrowBand;
     },
     start: function() {
-        const prop = navigator.connection;
+        const prop = navigator?.connection;
         if (prop) {
             prop.addEventListener("change", () => {
-                if (prop?.effectiveType) {
-                    this.isNarrowBand = /(2g|3g)$/.test(prop.effectiveType);
+                if (prop.effectiveType) {
+                    this.isNarrowBand = !/4g$/.test(prop.effectiveType);
                 }
             });
         }
