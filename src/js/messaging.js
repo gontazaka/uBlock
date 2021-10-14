@@ -1276,7 +1276,9 @@ const getSupportData = async function() {
             Date.now()
         ) / 864000) / 100;
         const listDetails = {
-            title: list.title,
+            title: list.title !== '' && list.title !== listKey
+                ? list.title
+                : undefined,
             daysSinceUpdated,
             daysBeforeNextUpdate,
         };
@@ -1304,7 +1306,9 @@ const getSupportData = async function() {
     return {
         browserFlavor: Array.from(vAPI.webextFlavor.soup).join(' '),
         browserVersion: vAPI.webextFlavor.major,
-        extensionId: vAPI.i18n('@@extension_id'),
+        extensionId: vAPI.webextFlavor.soup.has('firefox') === false
+            ? vAPI.i18n('@@extension_id')
+            : undefined,
         extensionName: vAPI.app.name,
         extensionVersion: vAPI.app.version,
         modifiedUserSettings,
