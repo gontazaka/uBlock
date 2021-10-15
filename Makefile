@@ -11,7 +11,8 @@ assets := $(wildcard submodules/uAssets/* \
                      submodules/uAssets/*/*/* \
                      submodules/uAssets/*/*/*/*)
 
-all: chromium firefox npm
+# all: chromium firefox npm
+all: chromium
 
 dist/build/uBlock0.chromium: tools/make-chromium.sh $(sources) $(platform) $(assets)
 	tools/make-chromium.sh all

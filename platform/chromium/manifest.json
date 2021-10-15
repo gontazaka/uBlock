@@ -1,5 +1,5 @@
 {
-  "author": "Raymond Hill & contributors",
+  "author": "Raymond Hill & contributors & gontazaka",
   "background": {
     "page": "background.html"
   },
@@ -8,7 +8,7 @@
       "16": "img/icon_16.png",
       "32": "img/icon_32.png"
     },
-    "default_title": "uBlock Origin",
+    "default_title": "uBlock 🦆",
     "default_popup": "popup-fenix.html"
   },
   "commands": {
@@ -71,7 +71,7 @@
   "incognito": "split",
   "manifest_version": 2,
   "minimum_chrome_version": "61.0",
-  "name": "uBlock Origin",
+  "name": "uBlock 🦆",
   "options_ui": {
     "page": "dashboard.html",
     "open_in_tab": true
@@ -87,7 +87,7 @@
     "webRequestBlocking",
     "<all_urls>"
   ],
-  "short_name": "uBlock₀",
+  "short_name": "uBlock🦆",
   "storage": {
     "managed_schema": "managed_storage.json"
   },
