@@ -4,18 +4,18 @@
 
 set -e
 
-echo "*** uBlock0.firefox: Creating web store package"
+echo "*** uBlock🦆.firefox: Creating web store package"
 
 BLDIR=dist/build
-DES="$BLDIR"/uBlock0.firefox
+DES="$BLDIR"/uBlock🦆.firefox
 rm -rf $DES
 mkdir -p $DES
 
-echo "*** uBlock0.firefox: Copying common files"
+echo "*** uBlock🦆.firefox: Copying common files"
 bash ./tools/copy-common-files.sh  $DES
 
 # Firefox-specific
-echo "*** uBlock0.firefox: Copying firefox-specific files"
+echo "*** uBlock🦆.firefox: Copying firefox-specific files"
 cp platform/firefox/*.json $DES/
 cp platform/firefox/*.js   $DES/js/
 
@@ -25,20 +25,20 @@ cp -R $DES/_locales/nb     $DES/_locales/no
 # Firefox/webext-specific
 rm $DES/img/icon_128.png
 
-echo "*** uBlock0.firefox: Generating meta..."
+echo "*** uBlock🦆.firefox: Generating meta..."
 python3 tools/make-firefox-meta.py $DES/
 
 if [ "$1" = all ]; then
-    echo "*** uBlock0.firefox: Creating package..."
+    echo "*** uBlock🦆.firefox: Creating package..."
     pushd $DES > /dev/null
     zip ../$(basename $DES).xpi -qr *
     popd > /dev/null
 elif [ -n "$1" ]; then
-    echo "*** uBlock0.firefox: Creating versioned package..."
+    echo "*** uBlock🦆.firefox: Creating versioned package..."
     pushd $DES > /dev/null
     zip ../$(basename $DES).xpi -qr *
     popd > /dev/null
-    mv "$BLDIR"/uBlock0.firefox.xpi "$BLDIR"/uBlock0_"$1".firefox.xpi
+    mv "$BLDIR"/uBlock🦆.firefox.xpi "$BLDIR"/uBlock🦆_"$1".firefox.xpi
 fi
 
-echo "*** uBlock0.firefox: Package done."
+echo "*** uBlock🦆.firefox: Package done."
