@@ -38,7 +38,7 @@ jobs:
         env:
           PRIVATEKEY: ${{ secrets.PRIVATEKEY_PEM }}
         run: |
-          echo $PRIVATEKEY > ~/private-key.pem
+          echo "$PRIVATEKEY" > ~/private-key.pem
       - name: Build all packages
         run: |
           tools/make-chromium.sh ${{ steps.release_info.outputs.VERSION }}
