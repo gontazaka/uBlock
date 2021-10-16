@@ -1,4 +1,3 @@
-[![GitHub CI](https://github.com/gontazaka/uBlock/actions/workflows/main.yml/badge.svg)](https://github.com/gontazaka/uBlock/actions/workflows/main.yml)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/gorhill/uBlock/blob/master/LICENSE.txt)
 
 ***
