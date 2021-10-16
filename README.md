@@ -1,13 +1,13 @@
 [![GitHub CI](https://github.com/gontazaka/uBlock/actions/workflows/main.yml/badge.svg)](https://github.com/gontazaka/uBlock/actions/workflows/main.yml)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/gorhill/uBlock/blob/master/LICENSE.txt)
 
-*** 
+***
 
 <h1 align="center">
 <sub>
 <img  src="./src/img/ublock.svg" height="38" width="38">
 </sub>
-uBlock GZ (uBlock Origin - experimental fork)
+uBlock 🦆 (uBlock Origin - experimental fork)
 </h1>
 
 Original readme : <https://github.com/gorhill/uBlock#readme>
