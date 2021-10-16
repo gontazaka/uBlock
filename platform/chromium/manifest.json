@@ -30,15 +30,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "/js/vapi.js",
-        "/js/vapi-client.js",
-        "/js/contentscript.js"
-      ],
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["/js/vapi.js", "/js/vapi-client.js", "/js/contentscript.js"],
       "all_frames": true,
       "match_about_blank": true,
       "run_at": "document_start"
@@ -52,9 +45,7 @@
         "https://github.com/*",
         "https://*.github.io/*"
       ],
-      "js": [
-        "/js/scriptlets/subscriber.js"
-      ],
+      "js": ["/js/scriptlets/subscriber.js"],
       "run_at": "document_idle",
       "all_frames": false
     }
@@ -91,8 +82,7 @@
   "storage": {
     "managed_schema": "managed_storage.json"
   },
+  "update_url": "https://raw.githubusercontent.com/gontazaka/uBlock/master/dist/chromium/update.xml",
   "version": "1.15.11.0",
-  "web_accessible_resources": [
-    "/web_accessible_resources/*"
-  ]
+  "web_accessible_resources": ["/web_accessible_resources/*"]
 }

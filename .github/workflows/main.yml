@@ -12,6 +12,8 @@ jobs:
     name: Build packages
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    env:
+      MASTER_PATH: __master_branch
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
@@ -20,6 +22,11 @@ jobs:
       - name: Clone uAssets
         run: |
           git submodule update --depth 1 --init
+      - name: Clone master branch for post process
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          path: ${{ env.MASTER_PATH }}
       # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
       - name: Get release information
         id: release_info
@@ -46,6 +53,7 @@ jobs:
         # tools/make-thunderbird.sh ${{ steps.release_info.outputs.VERSION }}
         # tools/make-npm.sh ${{ steps.release_info.outputs.VERSION }}
       - name: Upload Chromium package
+        id: release_chrome 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,12 +62,26 @@ jobs:
           asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.chromium.crx
           asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.chromium.crx
           asset_content_type: application/octet-stream
-    # - name: Upload Firefox package
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-    #     asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-    #     asset_content_type: application/octet-stream
+
+      - name: Post Upload Chromium package
+        env:
+          UPDATE_XML: dist/chromium/update.xml
+        run: |
+          pushd "${{ env.MASTER_PATH }}"
+          node dist/chromium/update-meta.js "${{ steps.release_chrome.outputs.browser_download_url }}" "${{ steps.release_info.outputs.VERSION }}"
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add ${{ env.UPDATE_XML }}
+          git diff-index --quiet HEAD || git commit -m "update ${{ env.UPDATE_XML }}"
+          git push origin master
+          popd
+
+      # - name: Upload Firefox package
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
+      #     asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
+      #     asset_content_type: application/octet-stream
