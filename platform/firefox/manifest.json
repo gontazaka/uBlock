@@ -1,5 +1,5 @@
 {
-  "author": "Raymond Hill & contributors",
+  "author": "Raymond Hill & contributors & gontazaka",
   "background": {
     "page": "background.html"
   },
@@ -9,18 +9,17 @@
       "16": "img/icon_16.png",
       "32": "img/icon_32.png"
     },
-    "default_title": "uBlock Origin",
+    "default_title": "uBlock 🦆",
     "default_popup": "popup-fenix.html"
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "uBlock0@raymondhill.net",
+      "id": "ublock@gontazaka",
       "strict_min_version": "60.0"
     }
   },
   "commands": {
-    "_execute_browser_action": {
-    },
+    "_execute_browser_action": {},
     "launch-element-zapper": {
       "description": "__MSG_popupTipZapper__"
     },
@@ -39,16 +38,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*",
-        "file://*/*"
-      ],
-      "js": [
-        "/js/vapi.js",
-        "/js/vapi-client.js",
-        "/js/contentscript.js"
-      ],
+      "matches": ["http://*/*", "https://*/*", "file://*/*"],
+      "js": ["/js/vapi.js", "/js/vapi-client.js", "/js/contentscript.js"],
       "all_frames": true,
       "match_about_blank": true,
       "run_at": "document_start"
@@ -62,9 +53,7 @@
         "https://github.com/*",
         "https://*.github.io/*"
       ],
-      "js": [
-        "/js/scriptlets/subscriber.js"
-      ],
+      "js": ["/js/scriptlets/subscriber.js"],
       "run_at": "document_idle",
       "all_frames": false
     }
@@ -79,7 +68,7 @@
     "96": "img/ublock.svg"
   },
   "manifest_version": 2,
-  "name": "uBlock Origin",
+  "name": "uBlock 🦆",
   "options_ui": {
     "page": "dashboard.html",
     "open_in_tab": true
@@ -104,7 +93,5 @@
     "open_at_install": false
   },
   "version": "1.9.15.101",
-  "web_accessible_resources": [
-    "/web_accessible_resources/*"
-  ]
+  "web_accessible_resources": ["/web_accessible_resources/*"]
 }

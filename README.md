@@ -1,4 +1,5 @@
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/gorhill/uBlock/blob/master/LICENSE.txt)
+[![Latest Release](https://img.shields.io/github/v/release/gontazaka/ublock?include_prereleases&label=Release)](https://github.com/gontazaka/uBlock/releases)
 
 ***
 
