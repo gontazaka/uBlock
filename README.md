@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/gorhill/uBlock/blob/master/LICENSE.txt)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.txt)
 [![Latest Release](https://img.shields.io/github/v/release/gontazaka/ublock?include_prereleases&label=Release)](https://github.com/gontazaka/uBlock/releases)
 
 ***
@@ -10,7 +10,9 @@
 uBlock 🦆 (uBlock Origin - experimental fork)
 </h1>
 
-Original readme : <https://github.com/gorhill/uBlock#readme>
+## License
+
+[GPLv3](./LICENSE.txt). Original Licensor <https://github.com/gorhill/uBlock>  
 
 ***
 
@@ -22,10 +24,6 @@ Original readme : <https://github.com/gorhill/uBlock#readme>
 [Navigator.connection](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/connection) を参照して「xx KBより大きいメディア要素をブロックする」の適用を動的に切り替える。※ダッシュボードでの設定はONしておく必要がある
 
 備考：ブラウザーからの情報変化イベント([onchange](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/onchange))で切り替えるため、特に安定しない通信回線ではページ読込中に変化する可能性がある(?)。  
-状態表示は実装していないがDevToolsのConsoleに`navigator.connection.effectiveType`で確認できる値が「4G」では非適用、それ以外は適用としている。
+状態表示は実装していないがDevToolsのConsoleに`navigator.connection.effectiveType`で確認できる値が「4G」では非適用、それ以外は適用としている。＜[仕様](https://wicg.github.io/netinfo/#dfn-effective-connection-type)。ただしブラウザー実装が仕様に従っているか不明＞
 
 ***
-
-## License
-
-[GPLv3](./LICENSE.txt).
