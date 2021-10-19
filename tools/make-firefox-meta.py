@@ -4,6 +4,7 @@ import os
 import json
 import re
 import sys
+import subprocess
 
 if len(sys.argv) == 1 or not sys.argv[1]:
     raise SystemExit('Build dir missing.')
@@ -30,6 +31,10 @@ if 'sidebar_action' in firefox_manifest:
         del firefox_manifest['sidebar_action']
 
 firefox_manifest['version'] = version
+
+cmd = "git rev-parse --short HEAD"
+hash = subprocess.check_output(cmd.split()).strip().decode('utf-8')
+firefox_manifest['version_name'] = version + "@" + hash
 
 with open(firefox_manifest_file, 'w') as f2:
     json.dump(firefox_manifest, f2, indent=2, separators=(',', ': '), sort_keys=True)

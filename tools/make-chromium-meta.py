@@ -4,6 +4,7 @@ import os
 import json
 import re
 import sys
+import subprocess
 
 if len(sys.argv) == 1 or not sys.argv[1]:
     raise SystemExit('Build dir missing.')
@@ -21,6 +22,10 @@ with open(manifest_out_file) as f:
     manifest_out = json.load(f)
 
 manifest_out['version'] = version
+
+cmd = "git rev-parse --short HEAD"
+hash = subprocess.check_output(cmd.split()).strip().decode('utf-8')
+manifest_out['version_name'] = version + "@" + hash
 
 # Development build? If so, modify name accordingly.
 match = re.search('^\d+\.\d+\.\d+\.\d+$', version)
