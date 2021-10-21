@@ -32,9 +32,11 @@ if 'sidebar_action' in firefox_manifest:
 
 firefox_manifest['version'] = version
 
-cmd = "git rev-parse --short HEAD"
-hash = subprocess.check_output(cmd.split()).strip().decode('utf-8')
-firefox_manifest['version_name'] = version + "@" + hash
+# require git & clone repository
+short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
+additional = subprocess.check_output("[ -n 'gin status --porcelain' ] && echo 🐣 || echo ", shell=True).strip().decode('utf-8')
+firefox_manifest['version_name'] = version + "@" + short_hash + additional
+
 
 with open(firefox_manifest_file, 'w') as f2:
     json.dump(firefox_manifest, f2, indent=2, separators=(',', ': '), sort_keys=True)

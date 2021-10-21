@@ -23,9 +23,10 @@ with open(manifest_out_file) as f:
 
 manifest_out['version'] = version
 
-cmd = "git rev-parse --short HEAD"
-hash = subprocess.check_output(cmd.split()).strip().decode('utf-8')
-manifest_out['version_name'] = version + "@" + hash
+# require git & clone repository
+short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
+additional = subprocess.check_output("[ -n 'gin status --porcelain' ] && echo 🐣 || echo ", shell=True).strip().decode('utf-8')
+manifest_out['version_name'] = version + "@" + short_hash + additional
 
 # Development build? If so, modify name accordingly.
 match = re.search('^\d+\.\d+\.\d+\.\d+$', version)
