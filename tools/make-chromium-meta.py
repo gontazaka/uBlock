@@ -25,7 +25,7 @@ manifest_out['version'] = version
 
 # require git & clone repository
 short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
-additional = subprocess.check_output("[ -n 'gin status --porcelain' ] && echo 🐣 || echo ", shell=True).strip().decode('utf-8')
+additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $? -ne 0 ];then echo 🐣;fi", shell=True).strip().decode('utf-8')
 manifest_out['version_name'] = version + "@" + short_hash + additional
 
 # Development build? If so, modify name accordingly.
