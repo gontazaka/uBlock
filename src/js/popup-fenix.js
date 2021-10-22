@@ -556,6 +556,11 @@ const renderPopup = function() {
     body.classList.toggle('off', popupData.pageURL === '' || isFiltering !== true);
     body.classList.toggle('needSave', popupData.matrixIsDirty === true);
 
+    {
+        const elemNi = uDom.nodeFromId('networkinfo');
+        elemNi.textContent = navigator?.connection?.effectiveType ?? '';
+    }
+
     // The hostname information below the power switch
     {
         const [ elemHn, elemDn ] = uDom.nodeFromId('hostname').children;
