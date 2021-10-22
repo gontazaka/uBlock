@@ -68,11 +68,6 @@ vAPI.app = {
     name: manifest.name.replace(/ dev\w+ build/, ''),
     version: (( ) => {
         let version = manifest.version;
-        const match = /(\d+\.\d+\.\d+)(?:\.(\d+))?/.exec(version);
-        if ( match && match[2] ) {
-            const v = parseInt(match[2], 10);
-            version = match[1] + (v < 100 ? 'b' + v : 'rc' + (v - 100));
-        }
         return version;
     })(),
 
@@ -1612,11 +1607,12 @@ vAPI.connection = {
     start: function() {
         const prop = navigator?.connection;
         if (prop) {
-            prop.addEventListener("change", () => {
+            const update = () => {
                 if (prop.effectiveType) {
                     this.isNarrowBand = !/4g$/.test(prop.effectiveType);
                 }
-            });
+            };
+            prop.addEventListener("change", update);
         }
     },
     isNarrowBand: true,

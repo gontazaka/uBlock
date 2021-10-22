@@ -13,7 +13,7 @@ proj_dir = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..')
 build_dir = os.path.abspath(sys.argv[1])
 
 version = ''
-with open(os.path.join(proj_dir, 'dist', 'version')) as f:
+with open(os.path.join(proj_dir, 'dist', 'versiongz')) as f:
     version = f.read().strip()
 
 firefox_manifest = {}
