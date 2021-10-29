@@ -34,7 +34,7 @@ firefox_manifest['version'] = version
 
 # require git & clone repository
 short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
-additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $? -ne 0 ];then echo 🐣;fi", shell=True).strip().decode('utf-8')
+additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $? -ne 0 ];then echo 🐣$(date +%m%d%H%M);fi", shell=True).strip().decode('utf-8')
 firefox_manifest['version_name'] = version + "@" + short_hash + additional
 
 
