@@ -46,11 +46,11 @@ const reMustNormalizeHostname =
 const reOriginFromURI =
     /^(?:[^:\/?#]+:)\/\/[^\/?#]+/;
 const reHostnameFromNetworkURL =
-    /^(?:http|ws|ftp)s?:\/\/([0-9a-z_][0-9a-z._-]*[0-9a-z])(?::\d+)?\//;
+    /^(?:http|ws)s?:\/\/([0-9a-z_][0-9a-z._-]*[0-9a-z])(?::\d+)?\//;
 const reIPAddressNaive =
     /^\d+\.\d+\.\d+\.\d+$|^\[[\da-zA-Z:]+\]$/;
 const reNetworkURI =
-    /^(?:ftps?|https?|wss?):\/\//;
+    /^(?:http|ws)s?:\/\//;
 
 // For performance purpose, as simple tests as possible
 const reIPv4VeryCoarse = /\.\d+$/;
