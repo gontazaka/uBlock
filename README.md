@@ -27,4 +27,11 @@ uBlock 🦆 (uBlock Origin - experimental fork)
 ポップアップに状態表示(`navigator.connection.effectiveType`)しており、値が「4g」では非適用、それ以外は適用としている。＜[仕様](https://wicg.github.io/netinfo/#dfn-effective-connection-type)。ただしブラウザー実装が仕様に従っているか不明＞
 ![Popup Screenshot](./doc/img/effectiveyype.png)
 
+常時適用（フォーク元同様）させるには`chrome://flags/#force-effective-connection-type`を「3g」などにすればよい。ただしこの情報を使うWEBサービスや拡張機能に影響する。  
+
+### ftpスキーム判定削除
+
+Chrome, Firefoxとも現最新バージョンではFTPサポートが削除されているのでURI判定からftp/ftpsスキームを削除。  
+コミット gontazaka/uBlock@c4f7c9ae8b793cea705659b4c51a5a576b542beb
+
 ***
