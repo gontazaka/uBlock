@@ -4,10 +4,7 @@
     "page": "background.html"
   },
   "browser_action": {
-    "default_icon": {
-      "16": "img/icon_16.png",
-      "32": "img/icon_32.png"
-    },
+    "default_icon": "./img/ublock.svg",
     "default_title": "uBlock 🦆",
     "default_popup": "popup-fenix.html"
   },
@@ -57,7 +54,7 @@
     "16": "img/icon_16.png",
     "32": "img/icon_32.png",
     "64": "img/icon_64.png",
-    "128": "img/icon_128.png"
+    "128": "./img/icon_128.png"
   },
   "incognito": "split",
   "manifest_version": 2,

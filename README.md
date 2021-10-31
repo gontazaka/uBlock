@@ -18,7 +18,7 @@ uBlock 🦆 (uBlock Origin - experimental fork)
 
 ## フォーク元からの変更点
 
-### 回線速度に応じた`no-large-media`適用切り替え
+### 🦆 回線速度に応じた`no-large-media`適用切り替え
 
 **(Chromium only)**  
 [Navigator.connection](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/connection) を参照して「xx KBより大きいメディア要素をブロックする」の適用を動的に切り替える。※ダッシュボードでの設定はONしておく必要がある
@@ -29,9 +29,9 @@ uBlock 🦆 (uBlock Origin - experimental fork)
 
 常時適用（フォーク元同様）させるには`chrome://flags/#force-effective-connection-type`を「3g」などにすればよい。ただしこの情報を使うWEBサービスや拡張機能に影響する。  
 
-### ftpスキーム判定削除
+### 🦆 ftpスキーム判定削除
 
 Chrome, Firefoxとも現最新バージョンではFTPサポートが削除されているのでURI判定からftp/ftpsスキームを削除。  
-コミット gontazaka/uBlock@c4f7c9ae8b793cea705659b4c51a5a576b542beb
+コミット c4f7c9ae8b793cea705659b4c51a5a576b542beb
 
 ***
