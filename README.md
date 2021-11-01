@@ -32,6 +32,29 @@ uBlock 🦆 (uBlock Origin - experimental fork)
 ### 🦆 ftpスキーム判定削除
 
 Chrome, Firefoxとも現最新バージョンではFTPサポートが削除されているのでURI判定からftp/ftpsスキームを削除。  
-コミット c4f7c9ae8b793cea705659b4c51a5a576b542beb
+コミット https://github.com/gontazaka/uBlock/commit/c4f7c9ae8b793cea705659b4c51a5a576b542beb
+
+### 🦆 セルフホスト
+
+**(Chromium only)**  
+GitHubのリリースで[セルフホスト](https://docs.microsoft.com/ja-jp/deployedge/microsoft-edge-manage-extensions-webstore#distribute-a-privately-hosted-extension)している。  
+リリース時のGitHub Actionsで[アップデート用XML](https://github.com/gontazaka/uBlock/blob/meta/chromium/update.xml)も更新し、CRXは鍵付きでパッキングされるため自動更新対応している。  
+
+が、セキュリティ都合のためか初期状態では野良拡張機能はブロックされているためおまじないが必要。  
+
+#### Windows
+レジストリ変更（or ポリシーエディタ）  
+[※ChromeとEdgeでポリシーが異なっている](https://docs.microsoft.com/deployedge/microsoft-edge-policy-map-chrome-to-newedge)  
+
+##### Google Chrome
+```
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\ExtensionInstallWhitelist]
+"1"="heijcalefhbbecnlkmkmgohkkfmhhhnm"
+```
+##### Microsoft Edge
+```
+[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallAllowlist]
+"1"="heijcalefhbbecnlkmkmgohkkfmhhhnm"
+```
 
 ***
