@@ -11,6 +11,9 @@ echo "*** Packaging assets in $DES... "
 rm -rf $DES
 cp -R ./assets $DES/
 
+### built-in filters do not include in package
+exit 0
+
 mkdir $DES/thirdparties
 
 git submodule update --depth 1 --init

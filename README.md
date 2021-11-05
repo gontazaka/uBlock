@@ -57,4 +57,9 @@ GitHubのリリースで[セルフホスト](https://docs.microsoft.com/ja-jp/de
 "1"="heijcalefhbbecnlkmkmgohkkfmhhhnm"
 ```
 
+### 🦆 ビルトインフィルター非同梱
+
+*uBlock filters*や*EasyList*などのフィルターをパッケージに同梱しない。  
+パッケージサイズが1MB以上小さくなるため拡張機能をアップデートして使うメリットが出る。新規インストール時にルール数0となるが「今すぐ更新」すれば最新ルールが普通にダウンロードされる。  
+
 ***

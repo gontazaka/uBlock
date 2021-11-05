@@ -23,3 +23,8 @@ cp src/*.html                      $DES/
 cp platform/common/*.js            $DES/js/
 cp platform/common/*.json          $DES/
 cp LICENSE.txt                     $DES/
+
+# Remove sources
+shopt -s extglob
+shopt -s globstar
+rm $DES/**/@(*.wat)
