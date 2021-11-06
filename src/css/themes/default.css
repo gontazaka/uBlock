@@ -43,7 +43,7 @@
     --light-gray-70: #9f9fad;
     --light-gray-80: #8f8f9e;
     --light-gray-90: #80808f;
-    --orange-80: #9e280b;
+    --orange-80: #fc4422;
     --purple-60: #952bb9;
     --red-60: #e22850;
     --violet-40: #ab71ff;
@@ -185,6 +185,7 @@
     --cm-selection-surface: #d7d4f0;
     --cm-selection-ink: var(--default-ink);
     --cm-searching-surface: #ffff0066;
+    --cm-activeline-background: var(--default-surface-hover);
 
     /* syntax highlight: static filtering */
     --sf-comment-ink: var(--light-gray-90);
@@ -213,6 +214,7 @@
     --logger-blocked-em-surface: #c0000036;
     --logger-modified-em-surface: #0000c028;
     --logger-allowed-em-surface: #00a00036;
+    --logger-redirect-surface: rgba(255, 255, 0, 0.1);
 }
 
 /**
@@ -260,7 +262,7 @@
     --default-ink-a4: var(--light-gray-10-a4);
     --default-ink-a50: var(--light-gray-30-a50);
     --default-surface: var(--dark-gray-90);
-    --default-surface-hover: var(--dark-gray-50);
+    --default-surface-hover: rgba(128,128,128,0.8);
     --bg-1: hsla(250, 13%, 9%, 1);
     --bg-1-border: hsla(250, 13%, 16%, 1);
     --bg-overlay-50: #0008;
@@ -276,6 +278,7 @@
     --fieldset-header-surface: transparent;
     --fieldset-header-ink: var(--light-gray-30);
     --hr-ink: var(--dark-gray-50);
+    --cloud-widget-surface: var(--dark-gray-90);
     --button-surface: var(--light-gray-10-a12);
     --button-ink: var(--default-ink);
     --button-surface-hover: var(--light-gray-10-a12);
@@ -322,6 +325,27 @@
     --bg-popup-cell-block-own: hsla(0, 100%, 40%, 1);
     --bg-popup-cell-label-mixed: hsla(45, 100%, 38%, 1);
     --popup-icon-x-ink: #e22850;
+
+    /* codemirror */
+    /* --cm-gutter-border: var(--light-gray-40); */
+    /* --cm-gutter-ink: var(--light-gray-90);
+    --cm-gutter-surface: var(--light-gray-25); */
+    --cm-selection-surface: var(--dark-gray-40);
+    /* --cm-selection-ink: var(--default-ink);
+    --cm-searching-surface: #ffff0066; */
+    --cm-activeline-background: #e6510036;
+
+    --sf-def-ink: #4657ce;
+    --sf-tag-ink: #00a152;
+
+    /* logger */
+    --logger-blocked-surface: #801313;
+    --logger-modified-surface: #121858;
+    --logger-allowed-surface: #00352c;
+    --logger-blocked-em-surface: #5f0937;
+    --logger-modified-em-surface: #093170;
+    --logger-allowed-em-surface: #124116;
+    --logger-redirect-surface: #5b5310;
 
  /* Need to set colors in forms.css for moz-field stuffz
   -moz-FieldText: #888888 !important;  change from these names to either HEX value or variables.  default-ink
