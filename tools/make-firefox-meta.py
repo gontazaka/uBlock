@@ -30,11 +30,12 @@ if 'sidebar_action' in firefox_manifest:
         # Remove sidebarAction support for stable release of uBO.
         del firefox_manifest['sidebar_action']
 
+firefox_manifest['version'] = version
+
 # require git & clone repository
-short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
-additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $? -ne 0 ];then echo 🐣$(date +%m%d%H%M);fi", shell=True).strip().decode('utf-8')
+# short_hash = subprocess.check_output("git rev-parse --short HEAD".split()).strip().decode('utf-8')
+# additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $? -ne 0 ];then echo 🐣$(date +%m%d%H%M);fi", shell=True).strip().decode('utf-8')
 # firefox_manifest['version_name'] = version + "@" + short_hash + additional
-firefox_manifest['version'] = version + "@" + short_hash + additional
 
 
 with open(firefox_manifest_file, 'w') as f2:
