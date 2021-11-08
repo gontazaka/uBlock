@@ -34,6 +34,17 @@ uBlock 🦆 (uBlock Origin - experimental fork)
 Chrome, Firefoxとも現最新バージョンではFTPサポートが削除されているのでURI判定からftp/ftpsスキームを削除。  
 コミット https://github.com/gontazaka/uBlock/commit/c4f7c9ae8b793cea705659b4c51a5a576b542beb
 
+### 🦆 ビルトインフィルター非同梱
+
+*uBlock filters*や*EasyList*などのフィルターをパッケージに同梱しない。  
+パッケージサイズが1MB以上小さくなるため拡張機能をアップデートして使うメリットが出る。新規インストール時にルール数0となるが「今すぐ更新」すれば最新ルールが普通にダウンロードされる。  
+
+### 🦆 ダークモード微修正
+
+`Advanced settings` > `uiTheme:dark` のデザインが放置されたままなので少し手を加える。  
+フォーク元同様にベースは[Mozillaのガイドライン](https://protocol.mozilla.org/fundamentals/color.html)に沿った色定義にしている。  
+![Dark Mode Screenshot](./doc/img/dark-settings_3pf.webp)  
+
 ### 🦆 セルフホスト
 
 **(Chromium only)**  
@@ -56,14 +67,5 @@ GitHubのリリースで[セルフホスト](https://docs.microsoft.com/ja-jp/de
 [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallAllowlist]
 "1"="heijcalefhbbecnlkmkmgohkkfmhhhnm"
 ```
-
-### 🦆 ビルトインフィルター非同梱
-
-*uBlock filters*や*EasyList*などのフィルターをパッケージに同梱しない。  
-パッケージサイズが1MB以上小さくなるため拡張機能をアップデートして使うメリットが出る。新規インストール時にルール数0となるが「今すぐ更新」すれば最新ルールが普通にダウンロードされる。  
-
-### ダークモード微修正
-
-`Advanced settings` > `uiTheme:dark` のデザインが放置されたままなので少し手を加える
 
 ***

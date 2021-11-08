@@ -81,6 +81,7 @@ hr {
     padding: 0;
     stroke: none;
     stroke-width: 64;
+    transition: fill 0.3s;
     }
 body.off #switch {
     fill: var(--default-surface);
@@ -121,7 +122,12 @@ body.needSave #revertRules {
 #hostname > span {
     word-break: break-all;
     }
+#hostname > span:first-of-type {
+    font-size: 0.95rem;
+    color: var(--fg-0-90);
+    }
 #hostname > span + span {
+    font-size: 1.05rem;
     font-weight: 600;
     }
 
@@ -364,7 +370,7 @@ body[data-more=""] #lessButton {
     }
 #firewall > div > span:nth-of-type(3),
 #firewall > div > span:nth-of-type(4) {
-    color: var(--fg-0-70);
+    color: var(--default-ink);
     display: none;
     font-family: monospace;
     text-align: center;
@@ -502,7 +508,7 @@ body.advancedUser #firewall > div > span.noopRule,
     }
 body.advancedUser #firewall > div > span.ownRule,
 #firewall > div > span.ownRule {
-    color: var(--default-surface);
+    color: var(--default-ink);
     }
 body.advancedUser #firewall > div > span.allowRule.ownRule,
 :root:not(.mobile) #actionSelector > #dynaAllow:hover {
@@ -644,6 +650,7 @@ body:not([data-more~="e"]) [data-more="e"] {
     }
 :root.desktop .rulesetTools [id]:hover {
     fill: var(--default-ink);
+    background-color: var(--default-surface-hover);
     }
 :root.desktop #firewall {
     direction: rtl;

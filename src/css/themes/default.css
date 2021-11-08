@@ -127,6 +127,7 @@
     --bg-code: hsla(240, 20%, 93%, 1);
 
     /* these fg colors are meant to render over bg colors */
+    --fg-0-90: hsla(261, 53%, 15%, 0.9);
     --fg-0-80: hsla(261, 53%, 15%, 0.8);
     --fg-0-70: hsla(261, 53%, 15%, 0.7);
     --fg-0-60: hsla(261, 53%, 15%, 0.6);
@@ -295,11 +296,12 @@
     --default-ink-a4: var(--light-gray-10-a4);
     --default-ink-a50: var(--light-gray-30-a50);
     --default-surface: var(--dark-gray-90);
-    --default-surface-hover: rgba(128,128,128,0.8);
+    --default-surface-hover: rgba(128,128,128,0.5);
     --bg-1: hsla(250, 13%, 9%, 1);
     --bg-1-border: hsla(250, 13%, 16%, 1);
     --bg-overlay-50: #0008;
     --bg-code: hsla(0, 2%, 0%, 0.8);
+    --fg-0-90: hsla(0, 0%, 53%, 0.9);
     --fg-0-80: hsla(0, 0%, 53%, 0.8);
     --fg-0-70: hsla(0, 0%, 53%, 0.7);
     --fg-0-60: hsla(0, 0%, 53%, 0.6);
@@ -339,12 +341,13 @@
     --info-lvl-2-ink-hover: var(--yellow-60);
     --fg-icon-info-lvl-3-dimmed: hsla(16, 100%, 50%, 0.5);
     --fg-icon-info-lvl-3: hsla(16, 100%, 50%, 1);
-    --fg-icon-info-lvl-4-dimmed: hsla(0, 100%, 35%, 0.5);
-    --fg-icon-info-lvl-4: hsla(0, 100%, 35%, 1);
+    --fg-icon-info-lvl-4-dimmed: hsla(0, 100%, 40%, 0.75);
+    --fg-icon-info-lvl-4: hsla(0, 100%, 40%, 1);
     --large-icon-info-lvl-2: hsla(41, 100%, 47%, 1);
     --bg-tooltip: var(--dark-gray-50);
     --fg-tooltip: var(--light-gray-30);
     --bg-popup-cell-1: var(--dark-gray-50);
+    --popup-power-ink: var(--violet-60);
     --popup-power-disabled-ink: var(--light-gray-60);
     --popup-power-ink-hover: var(--dark-gray-30);
     --bg-popup-cell-2: var(--dark-gray-50);

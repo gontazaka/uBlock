@@ -185,7 +185,7 @@ body.updating .listEntry.checked.obsolete .updating {
 
 /* touch-screen devices */
 :root.mobile .listEntry .fa-icon {
-    font-size: 120%;
+    font-size: 150%;
     margin: 0 0.5em 0 0;
     }
 :root.mobile .listEntries {
@@ -207,4 +207,5 @@ body.updating .listEntry.checked.obsolete .updating {
     }
 :root.mobile .li.listEntry .iconbar {
     margin-top: 0.2em;
+    margin-left: 0.2em;
     }
