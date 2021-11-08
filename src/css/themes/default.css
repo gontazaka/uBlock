@@ -12,9 +12,14 @@
 */
 :root {
     --blue-10: #80ebff;
+    --blue-20: #00ddff;
+    --blue-30: #00b3f4;
     --blue-40: #0090ed;
     --blue-50: #0060df;
     --blue-60: #0250bb;
+    --blue-70: #054096;
+    --blue-80: #073072;
+    --blue-90: #09204d;
     --dark-gray-10: #52525e;
     --dark-gray-30: #42414d;
     --dark-gray-40: #3a3944;
@@ -43,9 +48,25 @@
     --light-gray-70: #9f9fad;
     --light-gray-80: #8f8f9e;
     --light-gray-90: #80808f;
-    --orange-80: #fc4422;
+    --orange-30: #ffa266;
+    --orange-40: #ff8a50;
+    --orange-50: #ff7139;
+    --orange-60: #e25920;
+    --orange-70: #cc3d00;
+    --orange-80: #9e280b;
+    --purple-30: #f770ff;
+    --purple-40: #d74cf0;
+    --purple-50: #b833e1;
     --purple-60: #952bb9;
+    --red-10: #ffbdc5;
+    --red-20: #ff9aa2;
+    --red-30: #ff848b;
+    --red-40: #ff6a75;
+    --red-50: #ff4f5e;
     --red-60: #e22850;
+    --red-70: #c50042;
+    --red-80: #810220;
+    --red-90: #440306;
     --violet-40: #ab71ff;
     --violet-60: #7542e5;
     --violet-70: #592acb;
@@ -55,6 +76,18 @@
     --yellow-40: #ffbd4f;
     --yellow-50: #ffa436;
     --yellow-60: #e27f2e;
+    --yellow-70: #c45a27;
+    --yellow-80: #a7341f;
+    --yellow-90: #960e18;
+    --green-10: #d1ffee;
+    --green-20: #b3ffe3;
+    --green-30: #88ffd1;
+    --green-40: #54ffbd;
+    --green-50: #3fe1b0;
+    --green-60: #2ac3a2;
+    --green-70: #008787;
+    --green-80: #005e5e;
+    --green-90: #08403f;
     --black: #000;
     --white: #fff;
 }
@@ -208,12 +241,12 @@
     --df-key-ink: var(--violet-70);
 
     /* logger */
-    --logger-blocked-surface: #c0000014;
-    --logger-modified-surface: #0000c010;
-    --logger-allowed-surface: #00a00014;
-    --logger-blocked-em-surface: #c0000036;
-    --logger-modified-em-surface: #0000c028;
-    --logger-allowed-em-surface: #00a00036;
+    --logger-blocked-surface: var(--red-10);
+    --logger-modified-surface: var(--blue-10);
+    --logger-allowed-surface: var(--green-10);
+    --logger-blocked-em-surface: var(--red-30);
+    --logger-modified-em-surface: var(--blue-30);
+    --logger-allowed-em-surface: var(--green-30);
     --logger-redirect-surface: rgba(255, 255, 0, 0.1);
 }
 
@@ -327,25 +360,27 @@
     --popup-icon-x-ink: #e22850;
 
     /* codemirror */
-    /* --cm-gutter-border: var(--light-gray-40); */
-    /* --cm-gutter-ink: var(--light-gray-90);
-    --cm-gutter-surface: var(--light-gray-25); */
-    --cm-selection-surface: var(--dark-gray-40);
-    /* --cm-selection-ink: var(--default-ink);
-    --cm-searching-surface: #ffff0066; */
-    --cm-activeline-background: #e6510036;
+    --cm-gutter-border: var(--dark-gray-50);
+    --cm-gutter-ink: var(--light-gray-40);
+    --cm-gutter-surface: var(--dark-gray-70);
+    --cm-selection-surface: var(--dark-gray-30);
+    --cm-selection-ink: var(--default-ink);
+    --cm-searching-surface: #ffff0066;
+    --cm-activeline-background: #80808018;
 
-    --sf-def-ink: #4657ce;
-    --sf-tag-ink: #00a152;
+    --sf-def-ink: var(--blue-40);
+    --sf-keyword-ink: var(--purple-40);
+    --sf-tag-ink: var(--green-60);
+    --sf-value-ink: var(--orange-50);
 
     /* logger */
-    --logger-blocked-surface: #801313;
-    --logger-modified-surface: #121858;
-    --logger-allowed-surface: #00352c;
-    --logger-blocked-em-surface: #5f0937;
-    --logger-modified-em-surface: #093170;
-    --logger-allowed-em-surface: #124116;
-    --logger-redirect-surface: #5b5310;
+    --logger-blocked-surface: var(--red-90);
+    --logger-modified-surface: var(--blue-90);
+    --logger-allowed-surface: var(--green-90);
+    --logger-blocked-em-surface: var(--red-80);
+    --logger-modified-em-surface: var(--blue-80);
+    --logger-allowed-em-surface: var(--green-80);
+    --logger-redirect-surface: rgba(255, 255, 0, 0.2);
 
  /* Need to set colors in forms.css for moz-field stuffz
   -moz-FieldText: #888888 !important;  change from these names to either HEX value or variables.  default-ink

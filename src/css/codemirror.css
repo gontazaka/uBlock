@@ -1,5 +1,5 @@
 .codeMirrorContainer {
-    font-size: 12px;
+    font-size: clamp(12px, 1.5vw, 1rem);
     line-height: 1.25;
     overflow: hidden;
     position: relative;
@@ -200,4 +200,8 @@ div.CodeMirror span.CodeMirror-matchingbracket {
 
 .CodeMirror-activeline-background {
     background: var(--cm-activeline-background);
+}
+
+.CodeMirror div.CodeMirror-cursor {
+    border-left: 1px solid var(--default-ink);
 }

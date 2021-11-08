@@ -269,7 +269,7 @@ body.colorBlind #vwRenderer .logEntry > div.redirect {
     background-color: rgba(0, 19, 110, 0.1);
     }
 #vwRenderer .logEntry > div[data-aliasid] {
-    color: #2979ff;
+    color: var(--blue-50);
     }
 #vwRenderer .logEntry > div[data-type="tabLoad"] {
     background-color: #666;
@@ -289,7 +289,7 @@ body.colorBlind #vwRenderer .logEntry > div.redirect {
     }
 
 #vwRenderer .logEntry > div > span {
-    border: 1px solid #ccc;
+    border: 1px solid var(--bg-1-border);
     border-top: 0;
     border-right: 0;
     box-sizing: border-box;
@@ -331,7 +331,7 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
     pointer-events: none;
     }
 #vwRenderer .logEntry > div.extendedRealm.isException > span:nth-of-type(2) > span:last-of-type {
-    text-decoration: line-through rgba(0,0,255,0.7);
+    text-decoration: line-through var(--blue-60);
     }
 #vwRenderer .logEntry > div > span:nth-of-type(3) {
     font: 12px monospace;
