@@ -109,7 +109,7 @@
 :root {
     --font-size: 14px;
 
-    --ubo-red: #800000;
+    --ubo-red: orangered;
 
     --default-ink: var(--ink-80);
     --default-ink-a4: var(--ink-80-a4);
@@ -286,7 +286,7 @@
 */
 
 @media (prefers-color-scheme: dark) {
-    body {
+    html, body, iframe, document {
         background-color: var(--dark-gray-90);
     }
 }

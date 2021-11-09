@@ -47,7 +47,7 @@ jobs:
       - name: Build all packages
         run: |
           tools/make-chromium.sh ${{ steps.release_info.outputs.VERSION }}
-        # tools/make-firefox.sh ${{ steps.release_info.outputs.VERSION }}
+          tools/make-firefox.sh ${{ steps.release_info.outputs.VERSION }}
         # tools/make-thunderbird.sh ${{ steps.release_info.outputs.VERSION }}
         # tools/make-npm.sh ${{ steps.release_info.outputs.VERSION }}
       - name: Upload Chromium package
@@ -75,12 +75,12 @@ jobs:
           publish_dir: "./${{ env.PACKAGE_META_DIR }}"
           force_orphan: true
 
-      # - name: Upload Firefox package
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-      #     asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-      #     asset_content_type: application/octet-stream
+      - name: Upload Firefox package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
+          asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
+          asset_content_type: application/octet-stream
