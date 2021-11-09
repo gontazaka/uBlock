@@ -37,7 +37,7 @@ projdir = os.path.split(os.path.abspath(__file__))[0]
 while not os.path.isdir(os.path.join(projdir, '.git')):
     projdir = os.path.normpath(os.path.join(projdir, '..'))
 # Check that found project root is valid
-version_filepath = os.path.join(projdir, 'dist', 'version')
+version_filepath = os.path.join(projdir, 'dist', 'versiongz')
 if not os.path.isfile(version_filepath):
     print('Version file not found.')
     exit(1)
@@ -48,25 +48,26 @@ if len(sys.argv) >= 2 and sys.argv[1]:
 else:
     tag_version = input('Github release version: ')
 tag_version.strip()
-match = re.search('^(\d+\.\d+\.\d+)(?:(b|rc)(\d+))?$', tag_version)
+match = re.search('^(\d+\.\d+\.\d+)(\.\d+)?$', tag_version)
 if not match:
     print('Error: Invalid version string.')
     exit(1)
-ext_version = match.group(1);
-if match.group(2):
-    revision = int(match.group(3))
-    if match.group(2) == 'rc':
-        revision += 100;
-    ext_version += '.' + str(revision)
+# ext_version = match.group(1);
+# if match.group(2):
+#     revision = int(match.group(3))
+#     if match.group(2) == 'rc':
+#         revision += 100;
+#     ext_version += '.' + str(revision)
+ext_version = tag_version
 
-extension_id = 'uBlock0@raymondhill.net'
+extension_id = 'ublock@gontazaka'
 tmpdir = tempfile.TemporaryDirectory()
-raw_xpi_filename = 'uBlock0_' + tag_version + '.firefox.xpi'
+raw_xpi_filename = 'uBlock._' + tag_version + '.firefox.xpi'
 raw_xpi_filepath = os.path.join(tmpdir.name, raw_xpi_filename)
-unsigned_xpi_filepath = os.path.join(tmpdir.name, 'uBlock0.firefox.unsigned.xpi')
-signed_xpi_filename = 'uBlock0_' + tag_version + '.firefox.signed.xpi'
+unsigned_xpi_filepath = os.path.join(tmpdir.name, 'uBlock..firefox.unsigned.xpi')
+signed_xpi_filename = 'uBlock._' + tag_version + '.firefox.signed.xpi'
 signed_xpi_filepath = os.path.join(tmpdir.name, signed_xpi_filename)
-github_owner = 'gorhill'
+github_owner = 'gontazaka'
 github_repo = 'uBlock'
 
 # Load/save auth secrets
@@ -161,7 +162,7 @@ with zipfile.ZipFile(raw_xpi_filepath, 'r') as zipin:
             data = zipin.read(item.filename)
             if item.filename == 'manifest.json':
                 manifest = json.loads(bytes.decode(data))
-                manifest['browser_specific_settings']['gecko']['update_url'] = 'https://raw.githubusercontent.com/{0}/{1}/master/dist/firefox/updates.json'.format(github_owner, github_repo)
+                manifest['browser_specific_settings']['gecko']['update_url'] = 'https://{0}.github.io/{1}/firefox/updates.json'.format(github_owner, github_repo)
                 data = json.dumps(manifest, indent=2, separators=(',', ': '), sort_keys=True).encode()
             zipout.writestr(item, data)
 
@@ -190,7 +191,7 @@ def get_jwt_auth():
         'iat': datetime.datetime.utcnow(),
         'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=15),
     }
-    return 'JWT ' + jwt.encode(jwt_payload, amo_secret).decode()
+    return 'JWT ' + jwt.encode(jwt_payload, amo_secret)
 
 print('Ask AMO to sign self-hosted xpi package...')
 with open(unsigned_xpi_filepath, 'rb') as f:
@@ -203,7 +204,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
     files = { 'upload': f, }
     signing_url = 'https://addons.mozilla.org/api/v3/addons/{0}/versions/{1}/'.format(extension_id, ext_version)
     print('Submitting package to be signed...')
-    response = requests.put(signing_url, headers=headers, data=data, files=files)
+    response = requests.put(signing_url, headers=headers, data=data, files=files, timeout=(15.0, 300.0))
     if response.status_code != 202:
         print('Error: Creating new version failed -- server error {0}'.format(response.status_code))
         print(response.text)
@@ -274,6 +275,7 @@ with open(signed_xpi_filepath, 'rb') as f:
     if response.status_code != 201:
         print('Error: Upload signed package failed -- server error: {0}'.format(response.status_code))
         exit(1)
+upload_info = response.json()
 
 #
 # Remove raw package from GitHub
