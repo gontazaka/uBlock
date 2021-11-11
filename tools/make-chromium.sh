@@ -16,12 +16,12 @@ bash ./tools/copy-common-files.sh  $DES
 
 # Chromium-specific
 echo "*** uBlock🦆.chromium: Copying chromium-specific files"
-cp platform/chromium/*.js   $DES/js/
-cp platform/chromium/*.html $DES/
-cp platform/chromium/*.json $DES/
+cp -l platform/chromium/*.js   $DES/js/
+cp -l platform/chromium/*.html $DES/
+cp -l platform/chromium/*.json $DES/
 
 # Chrome store-specific
-cp -R $DES/_locales/nb $DES/_locales/no
+cp -Rl $DES/_locales/nb $DES/_locales/no
 
 echo "*** uBlock🦆.chromium: Generating meta..."
 python3 tools/make-chromium-meta.py $DES/
