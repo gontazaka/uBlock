@@ -16,7 +16,7 @@ bash ./tools/copy-common-files.sh  $DES
 
 # Firefox-specific
 echo "*** uBlock🦆.firefox: Copying firefox-specific files"
-cp -l platform/firefox/*.json $DES/
+cp    platform/firefox/*.json $DES/
 cp -l platform/firefox/*.js   $DES/js/
 
 # Firefox store-specific

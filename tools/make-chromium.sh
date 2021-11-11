@@ -18,7 +18,7 @@ bash ./tools/copy-common-files.sh  $DES
 echo "*** uBlock🦆.chromium: Copying chromium-specific files"
 cp -l platform/chromium/*.js   $DES/js/
 cp -l platform/chromium/*.html $DES/
-cp -l platform/chromium/*.json $DES/
+cp    platform/chromium/*.json $DES/
 
 # Chrome store-specific
 cp -Rl $DES/_locales/nb $DES/_locales/no
