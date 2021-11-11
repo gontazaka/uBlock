@@ -354,7 +354,7 @@
     --popup-power-ink-hover: var(--dark-gray-30);
     --bg-popup-cell-2: var(--dark-gray-70);
     --bg-popup-cell-label-filter: opacity(40%);
-    --fg-popup-cell-cname: hsla(240, 85%, 73%, 0.6);
+    --fg-popup-cell-cname: hsla(240, 85%, 73%, 1);
     --bg-popup-cell-allow: hsla(120, 40%, 75%, 1);
     --bg-popup-cell-allow-own: hsla(120, 100%, 40%, 1);
     --bg-popup-cell-noop: hsla(0, 0%, 65%, 1);
