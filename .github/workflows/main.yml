@@ -21,10 +21,6 @@ jobs:
       FIREFOX_UPDATE_JSON: dist/firefox/update.json
 
     steps:
-      - name: Setup Python
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r dist/firefox/requirements.txt
       - name: Clone repository
         uses: actions/checkout@v2
         with:
@@ -33,6 +29,10 @@ jobs:
         run: |
           git submodule update --depth 1 --init
       # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+      - name: Setup Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dist/firefox/requirements.txt
       - name: Get release information
         id: release_info
         run: |
