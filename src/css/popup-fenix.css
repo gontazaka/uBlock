@@ -407,11 +407,13 @@ body[data-more=""] #lessButton {
     font-weight: 400;
     color: var(--default-ink-a40);
     }
-#firewall > div.isDomain.hasSubdomains:not(.expandException) > span:first-of-type > span::before {
+#firewall.expanded > div.isDomain.hasSubdomains:not(.expandException) > span:first-of-type > span::before,
+#firewall > div.isDomain.hasSubdomains.expandException > span:first-of-type > span::before {
     color: var(--default-ink-a50);
     content: '\2228\A0';
     }
-#firewall > div.isDomain.hasSubdomains > span:first-of-type > span::before {
+#firewall.expanded > div.isDomain.hasSubdomains.expandException > span:first-of-type > span::before,
+#firewall > div.isDomain.hasSubdomains:not(.expandException) > span:first-of-type > span::before {
     color: var(--default-ink-a50);
     content: '\003E\A0';
     }
