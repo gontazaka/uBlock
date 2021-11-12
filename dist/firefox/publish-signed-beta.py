@@ -46,7 +46,9 @@ if not os.path.isfile(version_filepath):
 if len(sys.argv) >= 2 and sys.argv[1]:
     tag_version = sys.argv[1]
 else:
-    tag_version = input('Github release version: ')
+    # tag_version = input('Github release version: ')
+    with open(version_filepath) as f:
+        tag_version = f.read()
 tag_version.strip()
 match = re.search('^(\d+\.\d+\.\d+)(\.\d+)?$', tag_version)
 if not match:
@@ -79,22 +81,25 @@ if os.path.isfile(ubo_secrets_filename):
         ubo_secrets = json.load(f)
 
 def input_secret(prompt, token):
-    if token in ubo_secrets:
-        prompt += ' ✔'
-    prompt += ': '
-    value = input(prompt).strip()
+    # if token in ubo_secrets:
+    #     prompt += ' ✔'
+    # prompt += ': '
+    # value = input(prompt).strip()
+    value = os.environ.get(token.upper(), '').strip()
     if len(value) == 0:
-        if token not in ubo_secrets:
-            print('Token error:', token)
-            exit(1)
-        value = ubo_secrets[token]
-    elif token not in ubo_secrets or value != ubo_secrets[token]:
-        ubo_secrets[token] = value
-        exists = os.path.isfile(ubo_secrets_filename)
-        with open(ubo_secrets_filename, 'w') as f:
-            json.dump(ubo_secrets, f, indent=2)
-        if not exists:
-            os.chmod(ubo_secrets_filename, 0o600)
+        # if token not in ubo_secrets:
+        #     print('Token error:', token)
+        #     exit(1)
+        # value = ubo_secrets[token]
+        print('Token error:', token)
+        exit(1)
+    # elif token not in ubo_secrets or value != ubo_secrets[token]:
+    #     ubo_secrets[token] = value
+    #     exists = os.path.isfile(ubo_secrets_filename)
+    #     with open(ubo_secrets_filename, 'w') as f:
+    #         json.dump(ubo_secrets, f, indent=2)
+    #     if not exists:
+    #         os.chmod(ubo_secrets_filename, 0o600)
     return value
 
 # GitHub API token
@@ -204,7 +209,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
     files = { 'upload': f, }
     signing_url = 'https://addons.mozilla.org/api/v4/addons/{0}/versions/{1}/'.format(extension_id, ext_version)
     print('Submitting package to be signed...')
-    response = requests.put(signing_url, headers=headers, data=data, files=files, timeout=(15.0, 300.0))
+    response = requests.put(signing_url, headers=headers, data=data, files=files, timeout=(30.0, 600.0))
     if response.status_code != 202:
         print('Error: Creating new version failed -- server error {0}'.format(response.status_code))
         print(response.text)
@@ -292,32 +297,42 @@ if response.status_code != 204:
 # Update updates.json to point to new package -- but only if just-signed
 # package is higher version than current one.
 #
+# 
+# print('Update GitHub to point to newly signed self-hosted xpi package...')
+# updates_json_filepath = os.path.join(projdir, 'dist', 'firefox', 'updates.json')
+# with open(updates_json_filepath) as f:
+#     updates_json = json.load(f)
+#     f.close()
+#     previous_version = updates_json['addons'][extension_id]['updates'][0]['version']
+#     if LooseVersion(ext_version) > LooseVersion(previous_version):
+#         with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as f:
+#             template_json = Template(f.read())
+#             f.close()
+#             updates_json = template_json.substitute(ext_version=ext_version, tag_version=tag_version)
+#             with open(updates_json_filepath, 'w') as f:
+#                 f.write(updates_json)
+#                 f.close()
+#         # Automatically git add/commit if needed.
+#         # - Stage the changed file
+#         r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
+#         rout = bytes.decode(r.stdout).strip()
+#         if len(rout) >= 2 and rout[1] == 'M':
+#             subprocess.run(['git', 'add', updates_json_filepath])
+#         # - Commit the staged file
+#         r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
+#         rout = bytes.decode(r.stdout).strip()
+#         if len(rout) >= 2 and rout[0] == 'M':
+#             subprocess.run(['git', 'commit', '-m', 'Make Firefox dev build auto-update', updates_json_filepath])
+#             subprocess.run(['git', 'push', 'origin', 'HEAD'])
 
-print('Update GitHub to point to newly signed self-hosted xpi package...')
 updates_json_filepath = os.path.join(projdir, 'dist', 'firefox', 'updates.json')
-with open(updates_json_filepath) as f:
+with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as f:
     updates_json = json.load(f)
     f.close()
-    previous_version = updates_json['addons'][extension_id]['updates'][0]['version']
-    if LooseVersion(ext_version) > LooseVersion(previous_version):
-        with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as f:
-            template_json = Template(f.read())
-            f.close()
-            updates_json = template_json.substitute(ext_version=ext_version, tag_version=tag_version)
-            with open(updates_json_filepath, 'w') as f:
-                f.write(updates_json)
-                f.close()
-        # Automatically git add/commit if needed.
-        # - Stage the changed file
-        r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
-        rout = bytes.decode(r.stdout).strip()
-        if len(rout) >= 2 and rout[1] == 'M':
-            subprocess.run(['git', 'add', updates_json_filepath])
-        # - Commit the staged file
-        r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
-        rout = bytes.decode(r.stdout).strip()
-        if len(rout) >= 2 and rout[0] == 'M':
-            subprocess.run(['git', 'commit', '-m', 'Make Firefox dev build auto-update', updates_json_filepath])
-            subprocess.run(['git', 'push', 'origin', 'HEAD'])
+    updates_json['addons'][extension_id]['updates'][0]['version'] = ext_version
+    updates_json['addons'][extension_id]['updates'][0]['update_link'] = upload_info['browser_download_url']
+    with open(updates_json_filepath, 'w') as f:
+        json.dump(updates_json, f, indent=2, separators=(',', ': '), sort_keys=True)
+        f.close()
 
 print('All done.')
