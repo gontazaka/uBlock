@@ -21,6 +21,9 @@ jobs:
       FIREFOX_UPDATE_JSON: dist/firefox/update.json
 
     steps:
+      - name: Setup Python
+          python -m pip install --upgrade pip
+          pip install -r dist/firefox/requirements.txt
       - name: Clone repository
         uses: actions/checkout@v2
         with:
