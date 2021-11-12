@@ -31,12 +31,12 @@ python3 tools/make-firefox-meta.py $DES/
 if [ "$1" = all ]; then
     echo "*** uBlock🦆.firefox: Creating package..."
     pushd $DES > /dev/null
-    zip ../$(basename $DES).xpi -qr *
+    zip ../$(basename $DES).xpi -qr -9 *
     popd > /dev/null
 elif [ -n "$1" ]; then
     echo "*** uBlock🦆.firefox: Creating versioned package..."
     pushd $DES > /dev/null
-    zip ../$(basename $DES).xpi -qr *
+    zip ../$(basename $DES).xpi -qr -9 *
     popd > /dev/null
     mv "$BLDIR"/uBlock🦆.firefox.xpi "$BLDIR"/uBlock🦆_"$1".firefox.xpi
 fi
