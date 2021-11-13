@@ -15,9 +15,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     env:
       PACKAGE_META_DIR: dist/meta
-      CHROMIUM_PACKAGE_META_DIR: ${{ env.PACKAGE_META_DIR }}/chromium
+      CHROMIUM_PACKAGE_META_DIR: dist/meta/chromium
       CHROMIUM_UPDATE_XML: dist/chromium/update.xml
-      FIREFOX_PACKAGE_META_DIR: ${{ env.PACKAGE_META_DIR }}/firefox
+      FIREFOX_PACKAGE_META_DIR: dist/meta/firefox
       FIREFOX_UPDATE_JSON: dist/firefox/update.json
 
     steps:
