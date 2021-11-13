@@ -833,10 +833,12 @@ body.colorBlind  #netFilteringDialog > div.panes > .dynamic .entry > .action > .
     padding-bottom: 1em;
     }
 #netFilteringDialog > div.panes > div.static textarea {
-    height: 6em;
+    height: calc(1.25rem * 6);
+    line-height: 1.25rem;
     max-height: 20vh;
     min-height: 10vh;
     word-break: break-all;
+    font-size: 1rem;
     }
 #netFilteringDialog > div.panes > div.static > div:nth-of-type(2) {
     text-align: center;

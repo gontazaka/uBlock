@@ -2,10 +2,9 @@ body {
     margin-bottom: 6rem;
     }
 
-.body > div {
+.body > div > div.supportEntry {
     max-width: 800px;
     }
-
 .supportEntry {
     display: flex;
     margin-top: 1em;
