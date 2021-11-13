@@ -613,7 +613,7 @@ body.godMode #actionSelector > #dynaAllow {
 :root body[data-ui~="+no-popups"] #no-popups {
     display: flex;
     }
-:root.mobile [href="logger-ui.html#_"] {
+:root #gotoReport {
     display: none;
     }
 body:not([data-more~="a"]) [data-more="a"],
