@@ -94,8 +94,8 @@ jobs:
           AMO_SECRET: ${{ secrets.AMO_SECRET }}
         run: |
           python3 dist/firefox/publish-signed-beta.py  "${{ steps.release_info.outputs.VERSION }}" "${{ steps.release_firefox.outputs.browser_download_url }}"
-          mkdir -p "${{ env.FIREFOX_UPDATE_XML }}"
-          cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_UPDATE_XML }}/"
+          mkdir -p "${{ env.FIREFOX_PACKAGE_META_DIR }}"
+          cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_PACKAGE_META_DIR }}/"
 
       - name: Deploy package metadata
         uses: peaceiris/actions-gh-pages@v3
