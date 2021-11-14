@@ -47,11 +47,10 @@ Chrome, Firefoxとも現最新バージョンではFTPサポートが削除さ�
 
 ### 🦆 セルフホスト
 
-**(Chromium only)**  
-GitHubのリリースで[セルフホスト](https://docs.microsoft.com/ja-jp/deployedge/microsoft-edge-manage-extensions-webstore#distribute-a-privately-hosted-extension)している。  
-リリース時のGitHub Actionsで[アップデート用XML](https://github.com/gontazaka/uBlock/blob/meta/chromium/update.xml)も更新し、CRXは鍵付きでパッキングされるため自動更新対応している。  
+GitHubのリリースでセルフホスト([Chromium](https://docs.microsoft.com/ja-jp/deployedge/microsoft-edge-manage-extensions-webstore#distribute-a-privately-hosted-extension), [Firefox](https://extensionworkshop.com/documentation/publish/self-distribution/))している。  
+リリース時のGitHub Actionsでアップデート用メタデータ[Chromium](https://github.com/gontazaka/uBlock/blob/meta/chromium/update.xml), [Firefox](https://github.com/gontazaka/uBlock/blob/meta/firefox/updates.json))も更新し`.crx`は鍵付きでパッキング、`.xpi`は`addons.mozilla.org(AMO)`で署名されるため自動更新対応している。  
 
-が、セキュリティ都合のためか初期状態では野良拡張機能はブロックされているためおまじないが必要。  
+セキュリティ都合のためかChromiumは初期状態では野良拡張機能はブロックされているためおまじないが必要。  
 
 #### Windows
 レジストリ変更（or ポリシーエディタ）  
