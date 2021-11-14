@@ -18,7 +18,7 @@ jobs:
       CHROMIUM_PACKAGE_META_DIR: dist/meta/chromium
       CHROMIUM_UPDATE_XML: dist/chromium/update.xml
       FIREFOX_PACKAGE_META_DIR: dist/meta/firefox
-      FIREFOX_UPDATE_JSON: dist/firefox/update.json
+      FIREFOX_UPDATE_JSON: dist/firefox/updates.json
 
     steps:
       - name: Clone repository
