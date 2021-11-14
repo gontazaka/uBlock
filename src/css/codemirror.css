@@ -116,7 +116,7 @@ div.CodeMirror span.CodeMirror-matchingbracket {
     color: unset;
     }
 .CodeMirror-matchingbracket {
-    background-color: #afa;
+    background-color: var(--cm-matchingbracket-background);
     color: inherit !important;
     font-weight: bold;
     }
@@ -145,7 +145,7 @@ div.CodeMirror span.CodeMirror-matchingbracket {
     font-size: 140%;
     }
 .cm-search-widget .fa-icon:not(.fa-icon-ro):hover {
-    fill: #000;
+    fill: var(--cm-selection-ink);
     }
 .cm-search-widget-input input {
     border: 1px solid var(--cm-gutter-ink);
@@ -164,15 +164,12 @@ div.CodeMirror span.CodeMirror-matchingbracket {
 .cm-search-widget[data-query] .cm-search-widget-count:not(:empty) {
     visibility: visible;
     }
-.cm-search-widget .cm-search-widget-button:hover {
-    color: #000;
-    }
 .cm-search-widget .sourceURL[href=""] {
     display: none;
     }
 .cm-searching {
     background-color: var(--cm-searching-surface) !important;
-    border: 1px dotted black;
+    border: 1px dotted var(--cm-selection-ink);
     }
 
 .CodeMirror-merge {

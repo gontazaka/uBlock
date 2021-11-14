@@ -221,6 +221,7 @@
     --cm-selection-ink: var(--default-ink);
     --cm-searching-surface: #ffff0066;
     --cm-activeline-background: var(--default-surface-hover);
+    --cm-matchingbracket-background: var(--green-30);
 
     /* syntax highlight: static filtering */
     --sf-comment-ink: var(--light-gray-90);
@@ -330,7 +331,9 @@
     --checkbox-size: calc(var(--font-size) + 2px);
     --checkbox-ink: var(--default-ink);
     --checkbox-checked-ink: #bb86fc;
-  /*--select-surface:*/
+
+    --select-surface: var(--light-gray-70);
+
     --bg-transient-notice: var(--dark-gray-50);
     --dashboard-bar-shadow: 0px 0px 0px 1px var(--default-ink-a4);
     --dashboard-tab-active-ink: #bb86fc;
@@ -370,8 +373,9 @@
     --cm-gutter-surface: var(--dark-gray-70);
     --cm-selection-surface: var(--dark-gray-30);
     --cm-selection-ink: var(--default-ink);
-    --cm-searching-surface: #ffff0066;
+    --cm-searching-surface: #ffff0046;
     --cm-activeline-background: #80808018;
+    --cm-matchingbracket-background: var(--green-70);
 
     --sf-def-ink: var(--blue-40);
     --sf-keyword-ink: var(--purple-40);
