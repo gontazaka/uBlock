@@ -13,7 +13,7 @@
     width: 100%;
     }
 .CodeMirror-lines {
-    padding-bottom: 6rem;
+    padding-bottom: 1rem;
     }
 .CodeMirror-gutters {
     background-color: var(--cm-gutter-surface);
