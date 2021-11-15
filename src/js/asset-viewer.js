@@ -56,7 +56,7 @@ import './codemirror/ubo-static-filtering.js';
         lineWrapping: true,
         matchBrackets: true,
         maxScanLines: 1,
-        readOnly: true,
+        readOnly: vAPI.webextFlavor.soup.has('mobile') ? 'nocursor' : true,
         styleActiveLine: {
             nonEmpty: true,
         },

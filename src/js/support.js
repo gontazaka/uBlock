@@ -226,8 +226,8 @@ function reportSpecificFilterIssue(ev) {
 /******************************************************************************/
 
 const cmEditor = new CodeMirror(document.getElementById('supportData'), {
-    autofocus: true,
-    readOnly: true,
+    autofocus: false,
+    readOnly: 'nocursor',
     styleActiveLine: true,
 });
 
