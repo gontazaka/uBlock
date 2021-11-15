@@ -48,7 +48,8 @@ Chrome, Firefoxとも現最新バージョンではFTPサポートが削除さ�
 ### 🦆 セルフホスト
 
 GitHubのリリースでセルフホスト([Chromium](https://docs.microsoft.com/ja-jp/deployedge/microsoft-edge-manage-extensions-webstore#distribute-a-privately-hosted-extension), [Firefox](https://extensionworkshop.com/documentation/publish/self-distribution/))している。  
-リリース時のGitHub Actionsでアップデート用メタデータ[Chromium](https://github.com/gontazaka/uBlock/blob/meta/chromium/update.xml), [Firefox](https://github.com/gontazaka/uBlock/blob/meta/firefox/updates.json))も更新し`.crx`は鍵付きでパッキング、`.xpi`は`addons.mozilla.org(AMO)`で署名されるため自動更新対応している。  
+リリース時のGitHub Actionsでアップデート用メタデータ[Chromium](https://github.com/gontazaka/uBlock/blob/meta/chromium/update.xml), [Firefox](https://github.com/gontazaka/uBlock/blob/meta/firefox/updates.json))も更新し`.crx`は鍵付きでパッキング、`.xpi`は[`addons.mozilla.org(AMO)`](https://addons.mozilla.org/firefox/)で署名されるため自動更新対応している。  
+※FirefoxのセルフホストはuBlock Originでも行っており、ローカル実行からGitHub Actionsで実行するように変更した点が異なる
 
 セキュリティ都合のためかChromiumは初期状態では野良拡張機能はブロックされているためおまじないが必要。  
 
