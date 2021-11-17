@@ -930,14 +930,20 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         }
     }
     // Extract update frequency information
-    const matches = head.match(/(?:^|\n)(?:!|# )[\t ]*Expires[\t ]*:[\t ]*(\d+)[\t ]*(h)?/i);
+    const matches = head.match(/(?:^|\n)(?:!|# )[\t ]*Expires[\t ]*:[\t ]*(\d+)[\t ]*([dh])?/i);
     if ( matches !== null ) {
         let updateAfter = parseInt(matches[1], 10);
         if ( isNaN(updateAfter) === false ) {
-            if ( matches[2] !== undefined ) {
+            if (matches[2] === 'd') { // day(s)
+                // do nothing
+            } else if (matches[2] === 'h') { // hour(s)
+                updateAfter = updateAfter / 24;
+            } else { // assume hour(s)
                 updateAfter = Math.ceil(updateAfter / 24);
             }
-            updateAfter = Math.max(updateAfter, 1);
+            // clamp: 6 hours < updateAfter < 90 days
+            updateAfter = Math.max(updateAfter, 1 / 4);
+            updateAfter = Math.min(updateAfter, 360 / 4); 
             if ( updateAfter !== listEntry.updateAfter ) {
                 listEntry.updateAfter = updateAfter;
                 io.registerAssetSource(assetKey, { updateAfter });
