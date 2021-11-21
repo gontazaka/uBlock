@@ -226,8 +226,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
     signing_check_url = signing_request_response['url']
     while True:
         time.sleep(interval)
-        sys.stdout.write('🦊')
-        sys.stdout.flush()
+        print('🦊', end='')
         countdown -= 1
         if countdown <= 0:
             print('Error: AMO signing timed out')
@@ -256,7 +255,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
         print('\r')
         print('Self-hosted xpi package successfully signed.')
         download_url = signing_check_response['files'][0]['download_url']
-        print('Downloading signed self-hosted xpi package from {0}...'.format(download_url))
+        print('Downloading signed self-hosted xpi package...')
         response = requests.get(download_url, headers=headers)
         if response.status_code != 200:
             print('Error: Download signed package failed -- server error {0}'.format(response.status_code))
