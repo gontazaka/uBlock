@@ -35,7 +35,10 @@ const actualURL = url.searchParams.get('url');
 const frameURL = url.searchParams.get('aliasURL') || actualURL;
 const frameURLElem = document.getElementById('frameURL');
 
-frameURLElem.children[0].textContent = actualURL;
+const indicate = new URL(actualURL);
+frameURLElem.children[0].children[0].textContent = indicate.protocol;
+frameURLElem.children[0].children[1].textContent = indicate.host;
+frameURLElem.children[0].children[2].textContent = indicate.pathname + indicate.search;
 
 frameURLElem.children[1].href = frameURL;
 frameURLElem.children[1].title = frameURL;

@@ -20,20 +20,15 @@
 
 body {
     align-items: center;
-    background-color: var(--default-surface);
-    border: 1px solid var(--ubo-red);
+    background: 
+        no-repeat center/12.5vmin url(../img/ublock.svg),
+        repeating-linear-gradient(45deg, var(--light-gray-30), var(--light-gray-30) 8px, var(--light-gray-25) 0, var(--light-gray-25) 26px);
+    border: 0.2vmin solid var(--ubo-red);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     padding: 0 2px;
     position: relative;
-    }
-
-.logo {
-    left: 0;
-    padding: 2px 1px;
-    position: absolute;
-    top: 0;
     }
 
 #frameURL {
@@ -43,9 +38,21 @@ body {
     word-break: break-all;
     }
 #frameURL > a {
-    font-size: 1rem;
+    font-size: 2em;
+    }
+#frameURL > a:hover {
+    fill: var(--link-ink);
     }
     
+#frameURL .protocol {
+    font-size: 80%;
+    font-weight: lighter;
+    }
+#frameURL .host {
+    font-size: 120%;
+    font-weight: bold;
+    }
+
 #clickToLoad {
     cursor: default;
     margin-bottom: 1em;
