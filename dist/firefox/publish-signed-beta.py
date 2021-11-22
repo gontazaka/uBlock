@@ -226,7 +226,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
     signing_check_url = signing_request_response['url']
     while True:
         time.sleep(interval)
-        print('🦊', end='')
+        print('🦊', end='', flush=True)
         countdown -= 1
         if countdown <= 0:
             print('Error: AMO signing timed out')
