@@ -12,9 +12,12 @@ import sys
 import tempfile
 import time
 import zipfile
+import functools
 
 from distutils.version import LooseVersion
 from string import Template
+
+print = functools.partial(print, flush=True)
 
 # - Download target (raw) uBlock0.firefox.xpi from GitHub
 #   - This is referred to as "raw" package
@@ -74,11 +77,11 @@ github_repo = 'uBlock'
 
 # Load/save auth secrets
 # The build directory is excluded from git
-ubo_secrets = dict()
-ubo_secrets_filename = os.path.join(projdir, 'dist', 'build', 'ubo_secrets')
-if os.path.isfile(ubo_secrets_filename):
-    with open(ubo_secrets_filename) as f:
-        ubo_secrets = json.load(f)
+# ubo_secrets = dict()
+# ubo_secrets_filename = os.path.join(projdir, 'dist', 'build', 'ubo_secrets')
+# if os.path.isfile(ubo_secrets_filename):
+#     with open(ubo_secrets_filename) as f:
+#         ubo_secrets = json.load(f)
 
 def input_secret(prompt, token):
     # if token in ubo_secrets:
