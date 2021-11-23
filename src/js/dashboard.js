@@ -28,6 +28,8 @@
 {
 // >>>>> start of local scope
 
+const titleStr = vAPI.i18n('dashboardName');
+
 /******************************************************************************/
 
 const discardUnsavedData = function(synchronous = false) {
@@ -146,6 +148,11 @@ if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
             event.preventDefault();
             event.returnValue = '';
         });
+    }
+
+    {
+        const title = titleStr.replace('uBlock₀', 'uBlock🦆');
+        document.title = title;
     }
 })();
 
