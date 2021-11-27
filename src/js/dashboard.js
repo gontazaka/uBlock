@@ -81,6 +81,7 @@ const loadDashboardPanel = function(pane, first) {
         return;
     }
     const loadPane = ( ) => {
+        uDom('#iframe').css('visibility', 'hidden'); // Prevent 'iframe' white flash
         self.location.replace(`#${pane}`);
         uDom('.tabButton.selected').toggleClass('selected', false);
         tabButton.classList.add('selected');
@@ -147,6 +148,13 @@ if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
             if ( discardUnsavedData(true) ) { return; }
             event.preventDefault();
             event.returnValue = '';
+        });
+    }
+
+    // Prevent 'iframe' white flash
+    {
+        document.getElementById('iframe').addEventListener('load', (e) => {
+            e.target.style.setProperty('visibility', 'visible');
         });
     }
 
