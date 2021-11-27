@@ -66,4 +66,8 @@ GitHubのリリースでパッケージをセルフホスト([Chrome](https://de
 ##### [Google Chrome](https://cloud.google.com/docs/chrome-enterprise/policies?policy=ExtensionInstallAllowlist)
 Chromeはデフォルトですべての拡張機能が許可。  
 
+### 🦆🦆🦆 uBlock Originとの差分を見る
+
+[Comparing changes](https://github.com/gorhill/uBlock/compare/master...gontazaka:master)
+
 ***
