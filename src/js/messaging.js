@@ -362,7 +362,7 @@ const popupDataFromTabId = function(tabId, tabTitle) {
         tooltipsDisabled: µbus.tooltipsDisabled
     };
 
-    if ( µbhs.uiPopupConfig !== 'undocumented' ) {
+    if ( µbhs.uiPopupConfig !== 'unset' ) {
         r.uiPopupConfig = µbhs.uiPopupConfig;
     }
 
