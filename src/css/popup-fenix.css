@@ -616,6 +616,9 @@ body.godMode #actionSelector > #dynaAllow {
 :root #gotoReport {
     display: none;
     }
+[href="logger-ui.html#_"] {
+    display: flex;
+    }
 body:not([data-more~="a"]) [data-more="a"],
 body:not([data-more~="b"]) [data-more="b"],
 body:not([data-more~="c"]) [data-more="c"],
