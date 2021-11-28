@@ -172,7 +172,7 @@ with zipfile.ZipFile(raw_xpi_filepath, 'r') as zipin:
                 manifest = json.loads(bytes.decode(data))
                 manifest['browser_specific_settings']['gecko']['update_url'] = 'https://{0}.github.io/{1}/firefox/updates.json'.format(github_owner, github_repo)
                 data = json.dumps(manifest, indent=2, separators=(',', ': '), sort_keys=True).encode()
-            zipout.writestr(item, data)
+            zipout.writestr(item, data, compresslevel=9)
 
 #
 # Ask AMO to sign the self-hosted package
@@ -341,4 +341,4 @@ with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as 
         json.dump(updates_json, f, indent=2, separators=(',', ': '), sort_keys=True)
         f.close()
 
-print('All done.')
+print('🤘 All done.')
