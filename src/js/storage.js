@@ -985,6 +985,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     parser.setMaxTokenLength(staticNetFilteringEngine.MAX_TOKEN_LENGTH);
 
+    compiler.start(writer);
+
     while ( lineIter.eot() === false ) {
         let line = lineIter.next();
 
@@ -1018,6 +1020,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
             });
         }
     }
+
+    compiler.finish(writer);
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/1365
     //   Embed version into compiled list itself: it is encoded in as the

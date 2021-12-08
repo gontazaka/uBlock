@@ -111,10 +111,8 @@ const typeNameToTypeValue = {
        'inline-font': 17 << TypeBitsOffset,
      'inline-script': 18 << TypeBitsOffset,
              'cname': 19 << TypeBitsOffset,
-//          'unused': 20 << TypeBitsOffset,
-//          'unused': 21 << TypeBitsOffset,
-            'webrtc': 22 << TypeBitsOffset,
-       'unsupported': 23 << TypeBitsOffset,
+            'webrtc': 20 << TypeBitsOffset,
+       'unsupported': 21 << TypeBitsOffset,
 };
 
 const otherTypeBitValue = typeNameToTypeValue.other;
@@ -168,8 +166,6 @@ const typeValueToTypeName = [
 //const typeValueFromCatBits = catBits => (catBits >>> TypeBitsOffset) & 0b11111;
 
 const MAX_TOKEN_LENGTH = 7;
-
-const COMPILED_BAD_SECTION = 1;
 
 // Four upper bits of token hash are reserved for built-in predefined
 // token hashes, which should never end up being used when tokenizing
@@ -772,10 +768,16 @@ registerFilterClass(FilterPatternPlainX);
 
 const FilterPatternGeneric = class {
     static match(idata) {
-        const refs = filterRefs[filterData[idata+2]];
+        const refs = filterRefs[filterData[idata+4]];
         if ( refs.$re === null ) {
             refs.$re = new RegExp(
-                restrFromGenericPattern(refs.s, filterData[idata+1])
+                restrFromGenericPattern(
+                    bidiTrie.extractString(
+                        filterData[idata+1],
+                        filterData[idata+2]
+                    ),
+                    filterData[idata+3]
+                )
             );
         }
         return refs.$re.test($requestURL);
@@ -792,13 +794,12 @@ const FilterPatternGeneric = class {
     }
 
     static fromCompiled(args) {
-        const idata = filterDataAllocLen(3);
-        filterData[idata+0] = args[0];          // fid
-        filterData[idata+1] = args[2];          // anchor
-        filterData[idata+2] = filterRefAdd({
-            s: args[1],
-            $re: null,
-        });
+        const idata = filterDataAllocLen(5);
+        filterData[idata+0] = args[0];                          // fid
+        filterData[idata+1] = bidiTrie.storeString(args[1]);    // i
+        filterData[idata+2] = args[1].length;                   // n
+        filterData[idata+3] = args[2];                          // anchor
+        filterData[idata+4] = filterRefAdd({ $re: null });
         return idata;
     }
 
@@ -808,21 +809,22 @@ const FilterPatternGeneric = class {
 
     static logData(idata, details) {
         details.pattern.length = 0;
-        const anchor = filterData[idata+1];
+        const anchor = filterData[idata+3];
         if ( (anchor & 0b100) !== 0 ) {
             details.pattern.push('||');
         } else if ( (anchor & 0b010) !== 0 ) {
             details.pattern.push('|');
         }
-        const refs = filterRefs[filterData[idata+2]];
-        details.pattern.push(refs.s);
+        const s = bidiTrie.extractString(
+            filterData[idata+1],
+            filterData[idata+2]
+        );
+        details.pattern.push(s);
         if ( (anchor & 0b001) !== 0 ) {
             details.pattern.push('|');
         }
         details.regex.length = 0;
-        details.regex.push(
-            restrFromGenericPattern(refs.s, anchor & ~0b100)
-        );
+        details.regex.push(restrFromGenericPattern(s, anchor & ~0b100));
     }
 };
 
@@ -1779,12 +1781,10 @@ registerFilterClass(FilterCompositeAll);
 const FilterHostnameDict = class {
     static getCount(idata) {
         const itrie = filterData[idata+1];
-        if ( itrie === 0 ) {
-            return filterRefs[filterData[idata+3]].length;
+        if ( itrie !== 0 ) {
+            return Array.from(destHNTrieContainer.trieIterator(itrie)).length;
         }
-        return Array.from(
-            destHNTrieContainer.trieIterator(filterData[idata+1])
-        ).length;
+        return filterRefs[filterData[idata+3]].length;
     }
 
     static match(idata) {
@@ -2640,6 +2640,12 @@ class FilterCompiler {
         return this;
     }
 
+    start(/* writer */) {
+    }
+
+    finish(/* writer */) {
+    }
+
     clone() {
         return new FilterCompiler(this.parser, this);
     }
@@ -3105,8 +3111,8 @@ class FilterCompiler {
 
         writer.select(
             this.badFilter
-                ? writer.NETWORK_SECTION + COMPILED_BAD_SECTION
-                : writer.NETWORK_SECTION
+                ? 'NETWORK_FILTERS:BAD'
+                : 'NETWORK_FILTERS:GOOD'
         );
 
         // Reminder:
@@ -3715,7 +3721,7 @@ FilterContainer.prototype.createCompiler = function(parser) {
 /******************************************************************************/
 
 FilterContainer.prototype.fromCompiled = function(reader) {
-    reader.select(reader.NETWORK_SECTION);
+    reader.select('NETWORK_FILTERS:GOOD');
     while ( reader.next() ) {
         this.acceptedCount += 1;
         if ( this.goodFilters.has(reader.line) ) {
@@ -3725,7 +3731,7 @@ FilterContainer.prototype.fromCompiled = function(reader) {
         }
     }
 
-    reader.select(reader.NETWORK_SECTION + COMPILED_BAD_SECTION);
+    reader.select('NETWORK_FILTERS:BAD');
     while ( reader.next() ) {
         this.badFilters.add(reader.line);
     }
