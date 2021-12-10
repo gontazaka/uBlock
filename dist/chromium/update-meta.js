@@ -13,11 +13,12 @@ if (args.length < 2) {
 try {
   release_url = new URL(args[0]);
 } catch {
-  ;
+  console.error('⚠ Invalid release URL.')
 }
 release_version = args[1];
 
 if (!release_url && !release_version) {
+  console.error('⚠ Invalid args.')
   process.exit(-2);
 }
 

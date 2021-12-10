@@ -103,6 +103,7 @@ def input_secret(prompt, token):
     #         json.dump(ubo_secrets, f, indent=2)
     #     if not exists:
     #         os.chmod(ubo_secrets_filename, 0o600)
+    print(' ✔ {0}'.format(prompt))
     return value
 
 # GitHub API token
