@@ -316,7 +316,6 @@
     --fieldset-header-surface: transparent;
     --fieldset-header-ink: var(--light-gray-30);
     --hr-ink: var(--dark-gray-50);
-    --cloud-widget-surface: var(--dark-gray-90);
     --button-surface: var(--light-gray-10-a12);
     --button-ink: var(--default-ink);
     --button-surface-hover: var(--light-gray-10-a12);
@@ -390,6 +389,9 @@
     --logger-modified-em-surface: var(--blue-80);
     --logger-allowed-em-surface: var(--green-80);
     --logger-redirect-surface: rgba(255, 255, 0, 0.2);
+    /* cloud widget */
+    --cloud-widget-surface: var(--dark-gray-80);
+
 
  /* Need to set colors in forms.css for moz-field stuffz
   -moz-FieldText: #888888 !important;  change from these names to either HEX value or variables.  default-ink
