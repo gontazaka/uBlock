@@ -237,6 +237,10 @@ const onMessage = function(request, sender, callback) {
         }
         break;
 
+    case 'sfneDump':
+        response = staticNetFilteringEngine.dump();
+        break;
+
     default:
         return vAPI.messaging.UNHANDLED;
     }
@@ -1298,6 +1302,13 @@ const getSupportData = async function() {
     }
     if ( Object.keys(addedListset).length === 0 ) {
         addedListset = undefined;
+    } else if ( Object.keys(addedListset).length > 20 ) {
+        const added = Object.keys(addedListset);
+        const truncated = added.slice(20);
+        for ( const key of truncated ) {
+            delete addedListset[key];
+        }
+        addedListset[`[${truncated.length} lists not shown]`] = '[too many]';
     }
     if ( Object.keys(removedListset).length === 0 ) {
         removedListset = undefined;
