@@ -25,12 +25,45 @@
 
 /******************************************************************************/
 
+CodeMirror.registerGlobalHelper(
+    'fold',
+    'ubo-dump',
+    ( ) => true,
+    (cm, start) => {
+        const startLineNo = start.line;
+        const startLine = cm.getLine(startLineNo);
+        let endLineNo = startLineNo;
+        let endLine = startLine;
+        const match = /^ *(?=\+ \S)/.exec(startLine);
+        if ( match === null ) { return; }
+        const foldCandidate = '  ' + match[0];
+        const lastLineNo = cm.lastLine();
+        let nextLineNo = startLineNo + 1;
+        while ( nextLineNo < lastLineNo ) {
+            const nextLine = cm.getLine(nextLineNo);
+            if ( nextLine.startsWith(foldCandidate) === false ) {
+                if ( startLineNo >= endLineNo ) { return; }
+                return {
+                    from: CodeMirror.Pos(startLineNo, startLine.length),
+                    to: CodeMirror.Pos(endLineNo, endLine.length)
+                };
+            }
+            endLine = nextLine;
+            endLineNo = nextLineNo;
+            nextLineNo += 1;
+        }
+    }
+);
+
 const cmEditor = new CodeMirror(
     document.getElementById('console'),
     {
         autofocus: true,
+        foldGutter: true,
+        gutters: [ 'CodeMirror-linenumbers', 'CodeMirror-foldgutter' ],
         lineNumbers: true,
         lineWrapping: true,
+        mode: 'ubo-dump',
         styleActiveLine: true,
         undoDepth: 5,
     }
@@ -54,7 +87,7 @@ uDom.nodeFromId('snfe-dump').addEventListener('click', ev => {
         const button = ev.target;
         button.setAttribute('disabled', '');
         vAPI.messaging.send('dashboard', {
-            what: 'sfneDump',
+            what: 'snfeDump',
         }).then(result => {
             log(result);
             button.removeAttribute('disabled');
@@ -70,12 +103,23 @@ vAPI.messaging.send('dashboard', {
         const button = ev.target;
         button.setAttribute('disabled', '');
         vAPI.messaging.send('dashboard', {
-            what: 'sfneBenchmark',
+            what: 'snfeBenchmark',
         }).then(result => {
             log(result);
             button.removeAttribute('disabled');
         });
     });
+});
+
+uDom.nodeFromId('cfe-dump').addEventListener('click', ev => {
+        const button = ev.target;
+        button.setAttribute('disabled', '');
+        vAPI.messaging.send('dashboard', {
+            what: 'cfeDump',
+        }).then(result => {
+            log(result);
+            button.removeAttribute('disabled');
+        });
 });
 
 /******************************************************************************/
