@@ -1089,6 +1089,7 @@ const getLists = async function(callback) {
         isUpdating: io.isUpdating(),
         netFilterCount: staticNetFilteringEngine.getFilterCount(),
         parseCosmeticFilters: µb.userSettings.parseAllABPHideFilters,
+        suspendUntilListsAreLoaded: µb.userSettings.suspendUntilListsAreLoaded,
         userFiltersPath: µb.userFiltersPath
     };
     const [ lists, metadata ] = await Promise.all([
