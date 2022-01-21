@@ -345,6 +345,11 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
     background: var(--default-surface-hover);
     cursor: zoom-in;
     }
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4),
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7) {
+    background: var(--default-surface-hover);
+    cursor: copy;
+    }
 #netInspector:not(.vExpanded) #vwRenderer .logEntry > div > span:nth-of-type(4) {
     direction: rtl;
     text-align: right;

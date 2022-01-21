@@ -1894,10 +1894,25 @@ const reloadTab = function(ev) {
         fillDialog(domains);
     };
 
+    const copyText = async function (ev) {
+        targetRow = ev.target.closest('.canDetails');
+        if (targetRow === null) { return; }
+        ev.stopPropagation();
+        // targetURLs = createTargetURLs(targetRow.children[6].textContent);
+        const text = ev.target.textContent;
+        navigator.clipboard.writeText(text);
+    }
+
     uDom('#netInspector').on(
         'click',
         '.canDetails > span:nth-of-type(2),.canDetails > span:nth-of-type(3),.canDetails > span:nth-of-type(5)',
         ev => { toggleOn(ev); }
+    );
+
+    uDom('#netInspector').on(
+        'click',
+        '.canDetails > span:nth-of-type(4),.canDetails > span:nth-of-type(7)',
+        ev => { copyText(ev); }
     );
 })();
 
