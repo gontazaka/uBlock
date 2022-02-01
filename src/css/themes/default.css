@@ -405,27 +405,15 @@
     --popup-ruleset-tool-shadow: -surface-0;
 
     /* codemirror */
-    --cm-gutter-border: var(--dark-gray-50);
-    --cm-gutter-ink: var(--light-gray-40);
-    --cm-gutter-surface: var(--dark-gray-70);
-    --cm-selection-surface: var(--dark-gray-30);
-    --cm-selection-ink: var(--default-ink);
+    --cm-gutter-border: rgb(var(--dark-gray-50));
+    --cm-gutter-ink: rgb(var(--light-gray-40));
+    --cm-gutter-surface: rgb(var(--dark-gray-70));
+    --cm-selection-surface: rgb(var(--dark-gray-10));
+    --cm-selection-ink: var(--ink-0);
     --cm-searching-surface: #ffff0046;
-    --cm-activeline-background: #80808018;
-    --cm-matchingbracket-background: var(--green-70);
+    --cm-activeline-background: #80808030;
+    --cm-matchingbracket-background: rgb(var(--green-70));
 
-    --sf-def-ink: var(--blue-40);
-    --sf-keyword-ink: var(--purple-40);
-    --sf-tag-ink: var(--green-60);
-    --sf-value-ink: var(--orange-50);
-
-    /* logger */
-    --logger-blocked-surface: var(--red-90);
-    --logger-modified-surface: var(--blue-90);
-    --logger-allowed-surface: var(--green-90);
-    --logger-blocked-em-surface: var(--red-80);
-    --logger-modified-em-surface: var(--blue-80);
-    --logger-allowed-em-surface: var(--green-80);
     --logger-redirect-surface: rgba(255, 255, 0, 0.2);
     /* cloud widget */
     --cloud-total-used-surface: rgb(var(--violet-20) / 25%);

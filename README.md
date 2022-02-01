@@ -39,12 +39,6 @@ Chrome, Firefoxとも現最新バージョンではFTPサポートが削除さ�
 *uBlock filters*や*EasyList*などのフィルターをパッケージに同梱しない。  
 パッケージサイズが1MB以上小さくなるため拡張機能をアップデートして使うメリットが出る。新規インストール時にルール数0となるが「今すぐ更新」すれば最新ルールが普通にダウンロードされる。  
 
-### 🦆 ダークモード微修正
-
-`Advanced settings` > `uiTheme:dark` のデザインが放置されたままなので少し手を加える。  
-フォーク元同様にベースは[Mozillaのガイドライン](https://protocol.mozilla.org/fundamentals/color.html)に沿った色定義にしている。  
-![Dark Mode Screenshot](./doc/img/dark-settings_3pf.webp)  
-
 ### 🦆 セルフホスト
 
 GitHubのリリースでパッケージをセルフホスト([Chrome](https://developer.chrome.com/docs/apps/autoupdate/), [Edge](https://docs.microsoft.com/ja-jp/deployedge/microsoft-edge-manage-extensions-webstore#distribute-a-privately-hosted-extension), [Firefox](https://extensionworkshop.com/documentation/publish/self-distribution/))している。  

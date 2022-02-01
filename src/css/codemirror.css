@@ -237,5 +237,5 @@
 }
 
 .CodeMirror div.CodeMirror-cursor {
-    border-left: 1px solid var(--default-ink);
+    border-left: 1px solid var(--ink-0);
 }
