@@ -261,7 +261,7 @@ body.colorBlind #vwRenderer .logEntry > div.redirect {
     background-color: rgba(0, 19, 110, 0.1);
     }
 #vwRenderer .logEntry > div[data-aliasid] {
-    color: var(--blue-50);
+    color: rgb(var(--blue-50));
     }
 #vwRenderer .logEntry > div[data-type="tabLoad"] {
     background-color: #666;
@@ -323,7 +323,7 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
     pointer-events: none;
     }
 #vwRenderer .logEntry > div.extendedRealm.isException > span:nth-of-type(2) > span:last-of-type {
-    text-decoration: line-through var(--blue-60);
+    text-decoration: line-through rgb(var(--blue-60));
     }
 #vwRenderer .logEntry > div > span:nth-of-type(3) {
     font: 12px monospace;
@@ -334,12 +334,12 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(2),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(3),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(5) {
-    background: var(--default-surface-hover);
+    background: var(--dashboard-tab-surface-hover);
     cursor: zoom-in;
     }
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7) {
-    background: var(--default-surface-hover);
+    background: var(--dashboard-tab-surface-hover);
     cursor: copy;
     }
 #netInspector:not(.vExpanded) #vwRenderer .logEntry > div > span:nth-of-type(4) {
