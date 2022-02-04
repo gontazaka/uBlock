@@ -238,8 +238,8 @@
     --hr-ink: var(--surface-2);
 
     /* cloud widget */
-    --cloud-total-used-surface: rgb(var(--violet-60) / 25%);
-    --cloud-used-surface: rgb(var(--violet-60));
+    --cloud-total-used-surface: rgb(var(--primary-70, --violet-60) / 25%);
+    --cloud-used-surface: rgb(var(--primary-70, --violet-60));
 
     /* codemirror */
     --cm-active-line: var(--surface-1);
@@ -330,8 +330,8 @@
 
     --logger-redirect-surface: rgba(255, 255, 0, 0.2);
     /* cloud widget */
-    --cloud-total-used-surface: rgb(var(--violet-20) / 25%);
-    --cloud-used-surface: rgb(var(--violet-20));
+    --cloud-total-used-surface: rgb(var(--primary-50, --violet-20) / 25%);
+    --cloud-used-surface: rgb(var(--primary-50, --violet-20));
 
     /* codemirror */
     --cm-merge-copy-ink: rgb(var(--blue-30));
