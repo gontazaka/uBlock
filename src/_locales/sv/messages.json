@@ -88,7 +88,7 @@
     "description": "English: on this page"
   },
   "popupBlockedStats": {
-    "message": "{{count}} eller {{percent}}%",
+    "message": "{{count}} ({{percent}}%)",
     "description": "Example: 15 (13%)"
   },
   "popupBlockedSinceInstallPrompt": {
@@ -116,7 +116,7 @@
     "description": "English: Click to open the dashboard"
   },
   "popupTipZapper": {
-    "message": "Gå till element zapper-läge",
+    "message": "Gå till elementzapperläge",
     "description": "Tooltip for the element-zapper icon in the popup panel"
   },
   "popupTipPicker": {
@@ -144,7 +144,7 @@
     "description": "Tooltip for the no-popups per-site switch"
   },
   "popupTipNoLargeMedia": {
-    "message": "Växla blockering av stora medieelement för den här webbplatsen",
+    "message": "Växla blockering av stora medieelement för denna webbplats",
     "description": "Tooltip for the no-large-media per-site switch"
   },
   "popupTipNoLargeMedia1": {
@@ -156,7 +156,7 @@
     "description": "Tooltip for the no-large-media per-site switch"
   },
   "popupTipNoCosmeticFiltering": {
-    "message": "Växla kosmetiska filter för den här webbplatsen",
+    "message": "Växla kosmetiska filter för denna webbplats",
     "description": "Tooltip for the no-cosmetic-filtering per-site switch"
   },
   "popupTipNoCosmeticFiltering1": {
@@ -252,15 +252,15 @@
     "description": ""
   },
   "popup1pScriptRulePrompt": {
-    "message": "förstapartskript",
+    "message": "Förstapartskript",
     "description": ""
   },
   "popup3pScriptRulePrompt": {
-    "message": "tredjepartskript",
+    "message": "Tredjepartskript",
     "description": ""
   },
   "popup3pFrameRulePrompt": {
-    "message": "tredjepartramar",
+    "message": "Tredjepartramar",
     "description": ""
   },
   "popupHitDomainCountPrompt": {
@@ -335,17 +335,25 @@
     "message": "Färgblindsanpassat",
     "description": "English: Color-blind friendly"
   },
+  "settingsAppearance": {
+    "message": "Utseende",
+    "description": "Section for controlling user interface appearance"
+  },
+  "settingsThemeLabel": {
+    "message": "Tema",
+    "description": "Label for checkbox to enable a custom dark theme"
+  },
+  "settingsThemeAccent0Label": {
+    "message": "Anpassad accentfärg",
+    "description": "Label for checkbox to pick an accent color"
+  },
   "settingsCloudStorageEnabledPrompt": {
     "message": "Aktivera stöd för molnlagring",
     "description": ""
   },
   "settingsAdvancedUserPrompt": {
-    "message": "Jag är en avancerad användare (<a href='https://github.com/gorhill/uBlock/wiki/Advanced-user-features'>obligatorisk läsning</a>)",
-    "description": ""
-  },
-  "settingsAdvancedUserSettings": {
-    "message": "avancerade inställningar",
-    "description": "For the tooltip of a link which gives access to advanced settings"
+    "message": "Jag är en avancerad användare",
+    "description": "Checkbox to let user access advanced, technical features"
   },
   "settingsPrefetchingDisabledPrompt": {
     "message": "Inaktivera förhandshämtning (för att förhindra anslutningar av blockerade förfrågningar)",
@@ -364,7 +372,7 @@
     "description": ""
   },
   "settingPerSiteSwitchGroupSynopsis": {
-    "message": "Dessa förinställda beteenden kan överskridas för varje sida",
+    "message": "Dessa standardbeteenden kan åsidosättas per webbplats",
     "description": ""
   },
   "settingsNoCosmeticFilteringPrompt": {
@@ -390,6 +398,18 @@
   "settingsUncloakCnamePrompt": {
     "message": "Visa CNAME-poster",
     "description": "background information: https://github.com/uBlockOrigin/uBlock-issues/issues/1513"
+  },
+  "settingsAdvanced": {
+    "message": "Avancerat",
+    "description": "Section for controlling advanced-user settings"
+  },
+  "settingsAdvancedSynopsis": {
+    "message": "Funktioner som endast är lämpliga för tekniska användare.",
+    "description": "Description of section controlling advanced-user settings"
+  },
+  "settingsAdvancedUserSettings": {
+    "message": "avancerade inställningar",
+    "description": "For the tooltip of a link which gives access to advanced settings"
   },
   "settingsLastRestorePrompt": {
     "message": "Senast återställd:",
@@ -936,7 +956,7 @@
     "description": "Label for the URL of the page"
   },
   "supportS6Select1": {
-    "message": "Hemsidan...",
+    "message": "Webbsidan...",
     "description": "Label for widget to select type of issue"
   },
   "supportS6Select1Option0": {
