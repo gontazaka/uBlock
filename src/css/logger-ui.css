@@ -326,13 +326,19 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(2),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(3),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(5) {
-    background: var(--dashboard-tab-surface-hover);
+    background: rgb(var(--dashboard-tab-focus-surface-rgb));
     cursor: zoom-in;
     }
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4),
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7) {
-    background: var(--dashboard-tab-surface-hover);
+    background: rgb(var(--dashboard-tab-focus-surface-rgb));
     cursor: copy;
+    transition: background 0.3s ease-out;
+    }
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4).flashing,
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7).flashing {
+    color: var(--accent-ink-3) !important;
+    background: rgb(var(--primary-95)) !important;
     }
 #netInspector:not(.vExpanded) #vwRenderer .logEntry > div > span:nth-of-type(4) {
     direction: rtl;

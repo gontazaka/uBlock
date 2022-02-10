@@ -1898,9 +1898,17 @@ const reloadTab = function(ev) {
         targetRow = ev.target.closest('.canDetails');
         if (targetRow === null) { return; }
         ev.stopPropagation();
-        // targetURLs = createTargetURLs(targetRow.children[6].textContent);
         const text = ev.target.textContent;
         navigator.clipboard.writeText(text);
+        // Flashing
+        const className = 'flashing';
+        ev.target.classList.add(className);
+        // self.requestIdleCallback(() => {
+        //     ev.target.classList.remove(className);
+        // }, {timeout: 500});
+        setTimeout(() => {
+            ev.target.classList.remove(className);
+        }, 300);
     }
 
     uDom('#netInspector').on(
