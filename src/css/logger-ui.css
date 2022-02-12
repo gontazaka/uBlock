@@ -333,12 +333,12 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7) {
     background: rgb(var(--dashboard-tab-focus-surface-rgb));
     cursor: copy;
-    transition: background 0.3s ease-out;
     }
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4).flashing,
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7).flashing {
     color: var(--accent-ink-3) !important;
     background: rgb(var(--primary-95)) !important;
+    transition: background 0.3s ease-out;
     }
 #netInspector:not(.vExpanded) #vwRenderer .logEntry > div > span:nth-of-type(4) {
     direction: rtl;
