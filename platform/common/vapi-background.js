@@ -1244,7 +1244,7 @@ vAPI.Net = class {
         if ( this.suspendDepth !== 0 ) { return; }
         this.unsuspendAllRequests(discard);
     }
-    canSuspend() {
+    static canSuspend() {
         return false;
     }
 };
