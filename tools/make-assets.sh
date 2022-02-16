@@ -11,17 +11,18 @@ echo "*** Packaging assets in $DES... "
 rm -rf $DES
 cp -Rl ./assets $DES/
 
-### built-in filters do not include in package
-exit 0
-
-mkdir $DES/thirdparties
+mkdir -p $DES/thirdparties
 
 git submodule update --depth 1 --init
 UASSETS=submodules/uAssets
 
+cp -Rl $UASSETS/thirdparties/publicsuffix.org                   $DES/thirdparties/
+
+### built-in filters do not include in package
+exit 0
+
 cp -Rl $UASSETS/thirdparties/easylist-downloads.adblockplus.org $DES/thirdparties/
 cp -Rl $UASSETS/thirdparties/pgl.yoyo.org                       $DES/thirdparties/
-cp -Rl $UASSETS/thirdparties/publicsuffix.org                   $DES/thirdparties/
 cp -Rl $UASSETS/thirdparties/urlhaus-filter                     $DES/thirdparties/
 
 mkdir $DES/ublock
