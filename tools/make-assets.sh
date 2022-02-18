@@ -25,7 +25,7 @@ cp -Rl $UASSETS/thirdparties/easylist-downloads.adblockplus.org $DES/thirdpartie
 cp -Rl $UASSETS/thirdparties/pgl.yoyo.org                       $DES/thirdparties/
 cp -Rl $UASSETS/thirdparties/urlhaus-filter                     $DES/thirdparties/
 
-mkdir $DES/ublock
+mkdir -p $DES/ublock
 cp -Rl $UASSETS/filters/* $DES/ublock/
 # Optional filter lists: do not include in package
 rm    $DES/ublock/annoyances.txt
