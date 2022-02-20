@@ -354,9 +354,8 @@ body[data-more=""] #lessButton {
     }
 
 /* has click action */
-#firewall > [data-des="*"][data-type="*"] > span:first-of-type:hover,
-#firewall > [data-type="*"].hasSubdomains > span:first-of-type:hover,
-#firewall > [data-type="3p-script"] > span:first-of-type:hover {
+#firewall > [data-des="*"][data-type] > span:first-of-type:hover,
+#firewall > [data-type="*"].hasSubdomains > span:first-of-type:hover {
     background-color: var(--popup-toolbar-surface-hover)!important;
     }
 
