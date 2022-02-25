@@ -167,8 +167,8 @@ body.updating .listEntry.checked.obsolete .updating {
 
 /* touch-screen devices */
 :root.mobile .listEntry .fa-icon {
-    font-size: 150%;
-    margin: 0 0.5em 0 0;
+    font-size: 200%;
+    margin: 0 0.6em 0 0;
     }
 :root.mobile .listEntries {
     margin-inline-start: 0;
