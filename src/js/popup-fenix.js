@@ -919,8 +919,8 @@ const gotoURL = function(ev) {
 
 /******************************************************************************/
 
-// The popup panel is made of sections. Visiblity of sections can
-// be toggle on/off.
+// The popup panel is made of sections. Visibility of sections can
+// be toggled on/off.
 
 const maxNumberOfSections = 6;
 const sectionFirewallBit = 0b10000;
@@ -1371,7 +1371,7 @@ const getPopupData = async function(tabId, first = false) {
     };
 
     // The purpose of the following code is to reset to a vertical layout
-    // should the viewport not be enough wide to accomodate the horizontal
+    // should the viewport not be enough wide to accommodate the horizontal
     // layout.
     // To avoid querying a spurious viewport width -- it happens sometimes,
     // somehow -- we delay layout-changing operations to the next paint

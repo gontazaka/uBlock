@@ -383,6 +383,12 @@
     --logger-redirected-surface: rgb(var(--yellow-5) / 40%);
 }
 
+:root.dark input,
+:root.dark select,
+:root.dark textarea {
+    color-scheme: dark;
+}
+
 /*
  * Shared declarations
  * */
