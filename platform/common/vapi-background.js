@@ -698,7 +698,7 @@ vAPI.setIcon = (( ) => {
             const path = icons[i].path;
             for ( const key in path ) {
                 if ( path.hasOwnProperty(key) === false ) { continue; }
-                imgs.push({ i: i, p: key });
+                imgs.push({ i: i, p: key, cached: false });
             }
         }
 
@@ -719,6 +719,7 @@ vAPI.setIcon = (( ) => {
             const ctx = document.createElement('canvas').getContext('2d');
             const iconData = [ null, null ];
             for ( const img of imgs ) {
+                if ( img.cached ) { continue; }
                 const w = img.r.naturalWidth, h = img.r.naturalHeight;
                 ctx.width = w; ctx.height = h;
                 ctx.clearRect(0, 0, w, h);
@@ -736,6 +737,7 @@ vAPI.setIcon = (( ) => {
                     return;
                 }
                 iconData[img.i][img.p] = imgData;
+                img.cached = true;
             }
             for ( let i = 0; i < iconData.length; i++ ) {
                 if ( iconData[i] ) {
