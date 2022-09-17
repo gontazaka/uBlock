@@ -1,0 +1,218 @@
+{
+  "extName": {
+    "message": "uBlock Origin Lite",
+    "description": "extension name."
+  },
+  "extShortDesc": {
+    "message": "An experimental, permission-less content blocker. Blocks ads, trackers, miners, and more immediately upon installation.",
+    "description": "this will be in the Chrome web store: must be 132 characters or less"
+  },
+  "perRulesetStats": {
+    "message": "{{ruleCount}} rules, converted from {{filterCount}} network filters",
+    "description": "Appears aside each filter list in the _3rd-party filters_ pane"
+  },
+  "dashboardName": {
+    "message": "uBO Lite — Dashboard",
+    "description": "English: uBO Lite — Dashboard"
+  },
+  "dashboardUnsavedWarning": {
+    "message": "Warning! You have unsaved changes",
+    "description": "A warning in the dashboard when navigating away from unsaved changes"
+  },
+  "dashboardUnsavedWarningStay": {
+    "message": "Залишитись",
+    "description": "Label for button to prevent navigating away from unsaved changes"
+  },
+  "dashboardUnsavedWarningIgnore": {
+    "message": "Ігнорувати",
+    "description": "Label for button to ignore unsaved changes"
+  },
+  "settingsPageName": {
+    "message": "Налаштування",
+    "description": "appears as tab name in dashboard"
+  },
+  "3pPageName": {
+    "message": "Списки фільтрів",
+    "description": "appears as tab name in dashboard"
+  },
+  "1pPageName": {
+    "message": "Мої фільтри",
+    "description": "appears as tab name in dashboard"
+  },
+  "whitelistPageName": {
+    "message": "Довірені сайти",
+    "description": "appears as tab name in dashboard"
+  },
+  "aboutPageName": {
+    "message": "Про застосунок",
+    "description": "appears as tab name in dashboard"
+  },
+  "aboutPrivacyPolicy": {
+    "message": "Політика приватності",
+    "description": "Link to privacy policy on GitHub (English)"
+  },
+  "popupPowerSwitchInfo": {
+    "message": "Disable/enable uBO Lite for this site",
+    "description": "Tooltip for the main power button in the popup panel"
+  },
+  "popupTipDashboard": {
+    "message": "Відкрити панель керування",
+    "description": "English: Click to open the dashboard"
+  },
+  "popupTipZapper": {
+    "message": "Enter element zapper mode",
+    "description": "Tooltip for the element-zapper icon in the popup panel"
+  },
+  "popupTipPicker": {
+    "message": "Enter element picker mode",
+    "description": "English: Enter element picker mode"
+  },
+  "popupTipReport": {
+    "message": "Report an issue on this website",
+    "description": "Tooltip used for the 'chat' icon in the panel"
+  },
+  "popupTipSaveRules": {
+    "message": "Click to make your changes permanent.",
+    "description": "Tooltip when hovering over the padlock in the dynamic filtering pane."
+  },
+  "popupTipRevertRules": {
+    "message": "Click to revert your changes.",
+    "description": "Tooltip when hovering over the eraser in the dynamic filtering pane."
+  },
+  "popupMoreButton": {
+    "message": "Більше",
+    "description": "Label to be used to show popup panel sections"
+  },
+  "popupGrantGreatPowers": {
+    "message": "Click to grant uBO Lite extended permissions on this site.\nExtended permissions allow more effective content blocking.",
+    "description": "Label to be used to show popup panel sections"
+  },
+  "popupRevokeGreatPowers": {
+    "message": "Click to revoke extended permissions on this site",
+    "description": "Label to be used to show popup panel sections"
+  },
+  "popupLessButton": {
+    "message": "Менше",
+    "description": "Label to be used to hide popup panel sections"
+  },
+  "settingsIconBadgePrompt": {
+    "message": "Show the number of blocked requests on the icon",
+    "description": "English: Show the number of blocked requests on the icon"
+  },
+  "settingsAppearance": {
+    "message": "Вигляд",
+    "description": "Section for controlling user interface appearance"
+  },
+  "settingsThemeLabel": {
+    "message": "Тема",
+    "description": "Label for checkbox to enable a custom dark theme"
+  },
+  "settingsThemeAccent0Label": {
+    "message": "Акцент кольору користувача",
+    "description": "Label for checkbox to pick an accent color"
+  },
+  "settingsNoCSPReportsPrompt": {
+    "message": "Блокувати CSP-звіти",
+    "description": "background information: https://github.com/gorhill/uBlock/issues/3150"
+  },
+  "3pGroupDefault": {
+    "message": "Типово",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupAds": {
+    "message": "Реклама",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupPrivacy": {
+    "message": "Приватність",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupMalware": {
+    "message": "Домени шкідливих програм",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupAnnoyances": {
+    "message": "Надокучливості",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupMisc": {
+    "message": "Різне",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupRegions": {
+    "message": "Регіони, мови",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "1pFormatHint": {
+    "message": "One filter per line. A filter can be a plain hostname, or an EasyList-compatible filter. Lines prefixed with <code>!</code> will be ignored.",
+    "description": "Short information about how to create custom filters"
+  },
+  "1pImport": {
+    "message": "Імпортувати та додати",
+    "description": "English: Import and append"
+  },
+  "1pExport": {
+    "message": "Експортувати",
+    "description": "English: Export"
+  },
+  "1pExportFilename": {
+    "message": "my-ublock-static-filters_{{datetime}}.txt",
+    "description": "English: my-ublock-static-filters_{{datetime}}.txt"
+  },
+  "whitelistPrompt": {
+    "message": "The trusted site directives dictate on which web pages uBO Lite should be disabled. One entry per line.",
+    "description": "A concise description of the 'Trusted sites' pane."
+  },
+  "whitelistImport": {
+    "message": "Імпортувати та додати",
+    "description": "English: Import and append"
+  },
+  "whitelistExport": {
+    "message": "Експортувати",
+    "description": "English: Export"
+  },
+  "whitelistExportFilename": {
+    "message": "my-ublock-trusted-sites_{{datetime}}.txt",
+    "description": "The default filename to use for import/export purpose"
+  },
+  "aboutChangelog": {
+    "message": "Журнал змін",
+    "description": ""
+  },
+  "aboutCode": {
+    "message": "Код програми (GPLv3)",
+    "description": "English: Source code (GPLv3)"
+  },
+  "aboutContributors": {
+    "message": "Учасники",
+    "description": "English: Contributors"
+  },
+  "aboutSourceCode": {
+    "message": "Вихідний код",
+    "description": "Link text to source code repo"
+  },
+  "aboutTranslations": {
+    "message": "Переклади",
+    "description": "Link text to translations repo"
+  },
+  "aboutFilterLists": {
+    "message": "Списки фільтрів",
+    "description": "Link text to uBO's own filter lists repo"
+  },
+  "aboutDependencies": {
+    "message": "External dependencies (GPLv3-compatible):",
+    "description": "Shown in the About pane"
+  },
+  "genericSubmit": {
+    "message": "Відправити",
+    "description": "for generic 'Submit' buttons"
+  },
+  "genericApplyChanges": {
+    "message": "Застосувати зміни",
+    "description": "for generic 'Apply changes' buttons"
+  },
+  "genericRevert": {
+    "message": "Повернути",
+    "description": "for generic 'Revert' buttons"
+  }
+}

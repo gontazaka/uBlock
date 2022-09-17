@@ -37,7 +37,10 @@ vAPI.setTimeout = vAPI.setTimeout || self.setTimeout.bind(self);
 
 vAPI.webextFlavor = {
     major: 0,
-    soup: new Set()
+    soup: new Set(),
+    get env() {
+        return Array.from(this.soup);
+    }
 };
 
 (( ) => {
@@ -106,18 +109,6 @@ vAPI.download = function(details) {
 /******************************************************************************/
 
 vAPI.getURL = browser.runtime.getURL;
-
-/******************************************************************************/
-
-vAPI.i18n = browser.i18n.getMessage;
-
-// http://www.w3.org/International/questions/qa-scripts#directions
-document.body.setAttribute(
-    'dir',
-    ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(vAPI.i18n('@@ui_locale')) !== -1
-        ? 'rtl'
-        : 'ltr'
-);
 
 /******************************************************************************/
 

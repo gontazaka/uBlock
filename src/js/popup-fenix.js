@@ -24,6 +24,7 @@
 'use strict';
 
 import punycode from '../lib/punycode.js';
+import { i18n$ } from './i18n.js';
 
 /******************************************************************************/
 
@@ -50,8 +51,8 @@ const scopeToSrcHostnameMap = {
     '.': ''
 };
 const hostnameToSortableTokenMap = new Map();
-const statsStr = vAPI.i18n('popupBlockedStats');
-const domainsHitStr = vAPI.i18n('popupHitDomainCount');
+const statsStr = i18n$('popupBlockedStats');
+const domainsHitStr = i18n$('popupHitDomainCount');
 
 let popupData = {};
 let dfPaneBuilt = false;
@@ -648,7 +649,7 @@ const renderTooltips = function(selector) {
         if ( selector !== undefined && key !== selector ) { continue; }
         const elem = uDom.nodeFromSelector(key);
         if ( elem.hasAttribute('title') === false ) { continue; }
-        const text = vAPI.i18n(
+        const text = i18n$(
             details.i18n +
             (uDom.nodeFromSelector(details.state) === null ? '1' : '2')
         );
@@ -1082,6 +1083,7 @@ const reloadTab = function(ev) {
     messaging.send('popupPanel', {
         what: 'reloadTab',
         tabId: popupData.tabId,
+        url: popupData.pageURL,
         select: vAPI.webextFlavor.soup.has('mobile'),
         bypassCache: ev.ctrlKey || ev.metaKey || ev.shiftKey,
     });

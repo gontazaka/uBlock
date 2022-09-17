@@ -304,33 +304,6 @@ if response.status_code != 204:
 # Update updates.json to point to new package -- but only if just-signed
 # package is higher version than current one.
 #
-# 
-# print('Update GitHub to point to newly signed self-hosted xpi package...')
-# updates_json_filepath = os.path.join(projdir, 'dist', 'firefox', 'updates.json')
-# with open(updates_json_filepath) as f:
-#     updates_json = json.load(f)
-#     f.close()
-#     previous_version = updates_json['addons'][extension_id]['updates'][0]['version']
-#     if LooseVersion(ext_version) > LooseVersion(previous_version):
-#         with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as f:
-#             template_json = Template(f.read())
-#             f.close()
-#             updates_json = template_json.substitute(ext_version=ext_version, tag_version=tag_version)
-#             with open(updates_json_filepath, 'w') as f:
-#                 f.write(updates_json)
-#                 f.close()
-#         # Automatically git add/commit if needed.
-#         # - Stage the changed file
-#         r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
-#         rout = bytes.decode(r.stdout).strip()
-#         if len(rout) >= 2 and rout[1] == 'M':
-#             subprocess.run(['git', 'add', updates_json_filepath])
-#         # - Commit the staged file
-#         r = subprocess.run(['git', 'status', '-s', updates_json_filepath], stdout=subprocess.PIPE)
-#         rout = bytes.decode(r.stdout).strip()
-#         if len(rout) >= 2 and rout[0] == 'M':
-#             subprocess.run(['git', 'commit', '-m', 'Make Firefox dev build auto-update', updates_json_filepath])
-#             subprocess.run(['git', 'push', 'origin', 'HEAD'])
 
 updates_json_filepath = os.path.join(projdir, 'dist', 'firefox', 'updates.json')
 with open(os.path.join(projdir, 'dist', 'firefox', 'updates.template.json')) as f:

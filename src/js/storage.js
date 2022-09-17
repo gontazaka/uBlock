@@ -37,6 +37,7 @@ import staticFilteringReverseLookup from './reverselookup.js';
 import staticNetFilteringEngine from './static-net-filtering.js';
 import µb from './background.js';
 import { hostnameFromURI } from './uri-utils.js';
+import { i18n, i18n$ } from './i18n.js';
 import { redirectEngine } from './redirect-engine.js';
 import { sparseBase64 } from './base64-custom.js';
 import { StaticFilteringParser } from './static-filtering-parser.js';
@@ -625,7 +626,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     newAvailableLists[this.userFiltersPath] = {
         content: 'filters',
         group: 'user',
-        title: vAPI.i18n('1pPageName'),
+        title: i18n$('1pPageName'),
     };
 
     // Custom filter lists.
@@ -978,9 +979,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     // Useful references:
     //    https://adblockplus.org/en/filter-cheatsheet
     //    https://adblockplus.org/en/filters
-    const lineIter = new LineIterator(this.preparseDirectives.prune(rawText));
     const parser = new StaticFilteringParser({ expertMode });
     const compiler = staticNetFilteringEngine.createCompiler(parser);
+    const lineIter = new LineIterator(
+        parser.utils.preparser.prune(rawText, vAPI.webextFlavor.env)
+    );
 
     parser.setMaxTokenLength(staticNetFilteringEngine.MAX_TOKEN_LENGTH);
 
@@ -1045,121 +1048,6 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         skipGenericCosmetic: this.userSettings.ignoreGenericCosmeticFilters,
         skipCosmetic: !firstparty && !this.userSettings.parseAllABPHideFilters
     });
-};
-
-/******************************************************************************/
-
-// https://github.com/AdguardTeam/AdguardBrowserExtension/issues/917
-
-µb.preparseDirectives = {
-    // This method returns an array of indices, corresponding to position in
-    // the content string which should alternatively be parsed and discarded.
-    split: function(content) {
-        const reIf = /^!#(if|endif)\b([^\n]*)(?:[\n\r]+|$)/gm;
-        const soup = vAPI.webextFlavor.soup;
-        const stack = [];
-        const shouldDiscard = ( ) => stack.some(v => v);
-        const parts = [ 0 ];
-        let discard = false;
-
-        for (;;) {
-            const match = reIf.exec(content);
-            if ( match === null ) { break; }
-
-            switch ( match[1] ) {
-            case 'if':
-                let expr = match[2].trim();
-                const target = expr.charCodeAt(0) === 0x21 /* '!' */;
-                if ( target ) { expr = expr.slice(1); }
-                const token = this.tokens.get(expr);
-                const startDiscard =
-                    token === 'false' && target === false ||
-                    token !== undefined && soup.has(token) === target;
-                if ( discard === false && startDiscard ) {
-                    parts.push(match.index);
-                    discard = true;
-                }
-                stack.push(startDiscard);
-                break;
-
-            case 'endif':
-                stack.pop();
-                const stopDiscard = shouldDiscard() === false;
-                if ( discard && stopDiscard ) {
-                    parts.push(match.index + match[0].length);
-                    discard = false;
-                }
-                break;
-
-            default:
-                break;
-            }
-        }
-
-        parts.push(content.length);
-        return parts;
-    },
-
-    prune: function(content) {
-        const parts = this.split(content);
-        const out = [];
-        for ( let i = 0, n = parts.length - 1; i < n; i += 2 ) {
-            const beg = parts[i+0];
-            const end = parts[i+1];
-            out.push(content.slice(beg, end));
-        }
-        return out.join('\n');
-    },
-
-    getHints: function() {
-        const out = [];
-        const vals = new Set();
-        for ( const [ key, val ] of this.tokens ) {
-            if ( vals.has(val) ) { continue; }
-            vals.add(val);
-            out.push(key);
-        }
-        return out;
-    },
-
-    getTokens: function() {
-        const out = new Map();
-        const soup = vAPI.webextFlavor.soup;
-        for ( const [ key, val ] of this.tokens ) {
-            out.set(key, val !== 'false' && soup.has(val));
-        }
-        return Array.from(out);
-    },
-
-    tokens: new Map([
-        [ 'ext_ublock', 'ublock' ],
-        [ 'env_chromium', 'chromium' ],
-        [ 'env_edge', 'edge' ],
-        [ 'env_firefox', 'firefox' ],
-        [ 'env_legacy', 'legacy' ],
-        [ 'env_mobile', 'mobile' ],
-        [ 'env_safari', 'safari' ],
-        [ 'cap_html_filtering', 'html_filtering' ],
-        [ 'cap_user_stylesheet', 'user_stylesheet' ],
-        [ 'false', 'false' ],
-        // Hoping ABP-only list maintainers can at least make use of it to
-        // help non-ABP content blockers better deal with filters benefiting
-        // only ABP.
-        [ 'ext_abp', 'false' ],
-        // Compatibility with other blockers
-        // https://kb.adguard.com/en/general/how-to-create-your-own-ad-filters#adguard-specific
-        [ 'adguard', 'adguard' ],
-        [ 'adguard_app_android', 'false' ],
-        [ 'adguard_app_ios', 'false' ],
-        [ 'adguard_app_mac', 'false' ],
-        [ 'adguard_app_windows', 'false' ],
-        [ 'adguard_ext_android_cb', 'false' ],
-        [ 'adguard_ext_chromium', 'chromium' ],
-        [ 'adguard_ext_edge', 'edge' ],
-        [ 'adguard_ext_firefox', 'firefox' ],
-        [ 'adguard_ext_opera', 'chromium' ],
-        [ 'adguard_ext_safari', 'false' ],
-    ]),
 };
 
 /******************************************************************************/
@@ -1511,7 +1399,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     if ( typeof details.lang === 'string' ) {
         let re = this.listMatchesEnvironment.reLang;
         if ( re === undefined ) {
-            const match = /^[a-z]+/.exec(browser.i18n.getUILanguage());
+            const match = /^[a-z]+/.exec(i18n.getUILanguage());
             if ( match !== null ) {
                 re = new RegExp('\\b' + match[0] + '\\b');
                 this.listMatchesEnvironment.reLang = re;
