@@ -28,8 +28,6 @@
 {
 // >>>>> start of local scope
 
-const titleStr = vAPI.i18n('dashboardName');
-
 /******************************************************************************/
 
 const discardUnsavedData = function(synchronous = false) {
@@ -81,7 +79,6 @@ const loadDashboardPanel = function(pane, first) {
         return;
     }
     const loadPane = ( ) => {
-        uDom('#iframe').css('visibility', 'hidden'); // Prevent 'iframe' white flash
         self.location.replace(`#${pane}`);
         uDom('.tabButton.selected').toggleClass('selected', false);
         tabButton.classList.add('selected');
@@ -149,18 +146,6 @@ if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
             event.preventDefault();
             event.returnValue = '';
         });
-    }
-
-    // Prevent 'iframe' white flash
-    {
-        document.getElementById('iframe').addEventListener('load', (e) => {
-            e.target.style.setProperty('visibility', 'visible');
-        });
-    }
-
-    {
-        const title = titleStr.replace('uBlock₀', 'uBlock🦆');
-        document.title = title;
     }
 })();
 
