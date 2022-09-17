@@ -62,7 +62,7 @@ echo "Extension location: $DES/"
 
 if [ "$1" = "full" ]; then
     echo "*** uBlock🦆.mv3: Creating webstore package..."
-    PACKAGENAME=uBlock0_$(jq -r .version $DES/manifest.json).mv3.zip
+    PACKAGENAME=uBlock🦆_$(jq -r .version $DES/manifest.json).mv3.zip
     TMPDIR=$(mktemp -d)
     mkdir -p $TMPDIR
     cp -R $DES/* $TMPDIR/
