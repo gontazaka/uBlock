@@ -27,6 +27,7 @@
 
 import { browser, dnr } from './ext.js';
 import { fetchJSON } from './fetch.js';
+import { parsedURLromOrigin } from './utils.js';
 
 /******************************************************************************/
 
@@ -82,6 +83,16 @@ const hostnamesFromMatches = origins => {
     return out;
 };
 
+const arrayEq = (a, b) => {
+    if ( a === undefined ) { return b === undefined; }
+    if ( b === undefined ) { return false; }
+    if ( a.length !== b.length ) { return false; }
+    for ( const i of a ) {
+        if ( b.includes(i) === false ) { return false; }
+    }
+    return true;
+};
+
 /******************************************************************************/
 
 const toRegisterable = (fname, entry) => {
@@ -89,21 +100,21 @@ const toRegisterable = (fname, entry) => {
         id: fname,
         allFrames: true,
     };
-    if ( entry.matches ) {
+    if ( entry.y ) {
         directive.matches = matchesFromHostnames(entry.y);
     } else {
         directive.matches = [ '*://*/*' ];
     }
-    if ( entry.excludeMatches ) {
+    if ( entry.n ) {
         directive.excludeMatches = matchesFromHostnames(entry.n);
     }
     if ( entry.type === CSS_TYPE ) {
         directive.css = [
-            `/content-css/${entry.id}/${fname.slice(0,1)}/${fname.slice(1,8)}.css`
+            `/content-css/${fname.slice(0,1)}/${fname.slice(1,2)}/${fname.slice(2,8)}.css`
         ];
     } else if ( entry.type === JS_TYPE ) {
         directive.js = [
-            `/content-js/${entry.id}/${fname.slice(0,1)}/${fname.slice(1,8)}.js`
+            `/content-js/${fname.slice(0,1)}/${fname.slice(1,8)}.js`
         ];
         directive.runAt = 'document_start';
         directive.world = 'MAIN';
@@ -112,18 +123,26 @@ const toRegisterable = (fname, entry) => {
     return directive;
 };
 
+const toMaybeUpdatable = (registered, candidate) => {
+    const matches = candidate.y && matchesFromHostnames(candidate.y);
+    if ( arrayEq(registered.matches, matches) === false ) {
+        return toRegisterable(candidate);
+    }
+    const excludeMatches = candidate.n && matchesFromHostnames(candidate.n);
+    if ( arrayEq(registered.excludeMatches, excludeMatches) === false ) {
+        return toRegisterable(candidate);
+    }
+};
+
 /******************************************************************************/
 
 const shouldRegister = (origins, matches) => {
+    if ( Array.isArray(matches) === false ) { return true; }
     for ( const origin of origins ) {
-        if ( origin === '*' || Array.isArray(matches) === false ) {
-            return true;
-        }
+        if ( origin === '*' ) { return true; }
         let hn = origin;
         for (;;) {
-            if ( matches.includes(hn) ) {
-                return true;
-            }
+            if ( matches.includes(hn) ) { return true; }
             if ( hn === '*' ) { break; }
             const pos = hn.indexOf('.');
             hn = pos !== -1
@@ -136,7 +155,9 @@ const shouldRegister = (origins, matches) => {
 
 /******************************************************************************/
 
-async function getInjectableCount(hostname) {
+async function getInjectableCount(origin) {
+    const url = parsedURLromOrigin(origin);
+    if ( url === undefined ) { return 0; }
 
     const [
         rulesetIds,
@@ -151,23 +172,22 @@ async function getInjectableCount(hostname) {
     let total = 0;
 
     for ( const rulesetId of rulesetIds ) {
-
         if ( cssDetails.has(rulesetId) ) {
-            for ( const entry of cssDetails ) {
-                if ( shouldRegister([ hostname ], entry[1].y) === true ) {
+            const entries = cssDetails.get(rulesetId);
+            for ( const entry of entries ) {
+                if ( shouldRegister([ url.hostname ], entry[1].y) ) {
                     total += 1;
                 }
             }
         }
-        
         if ( scriptletDetails.has(rulesetId) ) {
-            for ( const entry of cssDetails ) {
-                if ( shouldRegister([ hostname ], entry[1].y) === true ) {
+            const entries = cssDetails.get(rulesetId);
+            for ( const entry of entries ) {
+                if ( shouldRegister([ url.hostname ], entry[1].y) ) {
                     total += 1;
                 }
             }
         }
-
     }
 
     return total;
@@ -199,47 +219,84 @@ async function registerInjectable() {
         origins.add('*');
     }
 
+    const mergeEntries = (a, b) => {
+        if ( b.y !== undefined ) {
+            if ( a.y === undefined ) {
+                a.y = new Set(b.y);
+            } else {
+                b.y.forEach(v => a.y.add(v));
+            }
+        }
+        if ( b.n !== undefined ) {
+            if ( a.n === undefined ) {
+                a.n = new Set(b.n);
+            } else {
+                b.n.forEach(v => a.n.add(v));
+            }
+        }
+        return a;
+    };
+
     const toRegister = new Map();
 
     for ( const rulesetId of rulesetIds ) {
         if ( cssDetails.has(rulesetId) ) {
             for ( const [ fname, entry ] of cssDetails.get(rulesetId) ) {
-                entry.id = rulesetId;
-                entry.type = CSS_TYPE;
-                if ( shouldRegister(origins, entry.y) !== true ) { continue; }
-                toRegister.set(fname, entry);
+                if ( shouldRegister(origins, entry.y) === false ) { continue; }
+                let existing = toRegister.get(fname);
+                if ( existing === undefined ) {
+                    existing = { type: CSS_TYPE };
+                    toRegister.set(fname, existing);
+                }
+                mergeEntries(existing, entry);
             }
         }
         if ( scriptletDetails.has(rulesetId) ) {
             for ( const [ fname, entry ] of scriptletDetails.get(rulesetId) ) {
-                entry.id = rulesetId;
-                entry.type = JS_TYPE;
-                if ( shouldRegister(origins, entry.y) !== true ) { continue; }
-                toRegister.set(fname, entry);
+                if ( shouldRegister(origins, entry.y) === false ) { continue; }
+                let existing = toRegister.get(fname);
+                if ( existing === undefined ) {
+                    existing = { type: JS_TYPE };
+                    toRegister.set(fname, existing);
+                }
+                mergeEntries(existing, entry);
             }
         }
     }
 
-    const before = new Set(registered.map(entry => entry.id));
+    const before = new Map(registered.map(entry => [ entry.id, entry ]));
+
     const toAdd = [];
+    const toUpdate = [];
     for ( const [ fname, entry ] of toRegister ) {
-        if ( before.has(fname) ) { continue; }
-        toAdd.push(toRegisterable(fname, entry));
+        if ( before.has(fname) === false ) {
+            toAdd.push(toRegisterable(fname, entry));
+            continue;
+        }
+        const updated = toMaybeUpdatable(before.get(fname), entry);
+        if ( updated !== undefined ) {
+            toUpdate.push(updated);
+        }
     }
+
     const toRemove = [];
-    for ( const fname of before ) {
+    for ( const fname of before.keys() ) {
         if ( toRegister.has(fname) ) { continue; }
         toRemove.push(fname);
     }
 
     const todo = [];
     if ( toRemove.length !== 0 ) {
-        todo.push(browser.scripting.unregisterContentScripts(toRemove));
-        console.info(`Unregistered ${toRemove.length} content (css/js)`);
+        todo.push(browser.scripting.unregisterContentScripts({ ids: toRemove }));
+        console.info(`Unregistered ${toRemove} content (css/js)`);
     }
     if ( toAdd.length !== 0 ) {
         todo.push(browser.scripting.registerContentScripts(toAdd));
-        console.info(`Registered ${toAdd.length} content (css/js)`);
+        console.info(`Registered ${toAdd.map(v => v.id)} content (css/js)`);
+    }
+    if ( toUpdate.length !== 0 ) {
+        todo.push(browser.scripting.updateContentScripts(toUpdate));
+        console.info(`Updated ${toUpdate.map(v => v.id)} content (css/js)`);
     }
     if ( todo.length === 0 ) { return; }
 
