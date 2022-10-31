@@ -91,10 +91,12 @@ const contentscriptCode = (( ) => {
         function(hostname, scriptlets) {
             if (
                 document.location === null ||
-                hostname !== document.location.hostname
+                hostname !== document.location.hostname ||
+                typeof self.uBO_scriptletsInjected === 'boolean'
             ) {
                 return;
             }
+            self.uBO_scriptletsInjected = true;
             const injectScriptlets = function(d) {
                 let script;
                 try {
@@ -431,13 +433,17 @@ scriptletFilteringEngine.injectNow = function(details) {
         matchAboutBlank: true,
         runAt: 'document_start',
     });
-    if ( logEntries === undefined ) { return; }
-    promise.then(results => {
-        if ( Array.isArray(results) === false || results[0] !== 0 ) { return; }
-        for ( const entry of logEntries ) {
-            logOne(entry.tabId, entry.url, entry.token);
-        }
-    });
+    if ( logEntries !== undefined ) {
+        promise.then(results => {
+            if ( Array.isArray(results) === false || results[0] !== 0 ) {
+                return;
+            }
+            for ( const entry of logEntries ) {
+                logOne(entry.tabId, entry.url, entry.token);
+            }
+        });
+    }
+    return scriptlets;
 };
 
 scriptletFilteringEngine.toSelfie = function() {

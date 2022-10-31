@@ -19,6 +19,8 @@
     Home: https://github.com/gorhill/uBlock
 */
 
+/* globals browser */
+
 'use strict';
 
 /******************************************************************************/
@@ -149,7 +151,6 @@ const µBlock = {  // jshint ignore:line
     privacySettingsSupported: vAPI.browserSettings instanceof Object,
     cloudStorageSupported: vAPI.cloud instanceof Object,
     canFilterResponseData: typeof browser.webRequest.filterResponseData === 'function',
-    canInjectScriptletsNow: vAPI.webextFlavor.soup.has('chromium'),
 
     // https://github.com/chrisaljoudi/uBlock/issues/180
     // Whitelist directives need to be loaded once the PSL is available
@@ -175,8 +176,8 @@ const µBlock = {  // jshint ignore:line
 
     // Read-only
     systemSettings: {
-        compiledMagic: 46,  // Increase when compiled format changes
-        selfieMagic: 46,    // Increase when selfie format changes
+        compiledMagic: 47,  // Increase when compiled format changes
+        selfieMagic: 47,    // Increase when selfie format changes
     },
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/759#issuecomment-546654501

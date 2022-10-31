@@ -176,10 +176,14 @@
 		"group": "ads",
 		"title": "EasyList",
 		"contentURL": [
-			"https://easylist.to/easylist/easylist.txt",
-			"https://secure.fanboy.co.nz/easylist.txt",
-			"https://easylist-downloads.adblockplus.org/easylist.txt",
+			"https://ublockorigin.github.io/uAssets/thirdparties/easylist.txt",
 			"assets/thirdparties/easylist-downloads.adblockplus.org/easylist.txt"
+		],
+		"cdnURLs": [
+			"https://gitcdn.link/cdn/uBlockOrigin/uAssetsCDN/main/thirdparties/easylist.txt",
+			"https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/thirdparties/easylist.txt",
+			"https://cdn.statically.io/gh/uBlockOrigin/uAssetsCDN/main/thirdparties/easylist.txt",
+			"https://easylist.to/easylist/easylist.txt"
 		],
 		"supportURL": "https://easylist.to/"
 	},
@@ -222,10 +226,14 @@
 		"group": "privacy",
 		"title": "EasyPrivacy",
 		"contentURL": [
-			"https://easylist.to/easylist/easyprivacy.txt",
-			"https://secure.fanboy.co.nz/easyprivacy.txt",
-			"https://easylist-downloads.adblockplus.org/easyprivacy.txt",
+			"https://ublockorigin.github.io/uAssets/thirdparties/easyprivacy.txt",
 			"assets/thirdparties/easylist-downloads.adblockplus.org/easyprivacy.txt"
+		],
+		"cdnURLs": [
+			"https://gitcdn.link/cdn/uBlockOrigin/uAssetsCDN/main/thirdparties/easyprivacy.txt",
+			"https://cdn.jsdelivr.net/gh/uBlockOrigin/uAssetsCDN@main/thirdparties/easyprivacy.txt",
+			"https://cdn.statically.io/gh/uBlockOrigin/uAssetsCDN/main/thirdparties/easyprivacy.txt",
+			"https://easylist.to/easylist/easyprivacy.txt"
 		],
 		"supportURL": "https://easylist.to/"
 	},
@@ -475,7 +483,7 @@
 		"content": "filters",
 		"group": "regions",
 		"off": true,
-		"title": "IND: IndianList",
+		"title": "IND, LKA, NPL: IndianList",
 		"lang": "as bn gu hi kn ml mr ne pa si ta te",
 		"contentURL": "https://easylist-downloads.adblockplus.org/indianlist.txt",
 		"supportURL": "https://github.com/mediumkreation/IndianList"

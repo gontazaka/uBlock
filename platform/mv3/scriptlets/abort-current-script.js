@@ -33,18 +33,30 @@
 /// alias abort-current-inline-script
 /// alias acis
 
-try {
+/******************************************************************************/
+
+// Important!
+// Isolate from global scope
+(function uBOL_abortCurrentScript() {
+
+/******************************************************************************/
+
+// $rulesetId$
+
+const argsList = self.$argsList$;
+
+const hostnamesMap = new Map(self.$hostnamesMap$);
 
 /******************************************************************************/
 
 // Issues to mind before changing anything:
 //  https://github.com/uBlockOrigin/uBlock-issues/issues/2154
 
-(function(
+const scriptlet = (
     target = '',
     needle = '',
     context = ''
-) {
+) => {
     if ( target === '' ) { return; }
     const reRegexEscape = /[.*+?^${}()|[\]\\]/g;
     const reNeedle = (( ) => {
@@ -137,9 +149,36 @@ try {
             return oe.apply(this, arguments);
         }
     }.bind();
-})(...self.$args$);
+};
 
 /******************************************************************************/
 
-} catch(ex) {
+let hn;
+try { hn = document.location.hostname; } catch(ex) { }
+while ( hn ) {
+    if ( hostnamesMap.has(hn) ) {
+        let argsIndices = hostnamesMap.get(hn);
+        if ( typeof argsIndices === 'number' ) { argsIndices = [ argsIndices ]; }
+        for ( const argsIndex of argsIndices ) {
+            const details = argsList[argsIndex];
+            if ( details.n && details.n.includes(hn) ) { continue; }
+            try { scriptlet(...details.a); } catch(ex) {}
+        }
+    }
+    if ( hn === '*' ) { break; }
+    const pos = hn.indexOf('.');
+    if ( pos !== -1 ) {
+        hn = hn.slice(pos + 1);
+    } else {
+        hn = '*';
+    }
 }
+
+argsList.length = 0;
+hostnamesMap.clear();
+
+/******************************************************************************/
+
+})();
+
+/******************************************************************************/

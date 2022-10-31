@@ -30,17 +30,29 @@
 
 /// name json-prune
 
-try {
+/******************************************************************************/
+
+// Important!
+// Isolate from global scope
+(function uBOL_jsonPrune() {
+
+/******************************************************************************/
+
+// $rulesetId$
+
+const argsList = self.$argsList$;
+
+const hostnamesMap = new Map(self.$hostnamesMap$);
 
 /******************************************************************************/
 
 //  https://github.com/uBlockOrigin/uBlock-issues/issues/1545
 //  - Add support for "remove everything if needle matches" case
 
-(function(
+const scriptlet = (
     rawPrunePaths = '',
     rawNeedlePaths = ''
-) {
+) => {
     const prunePaths = rawPrunePaths !== ''
         ? rawPrunePaths.split(/ +/)
         : [];
@@ -113,9 +125,36 @@ try {
             return Reflect.apply(...arguments).then(o => pruner(o));
         },
     });
-})(...self.$args$);
+};
 
 /******************************************************************************/
 
-} catch(ex) {
+let hn;
+try { hn = document.location.hostname; } catch(ex) { }
+while ( hn ) {
+    if ( hostnamesMap.has(hn) ) {
+        let argsIndices = hostnamesMap.get(hn);
+        if ( typeof argsIndices === 'number' ) { argsIndices = [ argsIndices ]; }
+        for ( const argsIndex of argsIndices ) {
+            const details = argsList[argsIndex];
+            if ( details.n && details.n.includes(hn) ) { continue; }
+            try { scriptlet(...details.a); } catch(ex) {}
+        }
+    }
+    if ( hn === '*' ) { break; }
+    const pos = hn.indexOf('.');
+    if ( pos !== -1 ) {
+        hn = hn.slice(pos + 1);
+    } else {
+        hn = '*';
+    }
 }
+
+argsList.length = 0;
+hostnamesMap.clear();
+
+/******************************************************************************/
+
+})();
+
+/******************************************************************************/

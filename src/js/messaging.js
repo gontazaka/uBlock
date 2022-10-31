@@ -240,9 +240,9 @@ const onMessage = function(request, sender, callback) {
                 isUnsupported(rule)
             );
             out.push(`+ Unsupported filters (${bad.length}): ${JSON.stringify(bad, replacer, 2)}`);
-
-            out.push(`\n+ Cosmetic filters: ${result.cosmetic.length}`);
-            for ( const details of result.cosmetic ) {
+            out.push(`+ generichide exclusions (${network.generichideExclusions.length}): ${JSON.stringify(network.generichideExclusions, replacer, 2)}`);
+            out.push(`+ Cosmetic filters: ${result.specificCosmetic.size}`);
+            for ( const details of result.specificCosmetic ) {
                 out.push(`    ${JSON.stringify(details)}`);
             }
 
@@ -773,11 +773,8 @@ const retrieveContentScriptParameters = async function(sender, request) {
     // https://github.com/uBlockOrigin/uBlock-issues/issues/688#issuecomment-748179731
     //   For non-network URIs, scriptlet injection is deferred to here. The
     //   effective URL is available here in `request.url`.
-    if (
-        µb.canInjectScriptletsNow === false ||
-        isNetworkURI(sender.frameURL) === false
-    ) {
-        scriptletFilteringEngine.injectNow(request);
+    if ( request.needScriptlets ) {
+        response.scriptlets = scriptletFilteringEngine.injectNow(request);
     }
 
     // https://github.com/NanoMeow/QuickReports/issues/6#issuecomment-414516623
@@ -1710,18 +1707,21 @@ const getURLFilteringData = function(details) {
         }
         if ( response.dirty ) { continue; }
         puf.evaluateZ(context, url, type);
-        response.dirty = colorEntry.own !== (
+        const pown = (
             puf.r !== 0 &&
             puf.context === context &&
             puf.url === url &&
             puf.type === type
         );
+        response.dirty = colorEntry.own !== pown || colorEntry.r !== puf.r;
     }
     return response;
 };
 
 const compileTemporaryException = function(filter) {
-    const parser = new StaticFilteringParser();
+    const parser = new StaticFilteringParser({
+        nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
+    });
     parser.analyze(filter);
     if ( parser.shouldDiscard() ) { return; }
     return staticExtFilteringEngine.compileTemporary(parser);
