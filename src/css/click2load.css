@@ -22,7 +22,7 @@ body {
     align-items: center;
     background: 
         no-repeat center/12.5vmin url(../img/ublock.svg),
-        repeating-linear-gradient(45deg, var(--light-gray-30), var(--light-gray-30) 8px, var(--light-gray-25) 0, var(--light-gray-25) 26px);
+        var(--surface-1);
     border: 0.2vmin solid var(--ubo-red);
     box-sizing: border-box;
     display: flex;
