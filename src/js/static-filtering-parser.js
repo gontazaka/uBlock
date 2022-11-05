@@ -1589,7 +1589,7 @@ Parser.prototype.SelectorCompiler = class {
             if ( typeof value !== 'string' ) {
                 value = data.value.name;
             }
-            value = value.replace(/"/g, '\\$&');
+            value = value.replace(/["\\]/g, '\\$&');
             let flags = '';
             if ( typeof data.flags === 'string' ) {
                 if ( /^(is?|si?)$/.test(data.flags) === false ) { return; }
@@ -1634,8 +1634,10 @@ Parser.prototype.SelectorCompiler = class {
             }
             break;
         }
-        case 'PseudoClassSelector':
         case 'PseudoElementSelector':
+            out.push(':');
+            /* fall through */
+        case 'PseudoClassSelector':
             out.push(`:${data.name}`);
             if ( Array.isArray(part.args) ) {
                 const arg = this.astSerialize(part.args);
@@ -1655,7 +1657,6 @@ Parser.prototype.SelectorCompiler = class {
         }
         return out.join('');
     }
-
 
     astSerialize(parts, plainCSS = true) {
         const out = [];
