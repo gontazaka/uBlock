@@ -63,10 +63,10 @@ jobs:
         # tools/make-thunderbird.sh ${{ steps.release_info.outputs.VERSION }}
         # tools/make-npm.sh ${{ steps.release_info.outputs.VERSION }}
 
-      - name: Build MV3 packages
-        run: |
-          tools/make-mv3.sh full
-          echo "MV3PACKAGE=$(basename $(ls dist/build/uBlock🦆_*.mv3.zip))" >> $GITHUB_ENV
+      # - name: Build MV3 packages
+      #   run: |
+      #     tools/make-mv3.sh full
+      #     echo "MV3PACKAGE=$(basename $(ls dist/build/uBlock🦆_*.mv3.zip))" >> $GITHUB_ENV
 
       - name: Upload Chromium package
         id: release_chromium
