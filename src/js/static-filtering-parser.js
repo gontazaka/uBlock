@@ -1554,6 +1554,9 @@ Parser.prototype.SelectorCompiler = class {
             data.type = 'ProceduralSelector';
         } else if ( this.proceduralActionNames.has(data.name) ) {
             data.type = 'ActionSelector';
+        } else if ( data.name.startsWith('-abp-') ) {
+            data.type = 'Error';
+            return;
         }
         if ( this.maybeProceduralOperatorNames.has(data.name) ) {
             if ( this.astHasType(args, 'ProceduralSelector') ) {
@@ -1728,12 +1731,14 @@ Parser.prototype.SelectorCompiler = class {
                 break;
             case 'ProceduralSelector':
                 if ( prelude.length !== 0 ) {
-                    if ( tasks.length === 0 ) {
-                        out.selector = prelude.join('');
-                    } else {
-                        tasks.push(this.createSpathTask(prelude.join('')));
-                    }
+                    let spath = prelude.join('');
                     prelude.length = 0;
+                    if ( spath.endsWith(' ') ) { spath += '*'; }
+                    if ( tasks.length === 0 ) {
+                        out.selector = spath;
+                    } else {
+                        tasks.push(this.createSpathTask(spath));
+                    }
                 }
                 const args = this.compileArgumentAst(data.name, part.args);
                 if ( args === undefined ) { return; }
