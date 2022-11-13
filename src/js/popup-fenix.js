@@ -528,8 +528,8 @@ const renderPopup = function() {
     dom.cl.toggle(dom.body, 'needSave', popupData.matrixIsDirty === true);
 
     {
-        const elemNi = uDom.nodeFromId('networkinfo');
-        elemNi.textContent = navigator?.connection?.effectiveType ?? '';
+        const elemNi = qs$('#networkinfo');
+        dom.text(elemNi, navigator?.connection?.effectiveType ?? '');
     }
 
     // The hostname information below the power switch
