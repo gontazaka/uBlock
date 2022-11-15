@@ -22,6 +22,9 @@ exit 0
 cp -Rl $ASSETS_MAIN/thirdparties/pgl.yoyo.org     $DES/thirdparties/
 cp -Rl $ASSETS_MAIN/thirdparties/urlhaus-filter   $DES/thirdparties/
 
+mkdir -p $DES/thirdparties/easylist
+cp $ASSETS_PROD/thirdparties/easy*.txt $DES/thirdparties/easylist/
+
 mkdir -p $DES/ublock
 cp $ASSETS_PROD/filters/* $DES/ublock/
 
