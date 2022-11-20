@@ -3027,6 +3027,7 @@ Parser.utils = Parser.prototype.utils = (( ) => {
             }
             case 2: /* T_ALTERNATION, 'Alternation' */
             case 8: /* T_CHARGROUP, 'CharacterGroup' */ {
+                if ( node.flags.NegativeMatch ) { return '\x01'; }
                 let firstChar = 0;
                 let lastChar = 0;
                 for ( let i = 0; i < node.val.length; i++ ) {
@@ -3051,6 +3052,7 @@ Parser.utils = Parser.prototype.utils = (( ) => {
                 return this.tokenizableStrFromNode(node.val);
             }
             case 16: /* T_QUANTIFIER, 'Quantifier' */ {
+                if ( node.flags.max === 0 ) { return ''; }
                 const s = this.tokenizableStrFromNode(node.val);
                 const first = this.firstCharCodeClass(s);
                 const last = this.lastCharCodeClass(s);
@@ -3060,7 +3062,14 @@ Parser.utils = Parser.prototype.utils = (( ) => {
                 return String.fromCharCode(first+2, last+2);
             }
             case 64: /* T_HEXCHAR, 'HexChar' */ {
-                return String.fromCharCode(parseInt(node.val.slice(1), 16));
+                if (
+                    node.flags.Code === '01' ||
+                    node.flags.Code === '02' ||
+                    node.flags.Code === '03'
+                ) {
+                    return '\x00';
+                }
+                return node.flags.Char;
             }
             case 128: /* T_SPECIAL, 'Special' */ {
                 const flags = node.flags;
