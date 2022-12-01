@@ -14,7 +14,6 @@ import time
 import zipfile
 import functools
 
-from distutils.version import LooseVersion
 from string import Template
 
 print = functools.partial(print, flush=True)

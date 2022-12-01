@@ -1158,10 +1158,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 // be generated if the user doesn't change his filter lists selection for
 // some set time.
 
-µb.selfieManager = (( ) => {
-    let createTimer;
-    let destroyTimer;
-
+{
     // As of 2018-05-31:
     //   JSON.stringify-ing ourselves results in a better baseline
     //   memory usage at selfie-load time. For some reasons.
@@ -1212,9 +1209,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     };
 
     const load = async function() {
-        if ( µb.selfieIsInvalid ) {
-            return false;
-        }
+        if ( µb.selfieIsInvalid ) { return false; }
         try {
             const results = await Promise.all([
                 loadMain(),
@@ -1236,6 +1231,9 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         destroy();
         return false;
     };
+
+    let createTimer;
+    let destroyTimer;
 
     const destroy = function() {
         io.remove(/^selfie\//);
@@ -1262,8 +1260,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         µb.selfieIsInvalid = true;
     };
 
-    return { load, destroy: destroyAsync };
-})();
+    µb.selfieManager = { load, destroy: destroyAsync };
+}
 
 /******************************************************************************/
 
