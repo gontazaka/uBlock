@@ -659,10 +659,13 @@ vAPI.DOMFilterer = class {
                     ...this.proceduralFilterer.selectors.values()
                 );
             }
-            for ( const json of this.convertedProceduralFilters ) {
-                out.procedural.push(
-                    this.proceduralFiltererInstance().createProceduralFilter(json)
-                );
+            const proceduralFilterer = this.proceduralFiltererInstance();
+            if ( proceduralFilterer !== null ) {
+                for ( const json of this.convertedProceduralFilters ) {
+                    out.procedural.push(
+                        proceduralFilterer.createProceduralFilter(json)
+                    );
+                }
             }
         }
         return out;
@@ -948,14 +951,14 @@ vAPI.DOMFilterer = class {
 // vAPI.domSurveyor
 
 {
-    // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+    // http://www.cse.yorku.ca/~oz/hash.html#djb2
     //   Must mirror cosmetic filtering compiler's version
     const hashFromStr = (type, s) => {
         const len = s.length;
         const step = len + 7 >>> 3;
-        let hash = (type << 5) - type + (len & 0xFF) | 0;
+        let hash = (type << 5) + type ^ len;
         for ( let i = 0; i < len; i += step ) {
-            hash = (hash << 5) - hash + s.charCodeAt(i) | 0;
+            hash = (hash << 5) + hash ^ s.charCodeAt(i);
         }
         return hash & 0xFFFFFF;
     };
