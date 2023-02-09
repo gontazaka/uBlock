@@ -26,7 +26,6 @@
 import logger from './logger.js';
 import µb from './background.js';
 import { sessionFirewall } from './filtering-engines.js';
-
 import { StaticExtFilteringHostnameDB } from './static-ext-filtering-db.js';
 
 /******************************************************************************/
@@ -314,7 +313,8 @@ htmlFilteringEngine.freeze = function() {
 };
 
 htmlFilteringEngine.compile = function(parser, writer) {
-    const { raw, compiled, exception } = parser.result;
+    const isException = parser.isException();
+    const { raw, compiled } = parser.result;
     if ( compiled === undefined ) {
         const who = writer.properties.get('name') || '?';
         logger.writeOne({
@@ -329,7 +329,7 @@ htmlFilteringEngine.compile = function(parser, writer) {
 
     // Only exception filters are allowed to be global.
     if ( parser.hasOptions() === false ) {
-        if ( exception ) {
+        if ( isException ) {
             writer.push([ 64, '', 1, compiled ]);
         }
         return;
@@ -337,10 +337,10 @@ htmlFilteringEngine.compile = function(parser, writer) {
 
     // TODO: Mind negated hostnames, they are currently discarded.
 
-    for ( const { hn, not, bad } of parser.extOptions() ) {
+    for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
         if ( bad ) { continue; }
         let kind = 0;
-        if ( exception ) {
+        if ( isException ) {
             if ( not ) { continue; }
             kind |= 0b01;
         }
@@ -376,19 +376,13 @@ htmlFilteringEngine.retrieve = function(details) {
     const plains = new Set();
     const procedurals = new Set();
     const exceptions = new Set();
+    const retrieveSets = [ plains, exceptions, procedurals, exceptions ];
 
-    filterDB.retrieve(
-        hostname,
-        [ plains, exceptions, procedurals, exceptions ]
-    );
+    filterDB.retrieve(hostname, retrieveSets);
     const entity = details.entity !== ''
         ? `${hostname.slice(0, -details.domain.length)}${details.entity}`
         : '*';
-    filterDB.retrieve(
-        entity,
-        [ plains, exceptions, procedurals, exceptions ],
-        1
-    );
+    filterDB.retrieve(entity, retrieveSets, 1);
 
     if ( plains.size === 0 && procedurals.size === 0 ) { return; }
 
