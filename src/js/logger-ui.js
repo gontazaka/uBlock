@@ -2068,7 +2068,7 @@ dom.on(document, 'keydown', ev => {
     dom.on(
         '#netInspector',
         'click',
-        '.canDetails > span:nth-of-type(4),.canDetails > span:nth-of-type(7)',
+        '.canDetails > span:nth-of-type(4),.canDetails > span:nth-of-type(8)',
         ev => { copyText(ev); }
     );
 })();

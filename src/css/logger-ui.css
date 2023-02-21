@@ -334,12 +334,12 @@ body[dir="rtl"] #vwRenderer .logEntry > div > span:first-child {
     cursor: zoom-in;
     }
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4),
-#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7) {
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(8) {
     background: rgb(var(--dashboard-tab-focus-surface-rgb));
     cursor: copy;
     }
 #vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(4).flashing,
-#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(7).flashing {
+#vwRenderer .logEntry > div.canDetails:hover > span:nth-of-type(8).flashing {
     color: var(--accent-ink-3) !important;
     background: rgb(var(--primary-95)) !important;
     transition: background 0.3s ease-out;
