@@ -52,7 +52,6 @@ let filteredLoggerEntryVoidedCount = 0;
 let popupLoggerBox;
 let popupLoggerTooltips;
 let activeTabId = 0;
-let filterAuthorMode = false;
 let selectedTabId = 0;
 let netInspectorPaused = false;
 let cnameOfEnabled = false;
@@ -253,7 +252,7 @@ const regexFromURLFilteringResult = function(result) {
 
 // Emphasize hostname in URL, as this is what matters in uMatrix's rules.
 
-const nodeFromURL = function(parent, url, re) {
+const nodeFromURL = function(parent, url, re, type) {
     const fragment = document.createDocumentFragment();
     if ( re === undefined ) {
         fragment.textContent = url;
@@ -282,7 +281,19 @@ const nodeFromURL = function(parent, url, re) {
     }
     if ( /^https?:\/\//.test(url) ) {
         const a = document.createElement('a');
-        dom.attr(a, 'href', url);
+        let href = url;
+        switch ( type ) {
+            case 'css':
+            case 'doc':
+            case 'frame':
+            case 'script':
+            case 'xhr':
+                href = `code-viewer.html?url=${encodeURIComponent(href)}`;
+                break;
+            default:
+                break;
+        }
+        dom.attr(a, 'href', href);
         dom.attr(a, 'target', '_blank');
         fragment.appendChild(a);
     }
@@ -862,7 +873,7 @@ const viewPort = (( ) => {
         } else if ( filteringType === 'dynamicUrl' ) {
             re = regexFromURLFilteringResult(filter.rule.join(' '));
         }
-        nodeFromURL(div.children[COLUMN_URL], cells[COLUMN_URL], re);
+        nodeFromURL(div.children[COLUMN_URL], cells[COLUMN_URL], re, cells[COLUMN_TYPE]);
 
         // Alias URL (CNAME, etc.)
         if ( cells.length > 8 ) {
@@ -1099,8 +1110,6 @@ const onLogBufferRead = function(response) {
         synchronizeTabIds(response.tabIds);
         allTabIdsToken = response.tabIdsToken;
     }
-
-    filterAuthorMode = response.filterAuthorMode === true;
 
     if ( activeTabIdChanged ) {
         pageSelectorFromURLHash();
@@ -2081,6 +2090,23 @@ dom.on(document, 'keydown', ev => {
         'click',
         '.canDetails > span:nth-of-type(4),.canDetails > span:nth-of-type(8)',
         ev => { copyText(ev); }
+    );
+
+    dom.on(
+        '#netInspector',
+        'click',
+        '.logEntry > div > span:nth-of-type(8) a',
+        ev => {
+            vAPI.messaging.send('codeViewer', {
+                what: 'gotoURL',
+                details: {
+                    url: ev.target.getAttribute('href'),
+                    select: true,
+                },
+            });
+            ev.preventDefault();
+            ev.stopPropagation();
+        }
     );
 })();
 

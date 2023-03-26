@@ -1136,6 +1136,7 @@ const webRequest = {
             vAPI.net.addListener(
                 'onResponseStarted',
                 details => {
+                    if ( details.tabId === -1 ) { return; }
                     const pageStore = µb.pageStoreFromTabId(details.tabId);
                     if ( pageStore === null ) { return; }
                     if ( pageStore.getNetFilteringSwitch() === false ) { return; }

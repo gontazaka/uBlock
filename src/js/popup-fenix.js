@@ -864,7 +864,7 @@ const gotoReport = function() {
         what: 'launchReporter',
         tabId: popupData.tabId,
         pageURL: popupData.pageURL,
-        popupPanel: JSON.stringify(popupPanel),
+        popupPanel,
     });
 
     vAPI.closePopup();

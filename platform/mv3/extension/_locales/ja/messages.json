@@ -4,7 +4,7 @@
     "description": "extension name."
   },
   "extShortDesc": {
-    "message": "小さな権限で動作する実験的なコンテンツブロッカーです。インストールしてすぐに、広告、トラッキング、マイニングなどをブロックします。",
+    "message": "実験的で要求権限の少ないコンテンツブロッカー - 広告・トラッカー・マイニングスクリプトなどをブロック",
     "description": "this will be in the Chrome web store: must be 132 characters or less"
   },
   "perRulesetStats": {
@@ -52,7 +52,7 @@
     "description": "Link to privacy policy on GitHub (English)"
   },
   "popupPowerSwitchInfo": {
-    "message": "このサイトで uBO Lite を無効/有効化",
+    "message": "このサイトに対する uBO Lite を無効 / 有効化",
     "description": "Tooltip for the main power button in the popup panel"
   },
   "popupTipDashboard": {

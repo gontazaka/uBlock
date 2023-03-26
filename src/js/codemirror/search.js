@@ -27,7 +27,8 @@
 
 'use strict';
 
-(function(CodeMirror) {
+{
+    const CodeMirror = self.CodeMirror;
 
     const searchOverlay = function(query, caseInsensitive) {
         if ( typeof query === 'string' )
@@ -69,8 +70,18 @@
         );
     };
 
-    const searchWidgetInputHandler = function(cm) {
-        let state = getSearchState(cm);
+    const searchWidgetInputHandler = function(cm, ev) {
+        const state = getSearchState(cm);
+        if ( ev.isTrusted !== true ) {
+            if ( state.queryText === '' ) {
+                clearSearch(cm);
+            } else {
+                cm.operation(function() {
+                    startSearch(cm, state);
+                });
+            }
+            return;
+        }
         if ( queryTextFromSearchWidget(cm) === state.queryText ) { return; }
         if ( state.queryTimer !== null ) {
             clearTimeout(state.queryTimer);
@@ -449,4 +460,4 @@
     CodeMirror.defineInitHook(function(cm) {
         getSearchState(cm);
     });
-})(self.CodeMirror);
+}

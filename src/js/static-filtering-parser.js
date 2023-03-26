@@ -118,6 +118,7 @@ export const NODE_TYPE_EXT_PATTERN_HTML             = iota++;
 export const NODE_TYPE_EXT_PATTERN_RESPONSEHEADER   = iota++;
 export const NODE_TYPE_EXT_PATTERN_SCRIPTLET        = iota++;
 export const NODE_TYPE_EXT_PATTERN_SCRIPTLET_TOKEN  = iota++;
+export const NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARGS   = iota++;
 export const NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG    = iota++;
 export const NODE_TYPE_NET_RAW                      = iota++;
 export const NODE_TYPE_NET_EXCEPTION                = iota++;
@@ -276,6 +277,7 @@ export const nodeNameFromNodeType = new Map([
     [ NODE_TYPE_EXT_PATTERN_RESPONSEHEADER, 'extPatternResponseheader' ],
     [ NODE_TYPE_EXT_PATTERN_SCRIPTLET, 'extPatternScriptlet' ],
     [ NODE_TYPE_EXT_PATTERN_SCRIPTLET_TOKEN, 'extPatternScriptletToken' ],
+    [ NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARGS, 'extPatternScriptletArgs' ],
     [ NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG, 'extPatternScriptletArg' ],
     [ NODE_TYPE_NET_RAW, 'netRaw' ],
     [ NODE_TYPE_NET_EXCEPTION, 'netException' ],
@@ -317,30 +319,30 @@ const astTemplates = {
         flags: AST_FLAG_NET_PATTERN_LEFT_HNANCHOR |
             AST_FLAG_NET_PATTERN_RIGHT_PATHANCHOR,
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR,
-                    begFromBeg: 0,
-                    endFromBeg: 2,
+                    beg: 0,
+                    end: 2,
                 }, {
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 2,
-                    endFromEnd: -1,
+                    beg: 2,
+                    end: -1,
                     register: true,
                 }, {
                     type: NODE_TYPE_NET_PATTERN_PART_SPECIAL,
-                    begFromEnd: -1,
-                    endFromEnd: 0,
+                    beg: -1,
+                    end: 0,
                 }],
             }],
         }],
@@ -351,48 +353,48 @@ const astTemplates = {
             AST_FLAG_NET_PATTERN_RIGHT_PATHANCHOR |
             AST_FLAG_HAS_OPTIONS,
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR,
-                    begFromBeg: 0,
-                    endFromBeg: 2,
+                    beg: 0,
+                    end: 2,
                 }, {
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 2,
-                    endFromEnd: -13,
+                    beg: 2,
+                    end: -13,
                     register: true,
                 }, {
                     type: NODE_TYPE_NET_PATTERN_PART_SPECIAL,
-                    begFromEnd: -13,
-                    endFromEnd: -12,
+                    beg: -13,
+                    end: -12,
                 }],
             }, {
                 type: NODE_TYPE_NET_OPTIONS_ANCHOR,
-                begFromEnd: -12,
-                endFromEnd: -11,
+                beg: -12,
+                end: -11,
             }, {
                 type: NODE_TYPE_NET_OPTIONS,
-                begFromEnd: -11,
-                endFromEnd: 0,
+                beg: -11,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_NET_OPTION_RAW,
-                    begFromBeg: 0,
-                    endFromEnd: 0,
+                    beg: 0,
+                    end: 0,
                     children: [{
                         type: NODE_TYPE_NET_OPTION_NAME_3P,
-                        begFromBeg: 0,
-                        endFromEnd: 0,
+                        beg: 0,
+                        end: 0,
                         register: true,
                     }],
                 }],
@@ -403,25 +405,25 @@ const astTemplates = {
     netHnAnchoredPlainAscii: {
         flags: AST_FLAG_NET_PATTERN_LEFT_HNANCHOR,
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR,
-                    begFromBeg: 0,
-                    endFromBeg: 2,
+                    beg: 0,
+                    end: 2,
                 }, {
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 2,
-                    endFromEnd: 0,
+                    beg: 2,
+                    end: 0,
                     register: true,
                 }],
             }],
@@ -431,21 +433,21 @@ const astTemplates = {
     // -resource.
     netPlainAscii: {
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 0,
-                    endFromEnd: 0,
+                    beg: 0,
+                    end: 0,
                     register: true,
                 }],
             }],
@@ -454,25 +456,25 @@ const astTemplates = {
     // 127.0.0.1 example.com
     netHosts1: {
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_IGNORE,
-                    begFromBeg: 0,
-                    endFromBeg: 10,
+                    beg: 0,
+                    end: 10,
                 }, {
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 10,
-                    endFromEnd: 0,
+                    beg: 10,
+                    end: 0,
                     register: true,
                 }],
             }],
@@ -481,25 +483,25 @@ const astTemplates = {
     // 0.0.0.0 example.com
     netHosts2: {
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_NET_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_NET_PATTERN_RAW,
-                begFromBeg: 0,
-                endFromEnd: 0,
+                beg: 0,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_IGNORE,
-                    begFromBeg: 0,
-                    endFromBeg: 8,
+                    beg: 0,
+                    end: 8,
                 }, {
                     type: NODE_TYPE_NET_PATTERN,
-                    begFromBeg: 8,
-                    endFromEnd: 0,
+                    beg: 8,
+                    end: 0,
                     register: true,
                 }],
             }],
@@ -508,26 +510,26 @@ const astTemplates = {
     // ##.ads-container
     extPlainGenericSelector: {
         type: NODE_TYPE_LINE_BODY,
-        begFromBeg: 0,
-        endFromEnd: 0,
+        beg: 0,
+        end: 0,
         children: [{
             type: NODE_TYPE_EXT_RAW,
-            begFromBeg: 0,
-            endFromEnd: 0,
+            beg: 0,
+            end: 0,
             children: [{
                 type: NODE_TYPE_EXT_OPTIONS_ANCHOR,
-                begFromBeg: 0,
-                endFromBeg: 2,
+                beg: 0,
+                end: 2,
                 register: true,
             }, {
                 type: NODE_TYPE_EXT_PATTERN_RAW,
-                begFromBeg: 2,
-                endFromEnd: 0,
+                beg: 2,
+                end: 0,
                 register: true,
                 children: [{
                     type: NODE_TYPE_EXT_PATTERN_COSMETIC,
-                    begFromBeg: 0,
-                    endFromEnd: 0,
+                    beg: 0,
+                    end: 0,
                 }],
             }],
         }],
@@ -697,6 +699,7 @@ export class AstFilterParser {
         this.hasUnicode = false;
         this.hasUppercase = false;
         // Options
+        this.options = options;
         this.interactive = options.interactive || false;
         this.expertMode = options.expertMode || false;
         this.badTypes = new Set(options.badTypes || []);
@@ -747,6 +750,7 @@ export class AstFilterParser {
         this.reHostnamePatternPart = /^[^\x00-\x24\x26-\x29\x2B\x2C\x2F\x3A-\x40\x5B-\x5E\x60\x7B-\x7F]+/;
         this.reHostnameLabel = /[^.]+/g;
         this.reResponseheaderPattern = /^\^responseheader\(.*\)$/;
+        this.rePatternScriptletJsonArgs = /^\{.*\}$/;
         // TODO: mind maxTokenLength
         this.reGoodRegexToken = /[^\x01%0-9A-Za-z][%0-9A-Za-z]{7,}|[^\x01%0-9A-Za-z][%0-9A-Za-z]{1,6}[^\x01%0-9A-Za-z]/;
         this.reBadCSP = /(?:=|;)\s*report-(?:to|uri)\b/;
@@ -866,12 +870,8 @@ export class AstFilterParser {
     astFromTemplate(parent, template) {
         const parentBeg = this.nodes[parent+NODE_BEG_INDEX];
         const parentEnd = this.nodes[parent+NODE_END_INDEX];
-        const beg = template.begFromBeg !== undefined
-            ? parentBeg + template.begFromBeg
-            : parentEnd + template.begFromEnd;
-        const end = template.endFromEnd !== undefined
-            ? parentEnd + template.endFromEnd
-            : parentBeg + template.endFromBeg;
+        const beg = template.beg + (template.beg >= 0 ? parentBeg : parentEnd);
+        const end = template.end + (template.end <= 0 ? parentEnd : parentBeg);
         const node = this.allocTypedNode(template.type, beg, end);
         if ( template.register ) {
             this.addNodeToRegister(template.type, node);
@@ -1099,7 +1099,7 @@ export class AstFilterParser {
         let anchorBeg = this.indexOfNetAnchor(parentStr, patternBeg);
         if ( anchorBeg === -1 ) { return 0; }
         anchorBeg += parentBeg;
-        if ( anchorBeg !== parentStr.length ) {
+        if ( anchorBeg !== parentEnd ) {
             tail = this.allocTypedNode(
                 NODE_TYPE_NET_OPTIONS_ANCHOR,
                 anchorBeg,
@@ -1224,7 +1224,7 @@ export class AstFilterParser {
                     realBad = isException === false || isNegated || hasValue;
                     break;
                 case NODE_TYPE_NET_OPTION_NAME_HEADER:
-                    realBad = this.expertMode === false || isNegated || hasValue === false;
+                    realBad = this.options.filterOnHeaders !== true || isNegated || hasValue === false;
                     break;
                 case NODE_TYPE_NET_OPTION_NAME_IMPORTANT:
                     realBad = isException || isNegated || hasValue;
@@ -1368,7 +1368,7 @@ export class AstFilterParser {
         const clast = exCharCodeAt(pattern, -1);
 
         // Common case: Easylist syntax-based hostname
-        if ( 
+        if (
             hasWildcard === false &&
             c1st === 0x7C /* | */ && c2nd === 0x7C /* | */ &&
             clast === 0x5E /* ^ */ &&
@@ -1482,7 +1482,7 @@ export class AstFilterParser {
 
         // Left anchor
         if ( c1st === 0x7C /* '|' */ ) {
-            if ( pattern.length > 2 && c2nd === 0x7C /* '|' */ ) {
+            if ( c2nd === 0x7C /* '|' */ ) {
                 const type = this.isTokenCharCode(pattern.charCodeAt(2) || 0)
                     ? NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR
                     : NODE_TYPE_IGNORE;
@@ -1490,10 +1490,9 @@ export class AstFilterParser {
                 if ( type === NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR ) {
                     this.addFlags(AST_FLAG_NET_PATTERN_LEFT_HNANCHOR);
                 }
-                prev = this.linkRight(prev, next);
                 patternBeg += 2;
                 pattern = pattern.slice(2);
-            } else if ( pattern.length > 1 ) {
+            } else {
                 const type = this.isTokenCharCode(c2nd)
                     ? NODE_TYPE_NET_PATTERN_LEFT_ANCHOR
                     : NODE_TYPE_IGNORE;
@@ -1501,14 +1500,17 @@ export class AstFilterParser {
                 if ( type === NODE_TYPE_NET_PATTERN_LEFT_ANCHOR ) {
                     this.addFlags(AST_FLAG_NET_PATTERN_LEFT_ANCHOR);
                 }
-                prev = this.linkRight(prev, next);
                 patternBeg += 1;
                 pattern = pattern.slice(1);
+            }
+            prev = this.linkRight(prev, next);
+            if ( patternBeg === patternEnd ) {
+                this.addNodeFlags(next, NODE_FLAG_IGNORE);
             }
         }
 
         // Right anchor
-        if ( clast === 0x7C /* | */ && pattern.length >= 2 ) {
+        if ( exCharCodeAt(pattern, -1) === 0x7C /* | */ ) {
             const type = exCharCodeAt(pattern, -2) !== 0x2A /* * */
                 ? NODE_TYPE_NET_PATTERN_RIGHT_ANCHOR
                 : NODE_TYPE_IGNORE;
@@ -1518,6 +1520,9 @@ export class AstFilterParser {
             }
             patternEnd -= 1;
             pattern = pattern.slice(0, -1);
+            if ( patternEnd === patternBeg ) {
+                this.addNodeFlags(tail, NODE_FLAG_IGNORE);
+            }
         }
 
         // Ignore pointless leading wildcards
@@ -2116,14 +2121,111 @@ export class AstFilterParser {
         let prev = head, next = 0;
         const s = this.getNodeString(parent);
         const argsEnd = s.length;
-        let argCount = 0;
-        let argBeg = 0, argEnd = 0, argBodyBeg = 0, argBodyEnd = 0;
-        let rawArg = '';
-        while ( argBeg < argsEnd ) {
-            argEnd = this.indexOfNextScriptletArgSeparator(s, argBeg);
-            rawArg = s.slice(argBeg, argEnd);
-            argBodyBeg = argBeg + this.leftWhitespaceCount(rawArg);
-            if ( argBodyBeg !== argBodyEnd ) {
+        // token
+        let argEnd = this.indexOfNextScriptletArgSeparator(s, 0);
+        let rawArg = s.slice(0, argEnd);
+        let argBodyBeg = this.leftWhitespaceCount(rawArg);
+        if ( argBodyBeg !== 0 ) {
+            next = this.allocTypedNode(
+                NODE_TYPE_EXT_DECORATION,
+                parentBeg,
+                parentBeg + argBodyBeg
+            );
+            prev = this.linkRight(prev, next);
+        }
+        let argBodyEnd = argEnd - this.rightWhitespaceCount(rawArg);
+        rawArg = s.slice(argBodyBeg, argBodyEnd);
+        const tokenEnd = rawArg.endsWith('.js')
+            ? argBodyEnd - 3
+            : argBodyEnd;
+        next = this.allocTypedNode(
+            NODE_TYPE_EXT_PATTERN_SCRIPTLET_TOKEN,
+            parentBeg + argBodyBeg,
+            parentBeg + tokenEnd
+        );
+        prev = this.linkRight(prev, next);
+        // ignore pointless `.js`
+        if ( tokenEnd !== argBodyEnd ) {
+            next = this.allocTypedNode(
+                NODE_TYPE_IGNORE,
+                parentBeg + argBodyEnd - 3,
+                parentBeg + argBodyEnd
+            );
+            prev = this.linkRight(prev, next);
+        }
+        // all args
+        argBodyBeg = argEnd + 1;
+        const rawArgs = s.slice(argBodyBeg, argsEnd);
+        argBodyBeg += this.leftWhitespaceCount(rawArgs);
+        next = this.allocTypedNode(
+            NODE_TYPE_EXT_DECORATION,
+            parentBeg + argBodyEnd,
+            parentBeg + argBodyBeg
+        );
+        prev = this.linkRight(prev, next);
+        argBodyEnd = argsEnd - this.rightWhitespaceCount(rawArgs);
+        if ( argBodyBeg !== argBodyEnd ) {
+            next = this.allocTypedNode(
+                NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARGS,
+                parentBeg + argBodyBeg,
+                parentBeg + argBodyEnd
+            );
+            this.linkDown(next, this.parseExtPatternScriptletArglist(next));
+            prev = this.linkRight(prev, next);
+        }
+        if ( argBodyEnd !== argsEnd ) {
+            next = this.allocTypedNode(
+                NODE_TYPE_EXT_DECORATION,
+                parentBeg + argBodyEnd,
+                parentBeg + argsEnd
+            );
+            prev = this.linkRight(prev, next);
+        }
+        return this.throwHeadNode(head);
+    }
+
+    parseExtPatternScriptletArglist(parent) {
+        const parentBeg = this.nodes[parent+NODE_BEG_INDEX];
+        const parentEnd = this.nodes[parent+NODE_END_INDEX];
+        if ( parentEnd === parentBeg ) { return 0; }
+        const s = this.getNodeString(parent);
+        let next = 0;
+        // json-based arg?
+        const match = this.rePatternScriptletJsonArgs.exec(s);
+        if ( match !== null ) {
+            next = this.allocTypedNode(
+                NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG,
+                parentBeg,
+                parentEnd
+            );
+            try { 
+                void JSON.parse(s);
+            } catch(ex) {
+                this.addNodeFlags(next, NODE_FLAG_ERROR);
+                this.addFlags(AST_FLAG_HAS_ERROR);
+            }
+            return next;
+        }
+        // positional args
+        const head = this.allocHeadNode();
+        const argsEnd = s.length;
+        let prev = head;
+        let argBodyBeg = 0, argBodyEnd = 0, argEnd = 0;
+        let t = '';
+        while ( argBodyBeg < argsEnd ) {
+            argEnd = this.indexOfNextScriptletArgSeparator(s, argBodyBeg);
+            t = s.slice(argBodyBeg, argEnd);
+            argBodyEnd = argEnd - this.rightWhitespaceCount(t);
+            next = this.allocTypedNode(
+                NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG,
+                parentBeg + argBodyBeg,
+                parentBeg + argBodyEnd
+            );
+            prev = this.linkRight(prev, next);
+            if ( argEnd === argsEnd ) { break; }
+            t = s.slice(argEnd + 1);
+            argBodyBeg = argEnd + 1 + this.leftWhitespaceCount(t);
+            if ( argBodyEnd !== argBodyBeg ) {
                 next = this.allocTypedNode(
                     NODE_TYPE_EXT_DECORATION,
                     parentBeg + argBodyEnd,
@@ -2131,44 +2233,6 @@ export class AstFilterParser {
                 );
                 prev = this.linkRight(prev, next);
             }
-            argBodyEnd = argEnd - this.rightWhitespaceCount(rawArg);
-            if ( argCount === 0 ) {
-                rawArg = s.slice(argBodyBeg, argBodyEnd);
-                const tokenEnd = rawArg.endsWith('.js')
-                    ? argBodyEnd - 3
-                    : argBodyEnd;
-                next = this.allocTypedNode(
-                    NODE_TYPE_EXT_PATTERN_SCRIPTLET_TOKEN,
-                    parentBeg + argBodyBeg,
-                    parentBeg + tokenEnd
-                );
-                prev = this.linkRight(prev, next);
-                if ( tokenEnd !== argBodyEnd ) {
-                    next = this.allocTypedNode(
-                        NODE_TYPE_IGNORE,
-                        parentBeg + argBodyEnd - 3,
-                        parentBeg + argBodyEnd
-                    );
-                    prev = this.linkRight(prev, next);
-                }
-            } else {
-                next = this.allocTypedNode(
-                    NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG,
-                    parentBeg + argBodyBeg,
-                    parentBeg + argBodyEnd
-                );
-                prev = this.linkRight(prev, next);
-            }
-            argBeg = argEnd + 1;
-            argCount += 1;
-        }
-        if ( argsEnd !== argBodyEnd ) {
-            next = this.allocTypedNode(
-                NODE_TYPE_EXT_DECORATION,
-                parentBeg + argBodyEnd,
-                parentBeg + argsEnd
-            );
-            prev = this.linkRight(prev, next);
         }
         return this.throwHeadNode(head);
     }
@@ -3346,6 +3410,7 @@ class ExtSelectorCompiler {
     }
 
     astSelectorsFromSelectorList(args) {
+        if ( Array.isArray(args) === false ) { return; }
         if ( args.length < 3 ) { return; }
         if ( args[0].data instanceof Object === false ) { return; }
         if ( args[0].data.type !== 'SelectorList' ) { return; }
@@ -3871,6 +3936,7 @@ export const utils = (( ) => {
     const preparserTokens = new Map([
         [ 'ext_ublock', 'ublock' ],
         [ 'ext_ubol', 'ubol' ],
+        [ 'ext_devbuild', 'devbuild' ],
         [ 'env_chromium', 'chromium' ],
         [ 'env_edge', 'edge' ],
         [ 'env_firefox', 'firefox' ],
