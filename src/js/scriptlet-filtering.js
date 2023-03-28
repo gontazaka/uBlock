@@ -171,15 +171,19 @@ const lookupScriptlet = function(rawToken, scriptletMap, dependencyMap) {
         if ( Array.isArray(details.dependencies) === false ) { continue; }
         dependencies.push(...details.dependencies);
     }
-    scriptletMap.set(
-        rawToken,
-        [ 'try {', content, '} catch (e) {', '}' ].join('\n')
-    );
+    scriptletMap.set(rawToken, [
+        'try {',
+        '// >>>> scriptlet start',
+        content,
+        '// <<<< scriptlet end',
+        '} catch (e) {',
+        '}',
+    ].join('\n'));
 };
 
 // Fill-in scriptlet argument placeholders.
 const patchScriptlet = function(content, args) {
-    if ( content.startsWith('function') ) {
+    if ( content.startsWith('function') && content.endsWith('}') ) {
         content = `(${content})({{args}});`;
     }
     if ( args.startsWith('{') && args.endsWith('}') ) {
@@ -209,7 +213,10 @@ const patchScriptlet = function(content, args) {
     for ( let i = 0; i < arglist.length; i++ ) {
         content = content.replace(`{{${i+1}}}`, arglist[i]);
     }
-    return content.replace('{{args}}', arglist.map(a => `'${a}'`).join(', '));
+    return content.replace(
+        '{{args}}',
+        arglist.map(a => `'${a}'`).join(', ').replace(/\$/g, '$$$')
+    );
 };
 
 const logOne = function(tabId, url, filter) {
@@ -354,7 +361,7 @@ scriptletFilteringEngine.retrieve = function(request, options = {}) {
             fullCode.push(code);
         }
         cacheDetails = {
-            code: fullCode.join('\n'),
+            code: fullCode.join('\n\n'),
             tokens: Array.from($scriptlets),
             exceptions: Array.from($exceptions),
         };
@@ -379,22 +386,20 @@ scriptletFilteringEngine.retrieve = function(request, options = {}) {
 
     if ( cacheDetails.code === '' ) { return; }
 
-    const out = [ cacheDetails.code ];
-
-    if ( µb.hiddenSettings.debugScriptlets ) {
-        out.unshift('debugger;');
-    }
-
-    out.unshift(
+    const out = [
         '(function() {',
         '// >>>> start of private namespace',
-        ''
-    );
-    out.push(
+        '',
+        µb.hiddenSettings.debugScriptlets ? 'debugger;' : ';',
+        '',
+        // For use by scriptlets to share local data among themselves
+        'const sriptletGlobals = new Map();',
+        '',
+        cacheDetails.code,
         '',
         '// <<<< end of private namespace',
-        '})();'
-    );
+        '})();',
+    ];
 
     return out.join('\n');
 };

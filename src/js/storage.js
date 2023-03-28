@@ -1469,10 +1469,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
 /******************************************************************************/
 
-µb.scheduleAssetUpdater = (( ) => {
+{
     let timer, next = 0;
 
-    return function(updateDelay) {
+    µb.scheduleAssetUpdater = async function(updateDelay) {
+
         if ( timer ) {
             clearTimeout(timer);
             timer = undefined;
@@ -1481,24 +1482,49 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
             next = 0;
             return;
         }
+
+        const assetDict = await io.metadata();
         const now = Date.now();
+
+        let needEmergencyUpdate = false;
+        for ( const [ assetKey, asset ] of Object.entries(assetDict) ) {
+            if ( asset.hasRemoteURL !== true ) { continue; }
+            if ( asset.content === 'filters' ) {
+                if ( µb.selectedFilterLists.includes(assetKey) === false ) {
+                    continue;
+                }
+            }
+            if ( asset.obsolete !== true ) { continue; }
+            const lastUpdateInDays = (now - asset.writeTime) / 86400000;
+            const daysSinceVeryObsolete = lastUpdateInDays - 2 * asset.updateAfter;
+            if ( daysSinceVeryObsolete < 0 ) { continue; }
+            needEmergencyUpdate = true;
+            break;
+        }
+
         // Use the new schedule if and only if it is earlier than the previous
         // one.
         if ( next !== 0 ) {
             updateDelay = Math.min(updateDelay, Math.max(next - now, 0));
         }
+
+        if ( needEmergencyUpdate ) {
+            updateDelay = Math.min(updateDelay, 15000);
+        }
+
         next = now + updateDelay;
+
+        const fetchDelay = needEmergencyUpdate
+            ? 2000
+            : this.hiddenSettings.autoUpdateAssetFetchPeriod * 1000 || 60000;
+
         timer = vAPI.setTimeout(( ) => {
             timer = undefined;
             next = 0;
-            io.updateStart({
-                delay: this.hiddenSettings.autoUpdateAssetFetchPeriod * 1000 ||
-                       120000,
-                auto: true,
-            });
+            io.updateStart({ delay: fetchDelay, auto: true });
         }, updateDelay);
     };
-})();
+}
 
 /******************************************************************************/
 
@@ -1585,7 +1611,9 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
             this.loadFilterLists();
         }
         if ( this.userSettings.autoUpdate ) {
-            this.scheduleAssetUpdater(this.hiddenSettings.autoUpdatePeriod * 3600000 || 25200000);
+            this.scheduleAssetUpdater(
+                this.hiddenSettings.autoUpdatePeriod * 3600000 || 25200000
+            );
         } else {
             this.scheduleAssetUpdater(0);
         }
