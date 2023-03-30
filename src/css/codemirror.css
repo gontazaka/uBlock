@@ -154,6 +154,9 @@
 .cm-s-default .cm-sortkey {
     color: var(--sf-keyword-ink);
     }
+.cm-s-default .cm-error {
+    color: var(--error-surface);
+    }
 
 .cm-search-widget {
     align-items: center;
