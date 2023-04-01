@@ -206,6 +206,12 @@ vAPI.Tabs = class {
             this.onCreatedNavigationTargetHandler(details);
         });
         browser.webNavigation.onCommitted.addListener(details => {
+            const { frameId, tabId } = details;
+            if ( frameId === 0 && tabId > 0 && details.transitionType === 'reload' ) {
+                if ( vAPI.net && vAPI.net.hasUnprocessedRequest(tabId) ) {
+                    vAPI.net.removeUnprocessedRequest(tabId);
+                }
+            }
             this.onCommittedHandler(details);
         });
         browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -1186,7 +1192,7 @@ vAPI.Net = class {
         this.deferredSuspendableListener = undefined;
         this.listenerMap = new WeakMap();
         this.suspendDepth = 0;
-        this.unprocessedTabs = new Set();
+        this.unprocessedTabs = new Map();
 
         browser.webRequest.onBeforeRequest.addListener(
             details => {
@@ -1247,15 +1253,23 @@ vAPI.Net = class {
         this.onUnprocessedRequest(details);
     }
     setSuspendableListener(listener) {
+        for ( const [ tabId, requests ] of this.unprocessedTabs ) {
+            let i = requests.length;
+            while ( i-- ) {
+                const r = listener(requests[i]);
+                if ( r === undefined || r.cancel === false ) {
+                    requests.splice(i, 1);
+                }
+            }
+            if ( requests.length !== 0 ) { continue; }
+            this.unprocessedTabs.delete(tabId);
+        }
         if ( this.unprocessedTabs.size !== 0 ) {
             this.deferredSuspendableListener = listener;
             listener = details => {
                 const { tabId, type  } = details;
                 if ( type === 'main_frame' && this.unprocessedTabs.has(tabId) ) {
-                    this.unprocessedTabs.delete(tabId);
-                    if ( this.unprocessedTabs.size === 0 ) {
-                        this.suspendableListener = this.deferredSuspendableListener;
-                        this.deferredSuspendableListener = undefined;
+                    if ( this.removeUnprocessedRequest(tabId) ) {
                         return this.suspendableListener(details);
                     }
                 }
@@ -1280,15 +1294,27 @@ vAPI.Net = class {
         return actualListener;
     }
     onUnprocessedRequest(details) {
-        if ( details.tabId === -1 ) { return; }
+        const { tabId } = details;
+        if ( tabId === -1 ) { return; }
         if ( this.unprocessedTabs.size === 0 ) {
             vAPI.setDefaultIcon('-loading', '!');
         }
-        this.unprocessedTabs.add(details.tabId);
+        let requests = this.unprocessedTabs.get(tabId);
+        if ( requests === undefined ) {
+            this.unprocessedTabs.set(tabId, (requests = []));
+        }
+        requests.push(Object.assign({}, details));
     }
     hasUnprocessedRequest(tabId) {
         return this.unprocessedTabs.size !== 0 &&
                this.unprocessedTabs.has(tabId);
+    }
+    removeUnprocessedRequest(tabId) {
+        this.unprocessedTabs.delete(tabId);
+        if ( this.unprocessedTabs.size !== 0 ) { return false; }
+        this.suspendableListener = this.deferredSuspendableListener;
+        this.deferredSuspendableListener = undefined;
+        return true;
     }
     suspendOneRequest() {
     }

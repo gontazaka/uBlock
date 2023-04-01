@@ -286,6 +286,8 @@ const nodeFromURL = function(parent, url, re, type) {
             case 'css':
             case 'doc':
             case 'frame':
+            case 'object':
+            case 'other':
             case 'script':
             case 'xhr':
                 href = `code-viewer.html?url=${encodeURIComponent(href)}`;
