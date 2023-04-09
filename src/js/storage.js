@@ -19,7 +19,7 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* globals browser, WebAssembly */
+/* globals WebAssembly */
 
 'use strict';
 
@@ -581,9 +581,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     // https://www.reddit.com/r/uBlockOrigin/comments/cj7g7m/
     // https://www.reddit.com/r/uBlockOrigin/comments/cnq0bi/
-    if ( options.killCache ) {
-        browser.webRequest.handlerBehaviorChanged();
-    }
+    vAPI.net.handlerBehaviorChanged();
 
     vAPI.messaging.broadcast({ what: 'userFiltersUpdated' });
 };
@@ -818,6 +816,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         staticExtFilteringEngine.freeze();
         redirectEngine.freeze();
         vAPI.net.unsuspend();
+        vAPI.net.handlerBehaviorChanged();
 
         vAPI.storage.set({ 'availableFilterLists': µb.availableFilterLists });
 
@@ -1283,35 +1282,17 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         return false;
     };
 
-    let createTimer;
-    let destroyTimer;
-
     const destroy = function() {
-        io.remove(/^selfie\//);
-        µb.selfieIsInvalid = true;
-        createTimer = vAPI.setTimeout(( ) => {
-            createTimer = undefined;
-            create();
-        }, µb.hiddenSettings.selfieAfter * 60000);
-    };
-
-    const destroyAsync = function() {
-        if ( destroyTimer !== undefined ) { return; }
-        if ( createTimer !== undefined ) {
-            clearTimeout(createTimer);
-            createTimer = undefined;
+        if ( µb.selfieIsInvalid === false ) {
+            io.remove(/^selfie\//);
+            µb.selfieIsInvalid = true;
         }
-        destroyTimer = vAPI.setTimeout(
-            ( ) => {
-                destroyTimer = undefined;
-                destroy();
-            },
-            1019
-        );
-        µb.selfieIsInvalid = true;
+        createAlarm.offon(µb.hiddenSettings.selfieAfter);
     };
 
-    µb.selfieManager = { load, destroy: destroyAsync };
+    const createAlarm = vAPI.alarms.create(create);
+
+    µb.selfieManager = { load, destroy };
 }
 
 /******************************************************************************/

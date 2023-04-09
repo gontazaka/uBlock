@@ -280,7 +280,7 @@
     "description": "Appears as an option to filter out firewall rows"
   },
   "popup3pFrameFilter": {
-    "message": "cuadro",
+    "message": "frame",
     "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
@@ -1264,7 +1264,7 @@
     "description": "Message used in frame placeholders"
   },
   "linterMainReport": {
-    "message": "Errors: {{count}}",
+    "message": "Errores: {{count}}",
     "description": "Summary of number of errors as reported by the linter "
   },
   "dummy": {
