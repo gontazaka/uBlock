@@ -133,7 +133,9 @@ const hashFromPopupData = function(reset = false) {
     if ( reset ) {
         cachedPopupHash = hash;
     }
-    dom.cl.toggle(dom.body, 'needReload', hash !== cachedPopupHash);
+    dom.cl.toggle(dom.body, 'needReload',
+        hash !== cachedPopupHash || popupData.hasUnprocessedRequest === true
+    );
 };
 
 /******************************************************************************/
@@ -678,6 +680,9 @@ const renderPopup = function() {
         total ? Math.min(total, 99).toLocaleString() : ''
     );
 
+    // Unprocesseed request(s) warning
+    dom.cl.toggle(dom.root, 'warn', popupData.hasUnprocessedRequest === true);
+
     dom.cl.toggle(dom.html, 'colorBlind', popupData.colorBlindFriendly === true);
 
     setGlobalExpand(popupData.firewallPaneMinimized === false, true);
@@ -689,6 +694,17 @@ const renderPopup = function() {
 
     renderTooltips();
 };
+
+/******************************************************************************/
+
+dom.on('.dismiss', 'click', ( ) => {
+    messaging.send('popupPanel', {
+        what: 'dismissUnprocessedRequest',
+        tabId: popupData.tabId,
+    }).then(( ) => {
+        dom.cl.remove(dom.root, 'warn');
+    });
+});
 
 /******************************************************************************/
 
@@ -1381,29 +1397,23 @@ const toggleHostnameSwitch = async function(ev) {
 // it and thus having to push it all the time unconditionally.
 
 const pollForContentChange = (( ) => {
-    let pollTimer;
-
     const pollCallback = async function() {
-        pollTimer = undefined;
         const response = await messaging.send('popupPanel', {
             what: 'hasPopupContentChanged',
             tabId: popupData.tabId,
             contentLastModified: popupData.contentLastModified,
         });
-        queryCallback(response);
-    };
-
-    const queryCallback = function(response) {
         if ( response ) {
-            getPopupData(popupData.tabId);
+            await getPopupData(popupData.tabId);
             return;
         }
         poll();
     };
 
+    const pollTimer = vAPI.defer.create(pollCallback);
+
     const poll = function() {
-        if ( pollTimer !== undefined ) { return; }
-        pollTimer = vAPI.setTimeout(pollCallback, 1500);
+        pollTimer.on(1500);
     };
 
     return poll;
