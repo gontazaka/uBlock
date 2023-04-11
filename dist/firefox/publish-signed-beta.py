@@ -210,7 +210,7 @@ with open(unsigned_xpi_filepath, 'rb') as f:
     # https://blog.mozilla.org/addons/2019/11/11/security-improvements-in-amo-upload-tools/
     #   "We recommend allowing up to 15 minutes."
     interval = 60                   # check every 60 seconds
-    countdown = 60 * 60 / interval  # for at most 60 minutes
+    countdown = 120 * 60 / interval  # for at most 120 minutes
     headers = { 'Authorization': get_jwt_auth(), }
     data = { 'channel': 'unlisted' }
     files = { 'upload': f, }
