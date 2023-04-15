@@ -90,45 +90,6 @@ vAPI.storage = webext.storage.local;
 /******************************************************************************/
 /******************************************************************************/
 
-// https://github.com/uBlockOrigin/uBlock-issues/issues/2591
-//   Report of alarms API not being supported on Thunderbird
-if ( browser.alarms === undefined ) {
-    browser.alarms = {
-        alarmsMap: new Map(),
-        listenerSet: new Set(),
-        create(name, delayInfo) {
-            let alarm = this.alarmsMap.get(name);
-            if ( alarm !== undefined ) {
-                alarm.off();
-            } else {
-                alarm = vAPI.defer.create(( ) => {
-                    this.alarmsMap.delete(name);
-                    for ( const listener of this.listenerSet ) {
-                        listener({ name });
-                    }
-                });
-            }
-            this.alarmsMap.set(name, alarm);
-            alarm.on({ min: delayInfo.delayInMinutes });
-        },
-        clear(name) {
-            const alarm = this.alarmsMap.get(name);
-            if ( alarm === undefined ) { return; }
-            alarm.off();
-            this.alarmsMap.delete(name);
-        },
-        get: function(name, callback) {
-            callback(this.alarmsMap.has(name) && { name } || undefined);
-        },
-        onAlarm: {
-            addListener(callback) {
-                browser.alarms.listenerSet.add(callback);
-            },
-        },
-    };
-}
-
-
 vAPI.alarms = {
     create(callback) {
         this.uniqueIdGenerator += 1;
@@ -322,6 +283,9 @@ vAPI.Tabs = class {
             });
         }
         browser.tabs.onRemoved.addListener((tabId, details) => {
+            if ( vAPI.net && vAPI.net.hasUnprocessedRequest(tabId) ) {
+                vAPI.net.removeUnprocessedRequest(tabId);
+            }
             this.onRemovedHandler(tabId, details);
         });
      }
@@ -921,7 +885,7 @@ if ( webext.browserAction instanceof Object ) {
         });
         browserAction.setBadgeText({ text });
         browserAction.setBadgeBackgroundColor({
-            color: text === '!' ? '#FFCC00' : '#666'
+            color: text === '!' ? '#FC0' : '#666'
         });
     };
 }
@@ -1347,7 +1311,7 @@ vAPI.Net = class {
             let i = requests.length;
             while ( i-- ) {
                 const r = listener(requests[i]);
-                if ( r === undefined || r.cancel === false ) {
+                if ( r === undefined || r.cancel !== true ) {
                     requests.splice(i, 1);
                 }
             }
@@ -1399,11 +1363,20 @@ vAPI.Net = class {
         requests.push(Object.assign({}, details));
     }
     hasUnprocessedRequest(tabId) {
-        return this.unprocessedTabs.size !== 0 &&
-               this.unprocessedTabs.has(tabId);
+        if ( this.unprocessedTabs.size === 0 ) { return false; }
+        if ( tabId === undefined ) { return true; }
+        return this.unprocessedTabs.has(tabId);
     }
     removeUnprocessedRequest(tabId) {
-        this.unprocessedTabs.delete(tabId);
+        if ( this.deferredSuspendableListener === undefined ) {
+            this.unprocessedTabs.clear();
+            return true;
+        }
+        if ( tabId !== undefined ) {
+            this.unprocessedTabs.delete(tabId);
+        } else {
+            this.unprocessedTabs.clear();
+        }
         if ( this.unprocessedTabs.size !== 0 ) { return false; }
         this.suspendableListener = this.deferredSuspendableListener;
         this.deferredSuspendableListener = undefined;
