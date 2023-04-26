@@ -951,6 +951,14 @@
     "message": "Aby ste dobrovoľníkov nezaťažovali duplicitnými hláseniami, overte si, či už problém nebol nahlásený.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Zoznamy filtrov sa aktualizujú denne. Uistite sa, že váš problém už nebol riešený v najnovších zoznamoch filtrov.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Overte, či problém pretrváva aj po opätovnom načítaní problematickej webovej stránky.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Adresa webovej stránky:",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Pri spustení prehliadača sa nepodarilo správne filtrovať.\nZnova načítajte stránku, aby ste zaistili správne filtrovanie",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "This entry must be the last one",

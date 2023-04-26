@@ -951,6 +951,14 @@
     "message": "Per evitar carregar els voluntaris amb informes duplicats, verifiqueu que el problema encara no s'hagi notificat.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Les llistes de filtres s'actualitzen diàriament. Assegureu-vos que el vostre problema encara no s'hagi resolt amb les llistes de filtres més recents.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Comproveu que el problema encara existeix després de recarregar la pàgina web problemàtica.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Adreça de la pàgina web:",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "No s'ha pogut filtrar correctament en iniciar el navegador.\nTorneu a carregar la pàgina per garantir un filtratge correcte",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "Aquesta entrada ha de ser l'última",

@@ -951,6 +951,14 @@
     "message": "Kontrolearje oft it probleem net earder meld is om foar te kommen dat frijwilligers mei dûbele meldingen belêst wurde.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Filterlisten wurde elke dei bywurke. Kontrolearje oft jo probleem net al yn de meast resinte filterlisten ferholpen is.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Kontrolearje oft it probleem noch hieltyd bestiet nei opnij laden fan de problematyske webside.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Adres fan de webside:",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Koe net goed filterje by starten fan browser.\nFernij de side foar in goede filtering.",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "This entry must be the last one",

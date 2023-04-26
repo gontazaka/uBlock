@@ -951,6 +951,14 @@
     "message": "為了避免太多人發出重複的報告拖垮志工，請先確認是否已經有人回報過您打算報告的問題。",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "過濾器清單每天更新。確保您的問題尚未在最新的過濾器清單中解決。",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "重新載入有問題的網頁後，驗證問題是否仍然存在。",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "網址：",
     "description": "Label for the URL of the page"
@@ -1032,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutCDNs": {
-    "message": "uBO 自家的過濾規則清單是透過下列 <a href=\"https://wikipedia.org/wiki/Content_delivery_network\">CDN</a> 進行代管：",
+    "message": "uBO 自家的過濾規則清單由下列 <a href=\"https://wikipedia.org/wiki/Content_delivery_network\">CDN</a> 免費代管：",
     "description": "Shown in the About pane"
   },
   "aboutCDNsInfo": {
@@ -1268,8 +1276,8 @@
     "description": "Summary of number of errors as reported by the linter "
   },
   "unprocessedRequestTooltip": {
-    "message": "無法在瀏覽器啟動的時候正確過濾。\n請重新載入頁面來確保過濾正確。",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "message": "無法在瀏覽器啟動的時候正確過濾。請重新載入頁面來確保過濾正確。",
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "此條目須為最後一個",

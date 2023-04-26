@@ -951,6 +951,14 @@
     "message": "Για να αποφύγετε την επιβάρυνση των εθελοντών με διπλές αναφορές, βεβαιωθείτε ότι το ζήτημα δεν έχει ήδη αναφερθεί.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Οι λίστες φίλτρων ενημερώνονται καθημερινά. Βεβαιωθείτε ότι το πρόβλημά σας δεν έχει ήδη αντιμετωπιστεί στις πιο πρόσφατες λίστες φίλτρων.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Βεβαιωθείτε ότι το πρόβλημα εξακολουθεί να υπάρχει μετά τη φόρτωση εκ νέου της προβληματικής ιστοσελίδας.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Διεύθυνση της ιστοσελίδας:",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Δεν ήταν δυνατό το σωστό φιλτράρισμα κατά την εκκίνηση του προγράμματος περιήγησης.\nΦορτώστε ξανά τη σελίδα για να διασφαλίσετε το σωστό φιλτράρισμα",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "Αυτή η καταχώρηση θα πρέπει να είναι τελευταία",

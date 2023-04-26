@@ -951,6 +951,14 @@
     "message": "For at undgå at belaste frivillige med dubletanmeldelser, så tjek venligst, at problemet ikke allerede er anmeldt.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Filterlister opdateres dagligt. Sørg for, at problematikken ikke allerede er blevet behandlet i de seneste filterlister.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Bekræft problematikkens fortsatte eksistens efter genindlæsning af den problematiske webside.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Websideadressen",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Kunne ikke filtrere korrekt ved browserstart.\nGenindlæs siden for at sikre korrekt filtrering",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "Denne post skal være den sidste",

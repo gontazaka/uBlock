@@ -951,6 +951,14 @@
     "message": "Gönüllülere aynı raporlarla sıkıntı vermemek için, lütfen sorunun daha önce bildirilmediğinden emin olun.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Filtre listeleri günlük olarak güncellenmektedir. Sorununuzun en son filtre listelerinde çözülmediğinden emin olun.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Sorunlu web sayfasını yeniden yükleyerek sorunun devam ettiğini doğrulayın.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Web sayfasının adresi:",
     "description": "Label for the URL of the page"
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Tarayıcı açılışında düzgün filtreleme yapılamadı.\nDüzgün filtreleme için sayfayı yenileyin.",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "Bu girdi en sonda olmalıdır",

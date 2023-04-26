@@ -951,6 +951,14 @@
     "message": "Pour éviter d'encombrer les contributeurs avec des rapports en double, veuillez vérifier que le problème n'a pas déjà été rapporté.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Les listes de filtres sont actualisées tous les jours. Assurez-vous que votre problème n'ait pas déjà été résolu dans les listes de filtres les plus récentes.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Vérifiez que le problème persiste après avoir rechargé la page Web problématique.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Adresse de la page Web :",
     "description": "Label for the URL of the page"
@@ -1036,7 +1044,7 @@
     "description": "Shown in the About pane"
   },
   "aboutCDNsInfo": {
-    "message": "Un RDC choisi aléatoirement est utilisé lorsqu'une liste de filtres doit être mise à jour",
+    "message": "Un RDC choisi aléatoirement est utilisé lorsqu'une liste de filtres doit être mise à jour.",
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
@@ -1269,7 +1277,7 @@
   },
   "unprocessedRequestTooltip": {
     "message": "Échec du filtrage au lancement du navigateur. Rechargez la page pour assurer un filtrage correct.",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "This entry must be the last one",

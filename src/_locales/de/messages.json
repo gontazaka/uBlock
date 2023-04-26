@@ -951,6 +951,14 @@
     "message": "Um die Freiwilligen nicht mit doppelten Meldungen zu belasten, vergewissern Sie sich bitte, dass das Problem nicht schon einmal gemeldet wurde.",
     "description": "A paragraph in the filter issue reporter section"
   },
+  "supportS6P2S1": {
+    "message": "Filterlisten werden täglich aktualisiert. Bitte vergewissern Sie sich, dass Ihr Problem nicht durch aktuelle Filterlisten behoben wurde.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportS6P2S2": {
+    "message": "Bitte überprüfen Sie, ob das Problem nach dem Neuladen der problematischen Webseite weiterhin besteht.",
+    "description": "A paragraph in the filter issue reporter section"
+  },
   "supportS6URL": {
     "message": "Adresse der Webseite:",
     "description": "Label for the URL of the page"
@@ -1036,7 +1044,7 @@
     "description": "Shown in the About pane"
   },
   "aboutCDNsInfo": {
-    "message": "Ein zufällig ausgewähltes CDN wird verwendet, wenn eine Filterliste aktualisiert werden muss",
+    "message": "Ein zufällig ausgewähltes CDN wird verwendet, wenn eine Filterliste aktualisiert werden muss.",
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
@@ -1268,8 +1276,8 @@
     "description": "Summary of number of errors as reported by the linter "
   },
   "unprocessedRequestTooltip": {
-    "message": "Beim Start des Browsers konnte nicht richtig gefiltert werden.\nBitte die Seite neu laden, um ein korrektes Filtern zu gewährleisten.",
-    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
+    "message": "Beim Start des Browsers konnte nicht richtig gefiltert werden. Bitte die Seite neu laden, um ein korrektes Filtern zu gewährleisten.",
+    "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {
     "message": "Dieser Eintrag muss der letzte sein",
