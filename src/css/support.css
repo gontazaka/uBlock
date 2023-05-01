@@ -91,6 +91,10 @@ span[data-url] {
     cursor: pointer;
     }
 
+#showSupportInfo {
+    cursor: pointer;
+    }
+
 body.redacted #redactButton {
     display: none;
     }

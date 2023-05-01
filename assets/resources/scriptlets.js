@@ -49,6 +49,8 @@ function safeSelf() {
         'RegExp': self.RegExp,
         'RegExp_test': self.RegExp.prototype.test,
         'RegExp_exec': self.RegExp.prototype.exec,
+        'addEventListener': self.EventTarget.prototype.addEventListener,
+        'removeEventListener': self.EventTarget.prototype.removeEventListener,
         'log': console.log.bind(console),
         'uboLog': function(msg) {
             if ( msg === '' ) { return; }
@@ -115,6 +117,39 @@ builtinScriptlets.push({
 function shouldLog(details) {
     if ( details instanceof Object === false ) { return false; }
     return scriptletGlobals.has('canDebug') && details.log;
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'run-at.fn',
+    fn: runAt,
+    dependencies: [
+        'safe-self.fn',
+    ],
+});
+function runAt(fn, when) {
+    const intFromReadyState = state => {
+        return ({
+            loading: 1,
+            interactive: 2,
+            end: 2,
+            complete: 3,
+            idle: 3,
+        })[`${state}`] || 0;
+    };
+    const runAt = intFromReadyState(when);
+    if ( intFromReadyState(document.readyState) >= runAt ) {
+        fn(); return;
+    }
+    const onStateChange = ( ) => {
+        if ( intFromReadyState(document.readyState) < runAt ) { return; }
+        fn();
+        safe.removeEventListener.apply(document, args);
+    };
+    const safe = safeSelf();
+    const args = [ 'readystatechange', onStateChange, { capture: true } ];
+    safe.addEventListener.apply(document, args);
 }
 
 /*******************************************************************************
@@ -432,6 +467,7 @@ builtinScriptlets.push({
     fn: addEventListenerDefuser,
     dependencies: [
         'pattern-to-regex.fn',
+        'run-at.fn',
         'safe-self.fn',
         'should-debug.fn',
         'should-log.fn',
@@ -445,7 +481,7 @@ function addEventListenerDefuser(
     const details = typeof arg1 !== 'object'
         ? { type: arg1, pattern: arg2 }
         : arg1;
-    let { type = '', pattern = '' } = details;
+    const { type = '', pattern = '' } = details;
     if ( typeof type !== 'string' ) { return; }
     if ( typeof pattern !== 'string' ) { return; }
     const safe = safeSelf();
@@ -453,29 +489,37 @@ function addEventListenerDefuser(
     const rePattern = patternToRegex(pattern);
     const log = shouldLog(details);
     const debug = shouldDebug(details);
-    const proto = self.EventTarget.prototype;
-    proto.addEventListener = new Proxy(proto.addEventListener, {
-        apply: function(target, thisArg, args) {
-            let type, handler;
-            try {
-                type = String(args[0]);
-                handler = String(args[1]);
-            } catch(ex) {
+    const trapEddEventListeners = ( ) => {
+        const eventListenerHandler = {
+            apply: function(target, thisArg, args) {
+                let type, handler;
+                try {
+                    type = String(args[0]);
+                    handler = String(args[1]);
+                } catch(ex) {
+                }
+                const matchesType = safe.RegExp_test.call(reType, type);
+                const matchesHandler = safe.RegExp_test.call(rePattern, handler);
+                const matchesEither = matchesType || matchesHandler;
+                const matchesBoth = matchesType && matchesHandler;
+                if ( log === 1 && matchesBoth || log === 2 && matchesEither || log === 3 ) {
+                    safe.uboLog(`addEventListener('${type}', ${handler})`);
+                }
+                if ( debug === 1 && matchesBoth || debug === 2 && matchesEither ) {
+                    debugger; // jshint ignore:line
+                }
+                if ( matchesBoth ) { return; }
+                return Reflect.apply(target, thisArg, args);
             }
-            const matchesType = safe.RegExp_test.call(reType, type);
-            const matchesHandler = safe.RegExp_test.call(rePattern, handler);
-            const matchesEither = matchesType || matchesHandler;
-            const matchesBoth = matchesType && matchesHandler;
-            if ( log === 1 && matchesBoth || log === 2 && matchesEither || log === 3 ) {
-                safe.uboLog(`addEventListener('${type}', ${handler})`);
-            }
-            if ( debug === 1 && matchesBoth || debug === 2 && matchesEither ) {
-                debugger; // jshint ignore:line
-            }
-            if ( matchesBoth ) { return; }
-            return Reflect.apply(target, thisArg, args);
-        }
-    });
+        };
+        self.EventTarget.prototype.addEventListener = new Proxy(
+            self.EventTarget.prototype.addEventListener,
+            eventListenerHandler
+        );
+    };
+    runAt(( ) => {
+        trapEddEventListeners();
+    }, details.runAt);
 }
 
 /******************************************************************************/
@@ -979,6 +1023,9 @@ builtinScriptlets.push({
     name: 'set-constant.js',
     aliases: [ 'set.js' ],
     fn: setConstant,
+    dependencies: [
+        'run-at.fn',
+    ],
 });
 function setConstant(
     arg1 = '',
@@ -1144,22 +1191,9 @@ function setConstant(
         };
         trapChain(window, chain);
     }
-    const runAt = details.runAt;
-    if ( runAt === 0 ) {
-        setConstant(chain, cValue); return;
-    }
-    const docReadyState = ( ) => {
-        return ({ loading: 1, interactive: 2, complete: 3, })[document.readyState] || 0;
-    };
-    if ( docReadyState() >= runAt ) {
-        setConstant(chain, cValue); return;
-    }
-    const onReadyStateChange = ( ) => {
-        if ( docReadyState() < runAt ) { return; }
+    runAt(( ) => {
         setConstant(chain, cValue);
-        document.removeEventListener('readystatechange', onReadyStateChange);
-    };
-    document.addEventListener('readystatechange', onReadyStateChange);
+    }, details.runAt);
 }
 
 /******************************************************************************/
