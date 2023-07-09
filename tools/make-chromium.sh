@@ -12,7 +12,7 @@ rm -rf $DES
 mkdir -p $DES
 
 echo "*** uBlock🦆.chromium: Copying common files"
-bash ./tools/copy-common-files.sh  $DES
+bash ./tools/copy-common-files.sh $DES
 
 # Chromium-specific
 echo "*** uBlock🦆.chromium: Copying chromium-specific files"

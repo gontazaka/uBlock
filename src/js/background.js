@@ -176,8 +176,8 @@ const µBlock = {  // jshint ignore:line
 
     // Read-only
     systemSettings: {
-        compiledMagic: 55,  // Increase when compiled format changes
-        selfieMagic: 55,    // Increase when selfie format changes
+        compiledMagic: 56,  // Increase when compiled format changes
+        selfieMagic: 56,    // Increase when selfie format changes
     },
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/759#issuecomment-546654501
@@ -204,6 +204,9 @@ const µBlock = {  // jshint ignore:line
     // lists to enable by default when uBO is first installed.
     assetsBootstrapLocation: undefined,
 
+    assetsJsonPath: vAPI.webextFlavor.soup.has('devbuild')
+        ? '/assets/assets.dev.json'
+        : '/assets/assets.json',
     userFiltersPath: 'user-filters',
     pslAssetKey: 'public_suffix_list.dat',
 

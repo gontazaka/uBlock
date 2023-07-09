@@ -55,6 +55,9 @@ cp src/css/fa-icons.css $DES/css/
 cp src/js/dom.js $DES/js/
 cp src/js/fa-icons.js $DES/js/
 cp src/js/i18n.js $DES/js/
+cp src/lib/punycode.js $DES/js/
+
+cp -R src/img/flags-of-the-world $DES/img
 
 cp LICENSE.txt $DES/
 
@@ -63,6 +66,7 @@ if [ "$PLATFORM" = "firefox" ]; then
     cp platform/mv3/firefox/background.html $DES/
 fi
 cp platform/mv3/extension/*.html $DES/
+cp platform/mv3/extension/*.json $DES/
 cp platform/mv3/extension/css/* $DES/css/
 cp -R platform/mv3/extension/js/* $DES/js/
 cp platform/mv3/extension/img/* $DES/img/
@@ -82,6 +86,7 @@ if [ "$QUICK" != "yes" ]; then
     cp platform/mv3/*.js $TMPDIR/
     cp platform/mv3/extension/js/utils.js $TMPDIR/js/
     cp assets/assets.json $TMPDIR/
+    cp assets/resources/scriptlets.js $TMPDIR/
     cp -R platform/mv3/scriptlets $TMPDIR/
     mkdir -p $TMPDIR/web_accessible_resources
     cp src/web_accessible_resources/* $TMPDIR/web_accessible_resources/

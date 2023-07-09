@@ -53,16 +53,21 @@ const hashFromStr = (type, s) => {
 // dependencies
 
 const rePlainSelector = /^[#.][\w\\-]+/;
+const rePlainSelectorEx = /^[^#.\[(]+([#.][\w-]+)|([#.][\w-]+)$/;
 const rePlainSelectorEscaped = /^[#.](?:\\[0-9A-Fa-f]+ |\\.|\w|-)+/;
 const reEscapeSequence = /\\([0-9A-Fa-f]+ |.)/g;
 
 const keyFromSelector = selector => {
+    let key = '';
     let matches = rePlainSelector.exec(selector);
-    if ( matches === null ) { return; }
-    let key = matches[0];
-    if ( key.indexOf('\\') === -1 ) {
-        return key;
+    if ( matches ) {
+        key = matches[0];
+    } else {
+        matches = rePlainSelectorEx.exec(selector);
+        if ( matches === null ) { return; }
+        key = matches[1] || matches[2];
     }
+    if ( key.indexOf('\\') === -1 ) { return key; }
     matches = rePlainSelectorEscaped.exec(selector);
     if ( matches === null ) { return; }
     key = '';
@@ -96,13 +101,17 @@ function addExtendedToDNR(context, parser) {
             context.scriptletFilters = new Map();
         }
         const exception = parser.isException();
-        const raw = parser.getTypeString(sfp.NODE_TYPE_EXT_PATTERN_RAW);
+        const args = parser.getScriptletArgs();
+        const argsToken = JSON.stringify(args);
         for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
             if ( bad ) { continue; }
             if ( exception ) { continue; }
-            let details = context.scriptletFilters.get(raw);
+            let details = context.scriptletFilters.get(argsToken);
             if ( details === undefined ) {
-                context.scriptletFilters.set(raw, details = {});
+                context.scriptletFilters.set(argsToken, details = { args });
+                if ( context.isTrusted ) {
+                    details.isTrusted = true;
+                }
             }
             if ( not ) {
                 if ( details.excludeMatches === undefined ) {
@@ -138,17 +147,23 @@ function addExtendedToDNR(context, parser) {
 
     // Generic cosmetic filtering
     if ( parser.hasOptions() === false ) {
-        if ( context.genericCosmeticFilters === undefined ) {
-            context.genericCosmeticFilters = new Map();
-        }
         const { compiled } = parser.result;
         if ( compiled === undefined ) { return; }
         if ( compiled.length <= 1 ) { return; }
         if ( compiled.charCodeAt(0) === 0x7B /* '{' */ ) { return; }
         const key = keyFromSelector(compiled);
-        if ( key === undefined ) { return; }
+        if ( key === undefined ) {
+            if ( context.genericHighCosmeticFilters === undefined ) {
+                context.genericHighCosmeticFilters = new Set();
+            }
+            context.genericHighCosmeticFilters.add(compiled);
+            return;
+        }
         const type = key.charCodeAt(0);
         const hash = hashFromStr(type, key.slice(1));
+        if ( context.genericCosmeticFilters === undefined ) {
+            context.genericCosmeticFilters = new Map();
+        }
         let bucket = context.genericCosmeticFilters.get(hash);
         if ( bucket === undefined ) {
             context.genericCosmeticFilters.set(hash, bucket = []);
@@ -228,6 +243,15 @@ function addToDNR(context, list) {
 
         parser.parse(line);
 
+        if ( parser.isComment() ) {
+            if ( line === `!#trusted on ${context.secret}` ) {
+                context.isTrusted = true;
+            } else if ( line === `!#trusted off ${context.secret}` ) {
+                context.isTrusted = false;
+            }
+            continue;
+        }
+
         if ( parser.isFilter() === false ) { continue; }
         if ( parser.hasError() ) { continue; }
 
@@ -273,6 +297,7 @@ async function dnrRulesetFromRawLists(lists, options = {}) {
     return {
         network: staticNetFilteringEngine.dnrFromCompiled('end', context),
         genericCosmetic: context.genericCosmeticFilters,
+        genericHighCosmetic: context.genericHighCosmeticFilters,
         specificCosmetic: context.specificCosmeticFilters,
         scriptlet: context.scriptletFilters,
     };

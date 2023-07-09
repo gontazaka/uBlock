@@ -21,10 +21,9 @@
 
 'use strict';
 
-import { browser, sendMessage } from './ext.js';
-import { i18n$ } from './i18n.js';
+import { browser, sendMessage, localRead, localWrite } from './ext.js';
+import { i18n$, i18n } from './i18n.js';
 import { dom, qs$, qsa$ } from './dom.js';
-import { simpleStorage } from './storage.js';
 
 /******************************************************************************/
 
@@ -71,7 +70,7 @@ function renderFilterLists(soft = false) {
         if ( dom.attr(li, 'data-listkey') !== ruleset.id ) {
             dom.attr(li, 'data-listkey', ruleset.id);
             qs$(li, 'input[type="checkbox"]').checked = on;
-            dom.text(qs$(li, '.listname'), ruleset.name || ruleset.id);
+            qs$(li, '.listname').append(i18n.patchUnicodeFlags(ruleset.name));
             dom.cl.remove(li, 'toRemove');
             if ( ruleset.homeURL ) {
                 dom.cl.add(li, 'support');
@@ -163,7 +162,7 @@ function renderFilterLists(soft = false) {
     // DOM list entries.
     dom.cl.add('#lists .listEntries .listEntry[data-listkey]', 'discard');
 
-    // Visually split the filter lists in three groups
+    // Visually split the filter lists in groups
     const ulLists = qs$('#lists');
     const groups = new Map([
         [
@@ -173,9 +172,17 @@ function renderFilterLists(soft = false) {
             ),
         ],
         [
+            'annoyances',
+            rulesetDetails.filter(ruleset =>
+                ruleset.group === 'annoyances'
+            ),
+        ],
+        [
             'misc',
             rulesetDetails.filter(ruleset =>
-                ruleset.id !== 'default' && typeof ruleset.lang !== 'string' 
+                ruleset.id !== 'default' &&
+                ruleset.group === undefined &&
+                typeof ruleset.lang !== 'string' 
             ),
         ],
         [
@@ -234,31 +241,31 @@ const renderWidgets = function() {
 async function onFilteringModeChange(ev) {
     const input = ev.target;
     const newLevel = parseInt(input.value, 10);
-    let granted = false;
 
     switch ( newLevel ) {
     case 1: { // Revoke broad permissions
-        granted = await browser.permissions.remove({
+        await browser.permissions.remove({
             origins: [ '<all_urls>' ]
         });
+        cachedRulesetData.defaultFilteringMode = 1;
         break;
     }
     case 2:
     case 3: { // Request broad permissions
-        granted = await browser.permissions.request({
+        const granted = await browser.permissions.request({
             origins: [ '<all_urls>' ]
         });
+        if ( granted ) {
+            const actualLevel = await sendMessage({
+                what: 'setDefaultFilteringMode',
+                level: newLevel,
+            });
+            cachedRulesetData.defaultFilteringMode = actualLevel;
+        }
         break;
     }
     default:
         break;
-    }
-    if ( granted ) {
-        const actualLevel = await sendMessage({
-            what: 'setDefaultFilteringMode',
-            level: newLevel,
-        });
-        cachedRulesetData.defaultFilteringMode = actualLevel;
     }
     renderFilterLists(true);
     renderWidgets();
@@ -344,10 +351,7 @@ function toggleHideUnusedLists(which) {
         );
     }
 
-    simpleStorage.setItem(
-        'hideUnusedFilterLists',
-        Array.from(hideUnusedSet)
-    );
+    localWrite('hideUnusedFilterLists', Array.from(hideUnusedSet));
 }
 
 dom.on('#lists', 'click', '.groupEntry[data-groupkey] > .geDetails', ev => {
@@ -357,10 +361,9 @@ dom.on('#lists', 'click', '.groupEntry[data-groupkey] > .geDetails', ev => {
 });
 
 // Initialize from saved state.
-simpleStorage.getItem('hideUnusedFilterLists').then(value => {
-    if ( Array.isArray(value) ) {
-        hideUnusedSet = new Set(value);
-    }
+localRead('hideUnusedFilterLists').then(value => {
+    if ( Array.isArray(value) === false ) { return; }
+    hideUnusedSet = new Set(value);
 });
 
 /******************************************************************************/

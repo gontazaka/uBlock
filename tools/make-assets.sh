@@ -11,6 +11,9 @@ echo "*** Packaging assets in $DES... "
 rm -rf $DES
 cp -Rl ./assets $DES/
 
+echo "*** Removing $DES/assets.dev.json"
+rm $DES/assets.dev.json
+
 mkdir -p $DES/thirdparties
 
 ASSETS_MAIN=dist/build/uAssets/main

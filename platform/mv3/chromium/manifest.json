@@ -34,9 +34,13 @@
   "permissions": [
     "activeTab",
     "declarativeNetRequest",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "short_name": "uBO Lite",
-  "version": "0.1",
+  "storage": {
+    "managed_schema": "managed_storage.json"
+  },
+  "version": "1.0",
   "web_accessible_resources": []
 }

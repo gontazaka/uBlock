@@ -12,7 +12,7 @@ rm -rf $DES
 mkdir -p $DES
 
 echo "*** uBlock🦆.firefox: Copying common files"
-bash ./tools/copy-common-files.sh  $DES
+bash ./tools/copy-common-files.sh $DES
 
 # Firefox-specific
 echo "*** uBlock🦆.firefox: Copying firefox-specific files"
