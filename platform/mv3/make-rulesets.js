@@ -228,7 +228,7 @@ const isRedirect = rule =>
     rule.action.type === 'redirect' &&
     rule.action.redirect.extensionPath !== undefined;
 
-const isCsp = rule =>
+const isModifyHeaders = rule =>
     rule.action !== undefined &&
     rule.action.type === 'modifyHeaders';
 
@@ -240,7 +240,7 @@ const isRemoveparam = rule =>
 const isGood = rule =>
     isUnsupported(rule) === false &&
     isRedirect(rule) === false &&
-    isCsp(rule) === false &&
+    isModifyHeaders(rule) === false &&
     isRemoveparam(rule) === false;
 
 /******************************************************************************/
@@ -298,11 +298,11 @@ async function processNetworkFilters(assetDetails, network) {
     );
     log(`\tremoveparams= (accepted/discarded): ${removeparamsGood.length}/${removeparamsBad.length}`);
 
-    const csps = rules.filter(rule =>
+    const modifyHeaders = rules.filter(rule =>
         isUnsupported(rule) === false &&
-        isCsp(rule)
+        isModifyHeaders(rule)
     );
-    log(`\tcsp=: ${csps.length}`);
+    log(`\tmodifyHeaders=: ${modifyHeaders.length}`);
 
     const bad = rules.filter(rule =>
         isUnsupported(rule)
@@ -336,10 +336,10 @@ async function processNetworkFilters(assetDetails, network) {
         );
     }
 
-    if ( csps.length !== 0 ) {
+    if ( modifyHeaders.length !== 0 ) {
         writeFile(
-            `${rulesetDir}/csp/${assetDetails.id}.json`,
-            `${JSON.stringify(csps, replacer, 1)}\n`
+            `${rulesetDir}/modify-headers/${assetDetails.id}.json`,
+            `${JSON.stringify(modifyHeaders, replacer, 1)}\n`
         );
     }
 
@@ -351,7 +351,7 @@ async function processNetworkFilters(assetDetails, network) {
         regex: regexes.length,
         removeparam: removeparamsGood.length,
         redirect: redirects.length,
-        csp: csps.length,
+        modifyHeaders: modifyHeaders.length,
     };
 }
 
@@ -396,13 +396,26 @@ function loadAllSourceScriptlets() {
 
 /******************************************************************************/
 
-async function processGenericCosmeticFilters(assetDetails, bucketsMap) {
+async function processGenericCosmeticFilters(assetDetails, bucketsMap, exceptionSet) {
     if ( bucketsMap === undefined ) { return 0; }
+    if ( exceptionSet ) {
+        for ( const [ hash, selectors ] of bucketsMap ) {
+            let i = selectors.length;
+            while ( i-- ) {
+                const selector = selectors[i];
+                if ( exceptionSet.has(selector) === false ) { continue; }
+                selectors.splice(i, 1);
+                //log(`\tRemoving excepted generic filter ##${selector}`);
+            }
+            if ( selectors.length === 0 ) {
+                bucketsMap.delete(hash);
+            }
+        }
+    }
     if ( bucketsMap.size === 0 ) { return 0; }
     const bucketsList = Array.from(bucketsMap);
     const count = bucketsList.reduce((a, v) => a += v[1].length, 0);
     if ( count === 0 ) { return 0; }
-
     const selectorLists = bucketsList.map(v => [ v[0], v[1].join(',') ]);
     const originalScriptletMap = await loadAllSourceScriptlets();
 
@@ -427,8 +440,15 @@ async function processGenericCosmeticFilters(assetDetails, bucketsMap) {
 
 /******************************************************************************/
 
-async function processGenericHighCosmeticFilters(assetDetails, selectorSet) {
+async function processGenericHighCosmeticFilters(assetDetails, selectorSet, exceptionSet) {
     if ( selectorSet === undefined ) { return 0; }
+    if ( exceptionSet ) {
+        for ( const selector of selectorSet ) {
+            if ( exceptionSet.has(selector) === false ) { continue; }
+            selectorSet.delete(selector);
+            //log(`\tRemoving excepted generic filter ##${selector}`);
+        }
+    }
     if ( selectorSet.size === 0 ) { return 0; }
     const selectorLists = Array.from(selectorSet).sort().join(',\n');
     const originalScriptletMap = await loadAllSourceScriptlets();
@@ -925,11 +945,13 @@ async function rulesetFromURLs(assetDetails) {
 
     const genericCosmeticStats = await processGenericCosmeticFilters(
         assetDetails,
-        results.genericCosmetic
+        results.genericCosmetic,
+        results.genericCosmeticExceptions
     );
     const genericHighCosmeticStats = await processGenericHighCosmeticFilters(
         assetDetails,
-        results.genericHighCosmetic
+        results.genericHighCosmetic,
+        results.genericCosmeticExceptions
     );
     const specificCosmeticStats = await processCosmeticFilters(
         assetDetails,
@@ -966,7 +988,7 @@ async function rulesetFromURLs(assetDetails) {
             regex: netStats.regex,
             removeparam: netStats.removeparam,
             redirect: netStats.redirect,
-            csp: netStats.csp,
+            modifyHeaders: netStats.modifyHeaders,
             discarded: netStats.discarded,
             rejected: netStats.rejected,
         },
