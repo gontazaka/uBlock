@@ -599,11 +599,11 @@ const launchReporter = async function(request) {
     const entries = await io.getUpdateAges({
         filters: µb.selectedFilterLists.slice()
     });
-    let shoudUpdateLists = false;
+    let shouldUpdateLists = false;
     for ( const entry of entries ) {
         if ( entry.age < (2 * 60 * 60 * 1000) ) { continue; }
         io.purge(entry.assetKey);
-        shoudUpdateLists = true;
+        shouldUpdateLists = true;
     }
 
     // https://github.com/gorhill/uBlock/commit/6efd8eb#commitcomment-107523558
@@ -631,7 +631,7 @@ const launchReporter = async function(request) {
     const supportURL = new URL(vAPI.getURL('support.html'));
     supportURL.searchParams.set('pageURL', request.pageURL);
     supportURL.searchParams.set('popupPanel', JSON.stringify(request.popupPanel));
-    if ( shoudUpdateLists ) {
+    if ( shouldUpdateLists ) {
         supportURL.searchParams.set('shouldUpdate', 1);
     }
     return supportURL.href;
@@ -984,7 +984,7 @@ const onMessage = function(request, sender, callback) {
                 zap: µb.epickerArgs.zap,
                 eprom: µb.epickerArgs.eprom,
                 pickerURL: vAPI.getURL(
-                    `/web_accessible_resources/epicker-ui.html?secret=${vAPI.warSecret()}`
+                    `/web_accessible_resources/epicker-ui.html?secret=${vAPI.warSecret.short()}`
                 ),
             });
             µb.epickerArgs.target = '';

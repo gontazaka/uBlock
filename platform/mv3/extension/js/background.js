@@ -31,6 +31,7 @@ import {
     runtime,
     localRead, localWrite,
     sessionRead, sessionWrite,
+    adminRead,
 } from './ext.js';
 
 import {
@@ -158,7 +159,7 @@ function onMessage(request, sender, callback) {
         break;
     }
 
-    // Does requires trusted origin.
+    // Does require trusted origin.
 
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/MessageSender
     //   Firefox API does not set `sender.origin`
@@ -317,7 +318,10 @@ async function start() {
     );
 
     if ( firstRun ) {
-        runtime.openOptionsPage();
+        const disableFirstRunPage = await adminRead('disableFirstRunPage');
+        if ( disableFirstRunPage !== true ) {
+            runtime.openOptionsPage();
+        }
     }
 }
 

@@ -45,37 +45,86 @@ function safeSelf() {
     if ( scriptletGlobals.has('safeSelf') ) {
         return scriptletGlobals.get('safeSelf');
     }
+    const self = globalThis;
     const safe = {
+        'Error': self.Error,
         'Object_defineProperty': Object.defineProperty.bind(Object),
         'RegExp': self.RegExp,
         'RegExp_test': self.RegExp.prototype.test,
         'RegExp_exec': self.RegExp.prototype.exec,
+        'XMLHttpRequest': self.XMLHttpRequest,
         'addEventListener': self.EventTarget.prototype.addEventListener,
         'removeEventListener': self.EventTarget.prototype.removeEventListener,
+        'fetch': self.fetch,
+        'jsonParse': self.JSON.parse.bind(self.JSON),
+        'jsonStringify': self.JSON.stringify.bind(self.JSON),
         'log': console.log.bind(console),
-        'uboLog': function(...args) {
+        uboLog(...args) {
             if ( args.length === 0 ) { return; }
             if ( `${args[0]}` === '' ) { return; }
             this.log('[uBO]', ...args);
         },
+        initPattern(pattern, options = {}) {
+            if ( pattern === '' ) {
+                return { matchAll: true };
+            }
+            const expect = (options.canNegate === true && pattern.startsWith('!') === false);
+            if ( expect === false ) {
+                pattern = pattern.slice(1);
+            }
+            const match = /^\/(.+)\/([gimsu]*)$/.exec(pattern);
+            if ( match !== null ) {
+                return {
+                    pattern,
+                    re: new this.RegExp(
+                        match[1],
+                        match[2] || options.flags
+                    ),
+                    expect,
+                };
+            }
+            return {
+                pattern,
+                re: new this.RegExp(pattern.replace(
+                    /[.*+?^${}()|[\]\\]/g, '\\$&'),
+                    options.flags
+                ),
+                expect,
+            };
+        },
+        testPattern(details, haystack) {
+            if ( details.matchAll ) { return true; }
+            return this.RegExp_test.call(details.re, haystack) === details.expect;
+        },
+        patternToRegex(pattern, flags = undefined) {
+            if ( pattern === '' ) { return /^/; }
+            const match = /^\/(.+)\/([gimsu]*)$/.exec(pattern);
+            if ( match === null ) {
+                return new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            }
+            try {
+                return new RegExp(match[1], match[2] || flags);
+            }
+            catch(ex) {
+            }
+            return /^/;
+        },
+        getExtraArgs(args, offset = 0) {
+            const entries = args.slice(offset).reduce((out, v, i, a) => {
+                if ( (i & 1) === 0 ) {
+                    const rawValue = a[i+1];
+                    const value = /^\d+$/.test(rawValue)
+                        ? parseInt(rawValue, 10)
+                        : rawValue;
+                    out.push([ a[i], value ]);
+                }
+                return out;
+            }, []);
+            return Object.fromEntries(entries);
+        },
     };
     scriptletGlobals.set('safeSelf', safe);
     return safe;
-}
-
-/******************************************************************************/
-
-builtinScriptlets.push({
-    name: 'pattern-to-regex.fn',
-    fn: patternToRegex,
-});
-function patternToRegex(pattern, flags = undefined) {
-    if ( pattern === '' ) { return /^/; }
-    const match = /^\/(.+)\/([gimsu]*)$/.exec(pattern);
-    if ( match !== null ) {
-        return new RegExp(match[1], match[2] || flags);
-    }
-    return new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
 }
 
 /******************************************************************************/
@@ -179,51 +228,9 @@ function runAtHtmlElement(fn) {
 /******************************************************************************/
 
 builtinScriptlets.push({
-    name: 'get-extra-args-entries.fn',
-    fn: getExtraArgsEntries,
-});
-function getExtraArgsEntries(args, offset) {
-    return args.slice(offset).reduce((out, v, i, a) => {
-        if ( (i & 1) === 0 ) {
-            const rawValue = a[i+1];
-            const value = /^\d+$/.test(rawValue)
-                ? parseInt(rawValue, 10)
-                : rawValue;
-            out.push([ a[i], value ]);
-        }
-        return out;
-    }, []);
-}
-
-builtinScriptlets.push({
-    name: 'get-extra-args-map.fn',
-    fn: getExtraArgsMap,
-    dependencies: [
-        'get-extra-args-entries.fn',
-    ],
-});
-function getExtraArgsMap(args, offset = 0) {
-    return new Map(getExtraArgsEntries(args, offset));
-}
-
-builtinScriptlets.push({
-    name: 'get-extra-args.fn',
-    fn: getExtraArgs,
-    dependencies: [
-        'get-extra-args-entries.fn',
-    ],
-});
-function getExtraArgs(args, offset = 0) {
-    return Object.fromEntries(getExtraArgsEntries(args, offset));
-}
-
-/******************************************************************************/
-
-builtinScriptlets.push({
     name: 'abort-current-script-core.fn',
     fn: abortCurrentScriptCore,
     dependencies: [
-        'pattern-to-regex.fn',
         'get-exception-token.fn',
         'safe-self.fn',
         'should-debug.fn',
@@ -233,19 +240,16 @@ builtinScriptlets.push({
 // Issues to mind before changing anything:
 //  https://github.com/uBlockOrigin/uBlock-issues/issues/2154
 function abortCurrentScriptCore(
-    arg1 = '',
-    arg2 = '',
-    arg3 = ''
+    target = '',
+    needle = '',
+    context = ''
 ) {
-    const details = typeof arg1 !== 'object'
-        ? { target: arg1, needle: arg2, context: arg3 }
-        : arg1;
-    const { target = '', needle = '', context = '' } = details;
     if ( typeof target !== 'string' ) { return; }
     if ( target === '' ) { return; }
     const safe = safeSelf();
-    const reNeedle = patternToRegex(needle);
-    const reContext = patternToRegex(context);
+    const reNeedle = safe.patternToRegex(needle);
+    const reContext = safe.patternToRegex(context);
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
     const thisScript = document.currentScript;
     const chain = target.split('.');
     let owner = window;
@@ -266,8 +270,8 @@ function abortCurrentScriptCore(
         value = owner[prop];
         desc = undefined;
     }
-    const log = shouldLog(details);
-    const debug = shouldDebug(details);
+    const log = shouldLog(extraArgs);
+    const debug = shouldDebug(extraArgs);
     const exceptionToken = getExceptionToken();
     const scriptTexts = new WeakMap();
     const getScriptText = elem => {
@@ -292,18 +296,24 @@ function abortCurrentScriptCore(
         return text;
     };
     const validate = ( ) => {
-        if ( debug ) { debugger; }  // jshint ignore: line
         const e = document.currentScript;
         if ( e instanceof HTMLScriptElement === false ) { return; }
         if ( e === thisScript ) { return; }
-        if ( context !== '' && reContext.test(e.src) === false ) { return; }
+        if ( context !== '' && reContext.test(e.src) === false ) {
+            if ( debug === 'nomatch' || debug === 'all' ) { debugger; }  // jshint ignore: line
+            return;
+        }
         if ( log && e.src !== '' ) { safe.uboLog(`matched src: ${e.src}`); }
         const scriptText = getScriptText(e);
-        if ( reNeedle.test(scriptText) === false ) { return; }
+        if ( reNeedle.test(scriptText) === false ) {
+            if ( debug === 'nomatch' || debug === 'all' ) { debugger; }  // jshint ignore: line
+            return;
+        }
         if ( log ) { safe.uboLog(`matched script text: ${scriptText}`); }
+        if ( debug === 'match' || debug === 'all' ) { debugger; }  // jshint ignore: line
         throw new ReferenceError(exceptionToken);
     };
-    if ( debug ) { debugger; }  // jshint ignore: line
+    if ( debug === 'install' ) { debugger; }  // jshint ignore: line
     try {
         Object.defineProperty(owner, prop, {
             get: function() {
@@ -339,25 +349,12 @@ builtinScriptlets.push({
 
 function setConstantCore(
     trusted = false,
-    arg1 = '',
-    arg2 = '',
-    arg3 = ''
+    chain = '',
+    cValue = ''
 ) {
-    const details = typeof arg1 !== 'object'
-        ? { prop: arg1, value: arg2 }
-        : arg1;
-    if ( arg3 !== '' ) {
-        if ( /^\d$/.test(arg3) ) {
-            details.options = [ arg3 ];
-        } else {
-            details.options = Array.from(arguments).slice(3);
-        }
-    }
-    const { prop: chain = '', value: cValue = '' } = details;
-    if ( typeof chain !== 'string' ) { return; }
     if ( chain === '' ) { return; }
-    const options = details.options || [];
     const safe = safeSelf();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
     function setConstant(chain, cValue) {
         const trappedProp = (( ) => {
             const pos = chain.lastIndexOf('.');
@@ -418,19 +415,21 @@ function setConstantCore(
             if ( Math.abs(cValue) > 0x7FFF ) { return; }
         } else if ( trusted ) {
             if ( cValue.startsWith('{') && cValue.endsWith('}') ) {
-                try { cValue = JSON.parse(cValue).value; } catch(ex) { return; }
+                try { cValue = safe.jsonParse(cValue).value; } catch(ex) { return; }
             }
         } else {
             return;
         }
-        if ( options.includes('asFunction') ) {
-            cValue = ( ) => cValue;
-        } else if ( options.includes('asCallback') ) {
-            cValue = ( ) => (( ) => cValue);
-        } else if ( options.includes('asResolved') ) {
-            cValue = Promise.resolve(cValue);
-        } else if ( options.includes('asRejected') ) {
-            cValue = Promise.reject(cValue);
+        if ( extraArgs.as !== undefined ) {
+            if ( extraArgs.as === 'function' ) {
+                cValue = ( ) => cValue;
+            } else if ( extraArgs.as === 'callback' ) {
+                cValue = ( ) => (( ) => cValue);
+            } else if ( extraArgs.as === 'resolved' ) {
+                cValue = Promise.resolve(cValue);
+            } else if ( extraArgs.as === 'rejected' ) {
+                cValue = Promise.reject(cValue);
+            }
         }
         let aborted = false;
         const mustAbort = function(v) {
@@ -526,7 +525,7 @@ function setConstantCore(
     }
     runAt(( ) => {
         setConstant(chain, cValue);
-    }, options);
+    }, extraArgs.runAt);
 }
 
 /******************************************************************************/
@@ -535,8 +534,6 @@ builtinScriptlets.push({
     name: 'replace-node-text-core.fn',
     fn: replaceNodeTextCore,
     dependencies: [
-        'get-extra-args.fn',
-        'pattern-to-regex.fn',
         'run-at.fn',
         'safe-self.fn',
     ],
@@ -546,12 +543,12 @@ function replaceNodeTextCore(
     pattern = '',
     replacement = ''
 ) {
-    const reNodeName = patternToRegex(nodeName, 'i');
-    const rePattern = patternToRegex(pattern, 'gms');
-    const extraArgs = getExtraArgs(Array.from(arguments), 3);
-    const shouldLog = scriptletGlobals.has('canDebug') && extraArgs.log || 0;
-    const reCondition = patternToRegex(extraArgs.condition || '', 'gms');
     const safe = safeSelf();
+    const reNodeName = safe.patternToRegex(nodeName, 'i');
+    const rePattern = safe.patternToRegex(pattern, 'gms');
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
+    const shouldLog = scriptletGlobals.has('canDebug') && extraArgs.log || 0;
+    const reCondition = safe.patternToRegex(extraArgs.condition || '', 'gms');
     const stop = (takeRecord = true) => {
         if ( takeRecord ) {
             handleMutations(observer.takeRecords());
@@ -622,7 +619,8 @@ builtinScriptlets.push({
     name: 'object-prune.fn',
     fn: objectPrune,
     dependencies: [
-        'pattern-to-regex.fn',
+        'matches-stack-trace.fn',
+        'safe-self.fn',
     ],
 });
 //  When no "prune paths" argument is provided, the scriptlet is
@@ -634,81 +632,96 @@ builtinScriptlets.push({
 function objectPrune(
     obj,
     rawPrunePaths,
-    rawNeedlePaths
+    rawNeedlePaths,
+    stackNeedleDetails = { matchAll: true },
+    extraArgs = {}
 ) {
     if ( typeof rawPrunePaths !== 'string' ) { return; }
+    const safe = safeSelf();
     const prunePaths = rawPrunePaths !== ''
         ? rawPrunePaths.split(/ +/)
         : [];
-    let needlePaths;
-    let log, reLogNeedle;
-    if ( prunePaths.length !== 0 ) {
-        needlePaths = prunePaths.length !== 0 && rawNeedlePaths !== ''
-            ? rawNeedlePaths.split(/ +/)
-            : [];
-    } else {
-        log = console.log.bind(console);
-        reLogNeedle = patternToRegex(rawNeedlePaths);
+    const needlePaths = prunePaths.length !== 0 && rawNeedlePaths !== ''
+        ? rawNeedlePaths.split(/ +/)
+        : [];
+    const logLevel = shouldLog({ log: rawPrunePaths === '' || extraArgs.log });
+    const reLogNeedle = safe.patternToRegex(logLevel === true ? rawNeedlePaths : '');
+    if ( stackNeedleDetails.matchAll !== true ) {
+        if ( matchesStackTrace(stackNeedleDetails, extraArgs.logstack) === false ) {
+            return;
+        }
     }
-    const findOwner = function(root, path, prune = false) {
-        let owner = root;
-        let chain = path;
-        for (;;) {
-            if ( typeof owner !== 'object' || owner === null  ) {
-                return false;
-            }
-            const pos = chain.indexOf('.');
-            if ( pos === -1 ) {
-                if ( prune === false ) {
-                    return owner.hasOwnProperty(chain);
-                }
-                if ( chain === '*' ) {
-                    for ( const key in owner ) {
-                        if ( owner.hasOwnProperty(key) === false ) { continue; }
-                        delete owner[key];
+    if ( objectPrune.findOwner === undefined ) {
+        objectPrune.findOwner = (root, path, prune = false) => {
+            let owner = root;
+            let chain = path;
+            for (;;) {
+                if ( typeof owner !== 'object' || owner === null  ) { return false; }
+                const pos = chain.indexOf('.');
+                if ( pos === -1 ) {
+                    if ( prune === false ) {
+                        return owner.hasOwnProperty(chain);
                     }
-                } else if ( owner.hasOwnProperty(chain) ) {
-                    delete owner[chain];
+                    let modified = false;
+                    if ( chain === '*' ) {
+                        for ( const key in owner ) {
+                            if ( owner.hasOwnProperty(key) === false ) { continue; }
+                            delete owner[key];
+                            modified = true;
+                        }
+                    } else if ( owner.hasOwnProperty(chain) ) {
+                        delete owner[chain];
+                        modified = true;
+                    }
+                    return modified;
                 }
-                return true;
-            }
-            const prop = chain.slice(0, pos);
-            if (
-                prop === '[]' && Array.isArray(owner) ||
-                prop === '*' && owner instanceof Object
-            ) {
-                const next = chain.slice(pos + 1);
-                let found = false;
-                for ( const key of Object.keys(owner) ) {
-                    found = findOwner(owner[key], next, prune) || found;
+                const prop = chain.slice(0, pos);
+                if (
+                    prop === '[]' && Array.isArray(owner) ||
+                    prop === '*' && owner instanceof Object
+                ) {
+                    const next = chain.slice(pos + 1);
+                    let found = false;
+                    for ( const key of Object.keys(owner) ) {
+                        found = objectPrune.findOwner(owner[key], next, prune) || found;
+                    }
+                    return found;
                 }
-                return found;
+                if ( owner.hasOwnProperty(prop) === false ) { return false; }
+                owner = owner[prop];
+                chain = chain.slice(pos + 1);
             }
-            if ( owner.hasOwnProperty(prop) === false ) { return false; }
-            owner = owner[prop];
-            chain = chain.slice(pos + 1);
-        }
-    };
-    const mustProcess = function(root) {
-        for ( const needlePath of needlePaths ) {
-            if ( findOwner(root, needlePath) === false ) {
-                return false;
+        };
+        objectPrune.mustProcess = (root, needlePaths) => {
+            for ( const needlePath of needlePaths ) {
+                if ( objectPrune.findOwner(root, needlePath) === false ) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        objectPrune.logJson = (json, msg, reNeedle) => {
+            if ( reNeedle.test(json) === false ) { return; }
+            safeSelf().uboLog(`objectPrune()`, msg, location.hostname, json);
+        };
+    }
+    const jsonBefore = logLevel ? JSON.stringify(obj, null, 2) : '';
+    if ( logLevel === true || logLevel === 'all' ) {
+        objectPrune.logJson(jsonBefore, `prune:"${rawPrunePaths}" log:"${logLevel}"`, reLogNeedle);
+    }
+    if ( prunePaths.length === 0 ) { return; }
+    let outcome = 'nomatch';
+    if ( objectPrune.mustProcess(obj, needlePaths) ) {
+        for ( const path of prunePaths ) {
+            if ( objectPrune.findOwner(obj, path, true) ) {
+                outcome = 'match';
             }
         }
-        return true;
-    };
-    if ( log !== undefined ) {
-        const json = JSON.stringify(obj, null, 2);
-        if ( reLogNeedle.test(json) ) {
-            log('uBO:', location.hostname, json);
-        }
-        return obj;
     }
-    if ( mustProcess(obj) === false ) { return obj; }
-    for ( const path of prunePaths ) {
-        findOwner(obj, path, true);
+    if ( logLevel === outcome ) {
+        objectPrune.logJson(jsonBefore, `prune:"${rawPrunePaths}" log:"${logLevel}"`, reLogNeedle);
     }
-    return obj;
+    if ( outcome === 'match' ) { return obj; }
 }
 
 /******************************************************************************/
@@ -782,6 +795,8 @@ function setLocalStorageItemCore(
             value = Date.now();
         } else if ( value === '$currentDate$' ) {
             value = `${Date()}`;
+        } else if ( value === '$currentISODate$' ) {
+            value = (new Date()).toISOString();
         }
     } else {
         if ( trustedValues.includes(value.toLowerCase()) === false ) {
@@ -800,6 +815,126 @@ function setLocalStorageItemCore(
         }
     } catch(ex) {
     }
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'matches-stack-trace.fn',
+    fn: matchesStackTrace,
+    dependencies: [
+        'get-exception-token.fn',
+        'safe-self.fn',
+    ],
+});
+function matchesStackTrace(
+    needleDetails,
+    logLevel = 0
+) {
+    const safe = safeSelf();
+    const exceptionToken = getExceptionToken();
+    const error = new safe.Error(exceptionToken);
+    const docURL = new URL(self.location.href);
+    docURL.hash = '';
+    // Normalize stack trace
+    const reLine = /(.*?@)?(\S+)(:\d+):\d+\)?$/;
+    const lines = [];
+    for ( let line of error.stack.split(/[\n\r]+/) ) {
+        if ( line.includes(exceptionToken) ) { continue; }
+        line = line.trim();
+        const match = safe.RegExp_exec.call(reLine, line);
+        if ( match === null ) { continue; }
+        let url = match[2];
+        if ( url.startsWith('(') ) { url = url.slice(1); }
+        if ( url === docURL.href ) {
+            url = 'inlineScript';
+        } else if ( url.startsWith('<anonymous>') ) {
+            url = 'injectedScript';
+        }
+        let fn = match[1] !== undefined
+            ? match[1].slice(0, -1)
+            : line.slice(0, match.index).trim();
+        if ( fn.startsWith('at') ) { fn = fn.slice(2).trim(); }
+        let rowcol = match[3];
+        lines.push(' ' + `${fn} ${url}${rowcol}:1`.trim());
+    }
+    lines[0] = `stackDepth:${lines.length-1}`;
+    const stack = lines.join('\t');
+    const r = safe.testPattern(needleDetails, stack);
+    if (
+        logLevel === 1 ||
+        logLevel === 2 && r ||
+        logLevel === 3 && !r
+    ) {
+        safe.uboLog(stack.replace(/\t/g, '\n'));
+    }
+    return r;
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'parse-properties-to-match.fn',
+    fn: parsePropertiesToMatch,
+    dependencies: [
+        'safe-self.fn',
+    ],
+});
+function parsePropertiesToMatch(propsToMatch, implicit = '') {
+    const safe = safeSelf();
+    const needles = new Map();
+    if ( propsToMatch === undefined || propsToMatch === '' ) { return needles; }
+    const options = { canNegate: true };
+    for ( const needle of propsToMatch.split(/\s+/) ) {
+        const [ prop, pattern ] = needle.split(':');
+        if ( prop === '' ) { continue; }
+        if ( pattern !== undefined ) {
+            needles.set(prop, safe.initPattern(pattern, options));
+        } else if ( implicit !== '' ) {
+            needles.set(implicit, safe.initPattern(prop, options));
+        }
+    }
+    return needles;
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'match-object-properties.fn',
+    fn: matchObjectProperties,
+    dependencies: [
+        'safe-self.fn',
+    ],
+});
+function matchObjectProperties(propNeedles, ...objs) {
+    if ( matchObjectProperties.extractProperties === undefined ) {
+        matchObjectProperties.extractProperties = (src, des, props) => {
+            for ( const p of props ) {
+                const v = src[p];
+                if ( v === undefined ) { continue; }
+                des[p] = src[p];
+            }
+        };
+    }
+    const safe = safeSelf();
+    const haystack = {};
+    const props = Array.from(propNeedles.keys());
+    for ( const obj of objs ) {
+        if ( obj instanceof Object === false ) { continue; }
+        matchObjectProperties.extractProperties(obj, haystack, props);
+    }
+    for ( const [ prop, details ] of propNeedles ) {
+        let value = haystack[prop];
+        if ( value === undefined ) { continue; }
+        if ( typeof value !== 'string' ) {
+            try { value = JSON.stringify(value); }
+            catch(ex) { }
+            if ( typeof value !== 'string' ) { continue; }
+        }
+        if ( safe.testPattern(details, value) ) { continue; }
+        return false;
+    }
+    return true;
 }
 
 /*******************************************************************************
@@ -825,13 +960,9 @@ builtinScriptlets.push({
 });
 // Issues to mind before changing anything:
 //  https://github.com/uBlockOrigin/uBlock-issues/issues/2154
-function abortCurrentScript(
-    arg1,
-    arg2,
-    arg3
-) {
+function abortCurrentScript(...args) {
     runAtHtmlElement(( ) => {
-        abortCurrentScriptCore(arg1, arg2, arg3);
+        abortCurrentScriptCore(...args);
     });
 }
 
@@ -935,75 +1066,32 @@ builtinScriptlets.push({
     fn: abortOnStackTrace,
     dependencies: [
         'get-exception-token.fn',
-        'pattern-to-regex.fn',
+        'matches-stack-trace.fn',
         'safe-self.fn',
     ],
 });
-// Status is currently experimental
 function abortOnStackTrace(
     chain = '',
-    needle = '',
-    logLevel = ''
+    needle = ''
 ) {
     if ( typeof chain !== 'string' ) { return; }
     const safe = safeSelf();
-    const reNeedle = patternToRegex(needle);
-    const exceptionToken = getExceptionToken();
-    const ErrorCtor = self.Error;
-    const mustAbort = function(err) {
-        let docURL = self.location.href;
-        const pos = docURL.indexOf('#');
-        if ( pos !== -1 ) {
-            docURL = docURL.slice(0, pos);
-        }
-        // Normalize stack trace
-        const reLine = /(.*?@)?(\S+)(:\d+):\d+\)?$/;
-        const lines = [];
-        for ( let line of err.stack.split(/[\n\r]+/) ) {
-            if ( line.includes(exceptionToken) ) { continue; }
-            line = line.trim();
-            const match = safe.RegExp_exec.call(reLine, line);
-            if ( match === null ) { continue; }
-            let url = match[2];
-            if ( url.startsWith('(') ) { url = url.slice(1); }
-            if ( url === docURL ) {
-                url = 'inlineScript';
-            } else if ( url.startsWith('<anonymous>') ) {
-                url = 'injectedScript';
-            }
-            let fn = match[1] !== undefined
-                ? match[1].slice(0, -1)
-                : line.slice(0, match.index).trim();
-            if ( fn.startsWith('at') ) { fn = fn.slice(2).trim(); }
-            let rowcol = match[3];
-            lines.push(' ' + `${fn} ${url}${rowcol}:1`.trim());
-        }
-        lines[0] = `stackDepth:${lines.length-1}`;
-        const stack = lines.join('\t');
-        const r = safe.RegExp_test.call(reNeedle, stack);
-        if (
-            logLevel === '1' ||
-            logLevel === '2' && r ||
-            logLevel === '3' && !r
-        ) {
-            safe.uboLog(stack.replace(/\t/g, '\n'));
-        }
-        return r;
-    };
+    const needleDetails = safe.initPattern(needle, { canNegate: true });
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 2);
     const makeProxy = function(owner, chain) {
         const pos = chain.indexOf('.');
         if ( pos === -1 ) {
             let v = owner[chain];
             Object.defineProperty(owner, chain, {
                 get: function() {
-                    if ( mustAbort(new ErrorCtor(exceptionToken)) ) {
-                        throw new ReferenceError(exceptionToken);
+                    if ( matchesStackTrace(needleDetails, extraArgs.log) ) {
+                        throw new ReferenceError(getExceptionToken());
                     }
                     return v;
                 },
                 set: function(a) {
-                    if ( mustAbort(new ErrorCtor(exceptionToken)) ) {
-                        throw new ReferenceError(exceptionToken);
+                    if ( matchesStackTrace(needleDetails, extraArgs.log) ) {
+                        throw new ReferenceError(getExceptionToken());
                     }
                     v = a;
                 },
@@ -1043,8 +1131,6 @@ builtinScriptlets.push({
     ],
     fn: addEventListenerDefuser,
     dependencies: [
-        'get-extra-args.fn',
-        'pattern-to-regex.fn',
         'run-at.fn',
         'safe-self.fn',
         'should-debug.fn',
@@ -1056,10 +1142,10 @@ function addEventListenerDefuser(
     type = '',
     pattern = ''
 ) {
-    const extraArgs = getExtraArgs(Array.from(arguments), 2);
     const safe = safeSelf();
-    const reType = patternToRegex(type);
-    const rePattern = patternToRegex(pattern);
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 2);
+    const reType = safe.patternToRegex(type);
+    const rePattern = safe.patternToRegex(pattern);
     const log = shouldLog(extraArgs);
     const debug = shouldDebug(extraArgs);
     const trapEddEventListeners = ( ) => {
@@ -1107,7 +1193,11 @@ builtinScriptlets.push({
     name: 'json-prune.js',
     fn: jsonPrune,
     dependencies: [
+        'match-object-properties.fn',
         'object-prune.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
+        'should-log.fn',
     ],
 });
 //  When no "prune paths" argument is provided, the scriptlet is
@@ -1118,24 +1208,200 @@ builtinScriptlets.push({
 //  - Add support for "remove everything if needle matches" case
 function jsonPrune(
     rawPrunePaths = '',
-    rawNeedlePaths = ''
+    rawNeedlePaths = '',
+    stackNeedle = ''
 ) {
+    const safe = safeSelf();
+    const stackNeedleDetails = safe.initPattern(stackNeedle, { canNegate: true });
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
     JSON.parse = new Proxy(JSON.parse, {
         apply: function(target, thisArg, args) {
-            return objectPrune(
-                Reflect.apply(target, thisArg, args),
+            const objBefore = Reflect.apply(target, thisArg, args);
+            const objAfter = objectPrune(
+                objBefore,
                 rawPrunePaths,
-                rawNeedlePaths
-            );
+                rawNeedlePaths,
+                stackNeedleDetails,
+                extraArgs
+           );
+           return objAfter || objBefore;
         },
     });
-    Response.prototype.json = new Proxy(Response.prototype.json, {
-        apply: function(target, thisArg, args) {
-            return Reflect.apply(target, thisArg, args).then(o => 
-                objectPrune(o, rawPrunePaths, rawNeedlePaths)
-            );
-        },
+}
+
+/*******************************************************************************
+ * 
+ * json-prune-fetch-response.js
+ * 
+ * Prune JSON response of fetch requests.
+ * 
+ **/
+
+builtinScriptlets.push({
+    name: 'json-prune-fetch-response.js',
+    fn: jsonPruneFetchResponse,
+    dependencies: [
+        'match-object-properties.fn',
+        'object-prune.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
+        'should-log.fn',
+    ],
+});
+function jsonPruneFetchResponse(
+    rawPrunePaths = '',
+    rawNeedlePaths = ''
+) {
+    const safe = safeSelf();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 2);
+    const logLevel = shouldLog({ log: rawPrunePaths === '' || extraArgs.log, });
+    const log = logLevel ? ((...args) => { safe.uboLog(...args); }) : (( ) => { }); 
+    const propNeedles = parsePropertiesToMatch(extraArgs.propsToMatch, 'url');
+    const applyHandler = function(target, thisArg, args) {
+        const fetchPromise = Reflect.apply(target, thisArg, args);
+        if ( logLevel === true ) {
+            log('json-prune-fetch-response:', JSON.stringify(Array.from(args)).slice(1,-1));
+        }
+        if ( rawPrunePaths === '' ) { return fetchPromise; }
+        let outcome = 'match';
+        if ( propNeedles.size !== 0 ) {
+            const objs = [ args[0] instanceof Object ? args[0] : { url: args[0] } ];
+            if ( args[1] instanceof Object ) {
+                objs.push(args[1]);
+            }
+            if ( matchObjectProperties(propNeedles, ...objs) === false ) {
+                outcome = 'nomatch';
+            }
+            if ( outcome === logLevel || logLevel === 'all' ) {
+                log(
+                    `json-prune-fetch-response (${outcome})`,
+                    `\n\tfetchPropsToMatch: ${JSON.stringify(Array.from(propNeedles)).slice(1,-1)}`,
+                    '\n\tprops:', ...args,
+                );
+            }
+        }
+        if ( outcome === 'nomatch' ) { return fetchPromise; }
+        return fetchPromise.then(responseBefore => {
+            const response = responseBefore.clone();
+            return response.json().then(objBefore => {
+                if ( typeof objBefore !== 'object' ) { return responseBefore; }
+                const objAfter = objectPrune(
+                    objBefore,
+                    rawPrunePaths,
+                    rawNeedlePaths,
+                    { matchAll: true },
+                    extraArgs
+                );
+                if ( typeof objAfter !== 'object' ) { return responseBefore; }
+                const responseAfter = Response.json(objAfter, {
+                    status: responseBefore.status,
+                    statusText: responseBefore.statusText,
+                    headers: responseBefore.headers,
+                });
+                Object.defineProperties(responseAfter, {
+                    ok: { value: responseBefore.ok },
+                    redirected: { value: responseBefore.redirected },
+                    type: { value: responseBefore.type },
+                    url: { value: responseBefore.url },
+                });
+                return responseAfter;
+            }).catch(reason => {
+                log('json-prune-fetch-response:', reason);
+                return responseBefore;
+            });
+        }).catch(reason => {
+            log('json-prune-fetch-response:', reason);
+            return fetchPromise;
+        });
+    };
+    self.fetch = new Proxy(self.fetch, {
+        apply: applyHandler
     });
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'json-prune-xhr-response.js',
+    fn: jsonPruneXhrResponse,
+    dependencies: [
+        'match-object-properties.fn',
+        'object-prune.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
+        'should-log.fn',
+    ],
+});
+function jsonPruneXhrResponse(
+    rawPrunePaths = '',
+    rawNeedlePaths = ''
+) {
+    const safe = safeSelf();
+    const xhrInstances = new WeakMap();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 2);
+    const logLevel = shouldLog({ log: rawPrunePaths === '' || extraArgs.log, });
+    const log = logLevel ? ((...args) => { safe.uboLog(...args); }) : (( ) => { }); 
+    const propNeedles = parsePropertiesToMatch(extraArgs.propsToMatch, 'url');
+    self.XMLHttpRequest = class extends self.XMLHttpRequest {
+        open(method, url, ...args) {
+            const xhrDetails = { method, url };
+            let outcome = 'match';
+            if ( propNeedles.size !== 0 ) {
+                if ( matchObjectProperties(propNeedles, xhrDetails) === false ) {
+                    outcome = 'nomatch';
+                }
+            }
+            if ( outcome === logLevel || outcome === 'all' ) {
+                log(`xhr.open(${method}, ${url}, ${args.join(', ')})`);
+            }
+            if ( outcome === 'match' ) {
+                xhrInstances.set(this, xhrDetails);
+            }
+            return super.open(method, url, ...args);
+        }
+        get response() {
+            const innerResponse = super.response;
+            const xhrDetails = xhrInstances.get(this);
+            if ( xhrDetails === undefined ) {
+                return innerResponse;
+            }
+            if ( xhrDetails.response !== undefined ) {
+                return xhrDetails.response;
+            }
+            let objBefore;
+            if ( typeof innerResponse === 'object' ) {
+                objBefore = innerResponse;
+            } else if ( typeof innerResponse === 'string' ) {
+                try { objBefore = safe.jsonParse(innerResponse); }
+                catch(ex) { }
+            }
+            if ( typeof objBefore !== 'object' ) {
+                return (xhrDetails.response = innerResponse);
+            }
+            const objAfter = objectPrune(
+                objBefore,
+                rawPrunePaths,
+                rawNeedlePaths,
+                { matchAll: true },
+                extraArgs
+            );
+            let outerResponse;
+            if ( typeof objAfter === 'object' ) {
+                outerResponse = typeof innerResponse === 'string'
+                    ? safe.jsonStringify(objAfter)
+                    : objAfter;
+            } else {
+                outerResponse = innerResponse;
+            }
+            return (xhrDetails.response = outerResponse);
+        }
+        get responseText() {
+            const response = this.response;
+            return typeof response !== 'string'
+                ? super.responseText
+                : response;
+        }
+    };
 }
 
 /******************************************************************************/
@@ -1155,11 +1421,12 @@ function evaldataPrune(
 ) {
     self.eval = new Proxy(self.eval, {
         apply(target, thisArg, args) {
-            let data = Reflect.apply(target, thisArg, args);
-            if ( typeof data === 'object' ) {
-                data = objectPrune(data, rawPrunePaths, rawNeedlePaths);
+            const before = Reflect.apply(target, thisArg, args);
+            if ( typeof before === 'object' ) {
+                const after = objectPrune(before, rawPrunePaths, rawNeedlePaths);
+                return after || before;
             }
-            return data;
+            return before;
         }
     });
 }
@@ -1173,7 +1440,7 @@ builtinScriptlets.push({
     ],
     fn: nanoSetIntervalBooster,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 // Imported from:
@@ -1194,7 +1461,8 @@ function nanoSetIntervalBooster(
     boostArg = ''
 ) {
     if ( typeof needleArg !== 'string' ) { return; }
-    const reNeedle = patternToRegex(needleArg);
+    const safe = safeSelf();
+    const reNeedle = safe.patternToRegex(needleArg);
     let delay = delayArg !== '*' ? parseInt(delayArg, 10) : -1;
     if ( isNaN(delay) || isFinite(delay) === false ) { delay = 1000; }
     let boost = parseFloat(boostArg);
@@ -1224,7 +1492,7 @@ builtinScriptlets.push({
     ],
     fn: nanoSetTimeoutBooster,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 // Imported from:
@@ -1246,7 +1514,8 @@ function nanoSetTimeoutBooster(
     boostArg = ''
 ) {
     if ( typeof needleArg !== 'string' ) { return; }
-    const reNeedle = patternToRegex(needleArg);
+    const safe = safeSelf();
+    const reNeedle = safe.patternToRegex(needleArg);
     let delay = delayArg !== '*' ? parseInt(delayArg, 10) : -1;
     if ( isNaN(delay) || isFinite(delay) === false ) { delay = 1000; }
     let boost = parseFloat(boostArg);
@@ -1276,14 +1545,15 @@ builtinScriptlets.push({
     ],
     fn: noEvalIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function noEvalIf(
     needle = ''
 ) {
     if ( typeof needle !== 'string' ) { return; }
-    const reNeedle = patternToRegex(needle);
+    const safe = safeSelf();
+    const reNeedle = safe.patternToRegex(needle);
     window.eval = new Proxy(window.eval, {  // jshint ignore: line
         apply: function(target, thisArg, args) {
             const a = args[0];
@@ -1302,13 +1572,14 @@ builtinScriptlets.push({
     ],
     fn: noFetchIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function noFetchIf(
     arg1 = '',
 ) {
     if ( typeof arg1 !== 'string' ) { return; }
+    const safe = safeSelf();
     const needles = [];
     for ( const condition of arg1.split(/\s+/) ) {
         if ( condition === '' ) { continue; }
@@ -1321,7 +1592,7 @@ function noFetchIf(
             key = 'url';
             value = condition;
         }
-        needles.push({ key, re: patternToRegex(value) });
+        needles.push({ key, re: safe.patternToRegex(value) });
     }
     const log = needles.length === 0 ? console.log.bind(console) : undefined;
     self.fetch = new Proxy(self.fetch, {
@@ -1474,6 +1745,7 @@ builtinScriptlets.push({
         'rc.js',
     ],
     fn: removeClass,
+    world: 'ISOLATED',
     dependencies: [
         'run-at.fn',
     ],
@@ -1485,20 +1757,24 @@ function removeClass(
 ) {
     if ( typeof token !== 'string' ) { return; }
     if ( token === '' ) { return; }
-    const tokens = token.split(/\s*\|\s*/);
+    const classTokens = token.split(/\s*\|\s*/);
     if ( selector === '' ) {
-        selector = '.' + tokens.map(a => CSS.escape(a)).join(',.');
+        selector = '.' + classTokens.map(a => CSS.escape(a)).join(',.');
     }
+    const mustStay = /\bstay\b/.test(behavior);
     let timer;
     const rmclass = function() {
         timer = undefined;
         try {
             const nodes = document.querySelectorAll(selector);
             for ( const node of nodes ) {
-                node.classList.remove(...tokens);
+                node.classList.remove(...classTokens);
             }
         } catch(ex) {
         }
+        if ( mustStay ) { return; }
+        if ( document.readyState !== 'complete' ) { return; }
+        observer.disconnect();
     };
     const mutationHandler = mutations => {
         if ( timer !== undefined ) { return; }
@@ -1516,10 +1792,9 @@ function removeClass(
         if ( skip ) { return; }
         timer = self.requestIdleCallback(rmclass, { timeout: 67 });
     };
+    const observer = new MutationObserver(mutationHandler);
     const start = ( ) => {
         rmclass();
-        if ( /\bstay\b/.test(behavior) === false ) { return; }
-        const observer = new MutationObserver(mutationHandler);
         observer.observe(document, {
             attributes: true,
             attributeFilter: [ 'class' ],
@@ -1529,7 +1804,7 @@ function removeClass(
     };
     runAt(( ) => {
         start();
-    }, /\bcomplete\b/.test(behavior) ? 'idle' : 'interactive');
+    }, /\bcomplete\b/.test(behavior) ? 'idle' : 'loading');
 }
 
 /******************************************************************************/
@@ -1542,17 +1817,18 @@ builtinScriptlets.push({
     ],
     fn: noRequestAnimationFrameIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function noRequestAnimationFrameIf(
     needle = ''
 ) {
     if ( typeof needle !== 'string' ) { return; }
+    const safe = safeSelf();
     const needleNot = needle.charAt(0) === '!';
     if ( needleNot ) { needle = needle.slice(1); }
     const log = needleNot === false && needle === '' ? console.log : undefined;
-    const reNeedle = patternToRegex(needle);
+    const reNeedle = safe.patternToRegex(needle);
     window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {
         apply: function(target, thisArg, args) {
             const a = String(args[0]);
@@ -1599,7 +1875,7 @@ builtinScriptlets.push({
     ],
     fn: noSetIntervalIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function noSetIntervalIf(
@@ -1607,6 +1883,7 @@ function noSetIntervalIf(
     delay = ''
 ) {
     if ( typeof needle !== 'string' ) { return; }
+    const safe = safeSelf();
     const needleNot = needle.charAt(0) === '!';
     if ( needleNot ) { needle = needle.slice(1); }
     if ( delay === '' ) { delay = undefined; }
@@ -1619,7 +1896,7 @@ function noSetIntervalIf(
     const log = needleNot === false && needle === '' && delay === undefined
         ? console.log
         : undefined;
-    const reNeedle = patternToRegex(needle);
+    const reNeedle = safe.patternToRegex(needle);
     self.setInterval = new Proxy(self.setInterval, {
         apply: function(target, thisArg, args) {
             const a = String(args[0]);
@@ -1660,7 +1937,7 @@ builtinScriptlets.push({
     ],
     fn: noSetTimeoutIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function noSetTimeoutIf(
@@ -1668,6 +1945,7 @@ function noSetTimeoutIf(
     delay = ''
 ) {
     if ( typeof needle !== 'string' ) { return; }
+    const safe = safeSelf();
     const needleNot = needle.charAt(0) === '!';
     if ( needleNot ) { needle = needle.slice(1); }
     if ( delay === '' ) { delay = undefined; }
@@ -1680,7 +1958,7 @@ function noSetTimeoutIf(
     const log = needleNot === false && needle === '' && delay === undefined
         ? console.log
         : undefined;
-    const reNeedle = patternToRegex(needle);
+    const reNeedle = safe.patternToRegex(needle);
     self.setTimeout = new Proxy(self.setTimeout, {
         apply: function(target, thisArg, args) {
             const a = String(args[0]);
@@ -1716,14 +1994,15 @@ builtinScriptlets.push({
     name: 'webrtc-if.js',
     fn: webrtcIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 function webrtcIf(
     good = ''
 ) {
     if ( typeof good !== 'string' ) { return; }
-    const reGood = patternToRegex(good);
+    const safe = safeSelf();
+    const reGood = safe.patternToRegex(good);
     const rtcName = window.RTCPeerConnection
         ? 'RTCPeerConnection'
         : (window.webkitRTCPeerConnection ? 'webkitRTCPeerConnection' : '');
@@ -1786,69 +2065,131 @@ builtinScriptlets.push({
     ],
     fn: noXhrIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'match-object-properties.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
     ],
 });
 function noXhrIf(
-    arg1 = ''
+    propsToMatch = '',
+    directive = ''
 ) {
-    if ( typeof arg1 !== 'string' ) { return; }
+    if ( typeof propsToMatch !== 'string' ) { return; }
+    const safe = safeSelf();
     const xhrInstances = new WeakMap();
-    const needles = [];
-    for ( const condition of arg1.split(/\s+/) ) {
-        if ( condition === '' ) { continue; }
-        const pos = condition.indexOf(':');
-        let key, value;
-        if ( pos !== -1 ) {
-            key = condition.slice(0, pos);
-            value = condition.slice(pos + 1);
-        } else {
-            key = 'url';
-            value = condition;
+    const propNeedles = parsePropertiesToMatch(propsToMatch, 'url');
+    const log = propNeedles.size === 0 ? console.log.bind(console) : undefined;
+    const warOrigin = scriptletGlobals.get('warOrigin');
+    const generateRandomString = len => {
+            let s = '';
+            do { s += Math.random().toString(36).slice(2); }
+            while ( s.length < 10 );
+            return s.slice(0, len);
+    };
+    const generateContent = async directive => {
+        if ( directive === 'true' ) {
+            return generateRandomString(10);
         }
-        needles.push({ key, re: patternToRegex(value) });
-    }
-    const log = needles.length === 0 ? console.log.bind(console) : undefined;
+        if ( directive.startsWith('war:') ) {
+            if ( warOrigin === undefined ) { return ''; }
+            return new Promise(resolve => {
+                const warName = directive.slice(4);
+                const fullpath = [ warOrigin, '/', warName ];
+                const warSecret = scriptletGlobals.get('warSecret');
+                if ( warSecret !== undefined ) {
+                    fullpath.push('?secret=', warSecret);
+                }
+                const warXHR = new safe.XMLHttpRequest();
+                warXHR.responseType = 'text';
+                warXHR.onloadend = ev => {
+                    resolve(ev.target.responseText || '');
+                };
+                warXHR.open('GET', fullpath.join(''));
+                warXHR.send();
+            });
+        }
+        return '';
+    };
     self.XMLHttpRequest = class extends self.XMLHttpRequest {
-        open(...args) {
+        open(method, url, ...args) {
             if ( log !== undefined ) {
-                log(`uBO: xhr.open(${args.join(', ')})`);
-            } else {
-                const argNames = [ 'method', 'url' ];
-                const haystack = new Map();
-                for ( let i = 0; i < args.length && i < argNames.length; i++  ) {
-                    haystack.set(argNames[i], args[i]);
-                }
-                if ( haystack.size !== 0 ) {
-                    let matches = true;
-                    for ( const { key, re } of needles ) {
-                        matches = re.test(haystack.get(key) || '');
-                        if ( matches === false ) { break; }
-                    }
-                    if ( matches ) {
-                        xhrInstances.set(this, haystack);
-                    }
-                }
+                log(`uBO: xhr.open(${method}, ${url}, ${args.join(', ')})`);
+                return super.open(method, url, ...args);
             }
-            return super.open(...args);
+            if ( warOrigin !== undefined && url.startsWith(warOrigin) ) {
+                return super.open(method, url, ...args);
+            }
+            const haystack = { method, url };
+            if ( matchObjectProperties(propNeedles, haystack) ) {
+                xhrInstances.set(this, haystack);
+            }
+            return super.open(method, url, ...args);
         }
         send(...args) {
             const haystack = xhrInstances.get(this);
             if ( haystack === undefined ) {
                 return super.send(...args);
             }
-            Object.defineProperties(this, {
-                readyState: { value: 4, writable: false },
-                response: { value: '', writable: false },
-                responseText: { value: '', writable: false },
-                responseURL: { value: haystack.get('url'), writable: false },
-                responseXML: { value: '', writable: false },
-                status: { value: 200, writable: false },
-                statusText: { value: 'OK', writable: false },
+            let promise = Promise.resolve({
+                xhr: this,
+                directive,
+                props: {
+                    readyState: { value: 4 },
+                    response: { value: '' },
+                    responseText: { value: '' },
+                    responseXML: { value: null },
+                    responseURL: { value: haystack.url },
+                    status: { value: 200 },
+                    statusText: { value: 'OK' },
+                },
             });
-            this.dispatchEvent(new Event('readystatechange'));
-            this.dispatchEvent(new Event('load'));
-            this.dispatchEvent(new Event('loadend'));
+            switch ( this.responseType ) {
+                case 'arraybuffer':
+                    promise = promise.then(details => {
+                        details.props.response.value = new ArrayBuffer(0);
+                        return details;
+                    });
+                    break;
+                case 'blob':
+                    promise = promise.then(details => {
+                        details.props.response.value = new Blob([]);
+                        return details;
+                    });
+                    break;
+                case 'document': {
+                    promise = promise.then(details => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString('', 'text/html');
+                        details.props.response.value = doc;
+                        details.props.responseXML.value = doc;
+                        return details;
+                    });
+                    break;
+                }
+                case 'json':
+                    promise = promise.then(details => {
+                        details.props.response.value = {};
+                        details.props.responseText.value = '{}';
+                        return details;
+                    });
+                    break;
+                default:
+                    if ( directive === '' ) { break; }
+                    promise = promise.then(details => {
+                        return generateContent(details.directive).then(text => {
+                            details.props.response.value = text;
+                            details.props.responseText.value = text;
+                            return details;
+                        });
+                    });
+                    break;
+            }
+            promise.then(details => {
+                Object.defineProperties(details.xhr, details.props);
+                details.xhr.dispatchEvent(new Event('readystatechange'));
+                details.xhr.dispatchEvent(new Event('load'));
+                details.xhr.dispatchEvent(new Event('loadend'));
+            });
         }
     };
 }
@@ -1864,8 +2205,6 @@ builtinScriptlets.push({
     ],
     fn: noWindowOpenIf,
     dependencies: [
-        'get-extra-args.fn',
-        'pattern-to-regex.fn',
         'safe-self.fn',
         'should-log.fn',
     ],
@@ -1875,17 +2214,17 @@ function noWindowOpenIf(
     delay = '',
     decoy = ''
 ) {
+    const safe = safeSelf();
     const targetMatchResult = pattern.startsWith('!') === false;
     if ( targetMatchResult === false ) {
         pattern = pattern.slice(1);
     }
-    const rePattern = patternToRegex(pattern);
+    const rePattern = safe.patternToRegex(pattern);
     let autoRemoveAfter = parseInt(delay);
     if ( isNaN(autoRemoveAfter) ) {
         autoRemoveAfter = -1;
     }
-    const extraArgs = getExtraArgs(Array.from(arguments), 3);
-    const safe = safeSelf();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
     const logLevel = shouldLog(extraArgs);
     const createDecoy = function(tag, urlProp, url) {
         const decoyElem = document.createElement(tag);
@@ -1951,7 +2290,7 @@ builtinScriptlets.push({
     name: 'window-close-if.js',
     fn: windowCloseIf,
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 // https://github.com/uBlockOrigin/uAssets/issues/10323#issuecomment-992312847
@@ -1961,6 +2300,7 @@ function windowCloseIf(
     arg1 = ''
 ) {
     if ( typeof arg1 !== 'string' ) { return; }
+    const safe = safeSelf();
     let subject = '';
     if ( /^\/.*\/$/.test(arg1) ) {
         subject = window.location.href;
@@ -1968,7 +2308,7 @@ function windowCloseIf(
         subject = `${window.location.pathname}${window.location.search}`;
     }
     try {
-        const re = patternToRegex(arg1);
+        const re = safe.patternToRegex(arg1);
         if ( re.test(subject) ) {
             window.close();
         }
@@ -2234,7 +2574,7 @@ builtinScriptlets.push({
     fn: cookieRemover,
     world: 'ISOLATED',
     dependencies: [
-        'pattern-to-regex.fn',
+        'safe-self.fn',
     ],
 });
 // https://github.com/NanoAdblocker/NanoFilters/issues/149
@@ -2242,7 +2582,8 @@ function cookieRemover(
     needle = ''
 ) {
     if ( typeof needle !== 'string' ) { return; }
-    const reName = patternToRegex(needle);
+    const safe = safeSelf();
+    const reName = safe.patternToRegex(needle);
     const removeCookie = function() {
         document.cookie.split(';').forEach(cookieStr => {
             let pos = cookieStr.indexOf('=');
@@ -2288,8 +2629,6 @@ builtinScriptlets.push({
     name: 'xml-prune.js',
     fn: xmlPrune,
     dependencies: [
-        'get-extra-args.fn',
-        'pattern-to-regex.fn',
         'safe-self.fn',
         'should-log.fn',
     ],
@@ -2301,9 +2640,10 @@ function xmlPrune(
 ) {
     if ( typeof selector !== 'string' ) { return; }
     if ( selector === '' ) { return; }
-    const reUrl = patternToRegex(urlPattern);
-    const extraArgs = getExtraArgs(Array.from(arguments), 3);
-    const log = shouldLog(extraArgs);
+    const safe = safeSelf();
+    const reUrl = safe.patternToRegex(urlPattern);
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
+    const log = shouldLog(extraArgs) ? ((...args) => { safe.uboLog(...args); }) : (( ) => { });
     const queryAll = (xmlDoc, selector) => {
         const isXpath = /^xpath\(.+\)$/.test(selector);
         if ( isXpath === false ) {
@@ -2328,22 +2668,23 @@ function xmlPrune(
             if ( selectorCheck !== '' && xmlDoc.querySelector(selectorCheck) === null ) {
                 return xmlDoc;
             }
+            if ( extraArgs.logdoc ) {
+                const serializer = new XMLSerializer();
+                log(`xmlPrune: document is\n\t${serializer.serializeToString(xmlDoc)}`);
+            }
             const items = queryAll(xmlDoc, selector);
-            if ( items.length !== 0 ) {
-                if ( log ) { safeSelf().uboLog(`xmlPrune: removing ${items.length} items`); }
-                for ( const item of items ) {
-                    if ( item.nodeType === 1 ) {
-                        item.remove();
-                    } else if ( item.nodeType === 2 ) {
-                        item.ownerElement.removeAttribute(item.nodeName);
-                    }
-                    if ( log ) {
-                        safeSelf().uboLog(`xmlPrune: ${item.constructor.name}.${item.nodeName} removed`);
-                    }
+            if ( items.length === 0 ) { return xmlDoc; }
+            log(`xmlPrune: removing ${items.length} items`);
+            for ( const item of items ) {
+                if ( item.nodeType === 1 ) {
+                    item.remove();
+                } else if ( item.nodeType === 2 ) {
+                    item.ownerElement.removeAttribute(item.nodeName);
                 }
+                log(`xmlPrune: ${item.constructor.name}.${item.nodeName} removed`);
             }
         } catch(ex) {
-            if ( log ) { safeSelf().uboLog(ex); }
+            log(ex);
         }
         return xmlDoc;
     };
@@ -2366,21 +2707,31 @@ function xmlPrune(
         if ( arg instanceof Request ) { return arg.url; }
         return String(arg);
     };
-    const realFetch = self.fetch;
     self.fetch = new Proxy(self.fetch, {
         apply: function(target, thisArg, args) {
+            const fetchPromise = Reflect.apply(target, thisArg, args);
             if ( reUrl.test(urlFromArg(args[0])) === false ) {
-                return Reflect.apply(target, thisArg, args);
+                return fetchPromise;
             }
-            return realFetch(...args).then(realResponse =>
-                realResponse.text().then(text =>
-                    new Response(pruneFromText(text), {
-                        status: realResponse.status,
-                        statusText: realResponse.statusText,
-                        headers: realResponse.headers,
-                    })
-                )
-            );
+            return fetchPromise.then(responseBefore => {
+                const response = responseBefore.clone();
+                return response.text().then(text => {
+                    const responseAfter = new Response(pruneFromText(text), {
+                        status: responseBefore.status,
+                        statusText: responseBefore.statusText,
+                        headers: responseBefore.headers,
+                    });
+                    Object.defineProperties(responseAfter, {
+                        ok: { value: responseBefore.ok },
+                        redirected: { value: responseBefore.redirected },
+                        type: { value: responseBefore.type },
+                        url: { value: responseBefore.url },
+                    });
+                    return responseAfter;
+                }).catch(( ) =>
+                    responseBefore
+                );
+            });
         }
     });
     self.XMLHttpRequest.prototype.open = new Proxy(self.XMLHttpRequest.prototype.open, {
@@ -2391,16 +2742,22 @@ function xmlPrune(
             thisArg.addEventListener('readystatechange', function() {
                 if ( thisArg.readyState !== 4 ) { return; }
                 const type = thisArg.responseType;
-                if ( type === 'text' ) {
+                if (
+                    type === 'document' ||
+                    type === '' && thisArg.responseXML instanceof XMLDocument
+                ) {
+                    pruneFromDoc(thisArg.responseXML);
+                    return;
+                }
+                if (
+                    type === 'text' ||
+                    type === '' && typeof thisArg.responseText === 'string'
+                ) {
                     const textin = thisArg.responseText;
                     const textout = pruneFromText(textin);
                     if ( textout === textin ) { return; }
                     Object.defineProperty(thisArg, 'response', { value: textout });
                     Object.defineProperty(thisArg, 'responseText', { value: textout });
-                    return;
-                }
-                if ( type === 'document' ) {
-                    pruneFromDoc(thisArg.response);
                     return;
                 }
             });
@@ -2415,7 +2772,6 @@ builtinScriptlets.push({
     name: 'm3u-prune.js',
     fn: m3uPrune,
     dependencies: [
-        'get-extra-args.fn',
         'safe-self.fn',
         'should-log.fn',
     ],
@@ -2426,9 +2782,10 @@ function m3uPrune(
     urlPattern = ''
 ) {
     if ( typeof m3uPattern !== 'string' ) { return; }
-    const options = getExtraArgs(Array.from(arguments), 2);
-    const logLevel = shouldLog(options);
     const safe = safeSelf();
+    const options = safe.getExtraArgs(Array.from(arguments), 2);
+    const logLevel = shouldLog(options);
+    const uboLog = logLevel ? ((...args) => safe.uboLog(...args)) : (( ) => { });
     const regexFromArg = arg => {
         if ( arg === '' ) { return /^/; }
         const match = /^\/(.+)\/([gms]*)$/.exec(arg);
@@ -2447,17 +2804,22 @@ function m3uPrune(
         if ( lines[i].startsWith('#EXT-X-CUE:TYPE="SpliceOut"') === false ) {
             return false;
         }
+        uboLog('m3u-prune: discarding', `\n\t${lines[i]}`);
         lines[i] = undefined; i += 1;
         if ( lines[i].startsWith('#EXT-X-ASSET:CAID') ) {
+            uboLog(`\t${lines[i]}`);
             lines[i] = undefined; i += 1;
         }
         if ( lines[i].startsWith('#EXT-X-SCTE35:') ) {
+            uboLog(`\t${lines[i]}`);
             lines[i] = undefined; i += 1;
         }
         if ( lines[i].startsWith('#EXT-X-CUE-IN') ) {
+            uboLog(`\t${lines[i]}`);
             lines[i] = undefined; i += 1;
         }
         if ( lines[i].startsWith('#EXT-X-SCTE35:') ) {
+            uboLog(`\t${lines[i]}`);
             lines[i] = undefined; i += 1;
         }
         return true;
@@ -2465,8 +2827,10 @@ function m3uPrune(
     const pruneInfBlock = (lines, i) => {
         if ( lines[i].startsWith('#EXTINF') === false ) { return false; }
         if ( reM3u.test(lines[i+1]) === false ) { return false; }
+        uboLog('m3u-prune: discarding', `\n\t${lines[i]}, \n\t${lines[i+1]}`);
         lines[i] = lines[i+1] = undefined; i += 2;
         if ( lines[i].startsWith('#EXT-X-DISCONTINUITY') ) {
+            uboLog(`\t${lines[i]}`);
             lines[i] = undefined; i += 1;
         }
         return true;
@@ -2503,11 +2867,9 @@ function m3uPrune(
                 }
                 text = before.trim() + '\n' + after.trim();
                 reM3u.lastIndex = before.length + 1;
-                if ( logLevel ) {
-                    safe.uboLog('m3u-prune: discarding\n',
-                        discard.split(/\n+/).map(s => `\t${s}`).join('\n')
-                    );
-                }
+                uboLog('m3u-prune: discarding\n',
+                    discard.split(/\n+/).map(s => `\t${s}`).join('\n')
+                );
                 if ( reM3u.global === false ) { break; }
             }
             return text;
@@ -2577,7 +2939,7 @@ function m3uPrune(
  * ```
  * 
  * - `selector`: required, CSS selector, specifies `a` elements for which the
- *   `href` attribute must be overriden.
+ *   `href` attribute must be overridden.
  * - `source`: optional, default to `text`, specifies from where to get the
  *   value which will override the `href` attribute.
  *     - `text`: the value will be the first valid URL found in the text
@@ -2813,6 +3175,17 @@ function spoofCSS(
                     }
                     return spoofStyle(prop, Reflect.get(target, prop, receiver));
                 },
+                getOwnPropertyDescriptor(target, prop) {
+                    if ( propToValueMap.has(prop) ) {
+                        return {
+                            configurable: true,
+                            enumerable: true,
+                            value: propToValueMap.get(prop),
+                            writable: true,
+                        };
+                    }
+                    return Reflect.getOwnPropertyDescriptor(target, prop);
+                },
             });
             return proxiedStyle;
         },
@@ -2884,7 +3257,7 @@ builtinScriptlets.push({
     fn: setCookie,
     world: 'ISOLATED',
     dependencies: [
-        'get-extra-args.fn',
+        'safe-self.fn',
         'set-cookie-helper.fn',
     ],
 });
@@ -2901,7 +3274,7 @@ function setCookie(
         'yes', 'y', 'no', 'n',
         'ok',
         'accept', 'reject',
-        'allow',
+        'allow', 'deny',
     ];
     if ( validValues.includes(value.toLowerCase()) === false ) {
         if ( /^\d+$/.test(value) === false ) { return; }
@@ -2915,7 +3288,7 @@ function setCookie(
         value,
         '',
         path,
-        getExtraArgs(Array.from(arguments), 3)
+        safeSelf().getExtraArgs(Array.from(arguments), 3)
     );
 }
 
@@ -3168,7 +3541,7 @@ builtinScriptlets.push({
     fn: trustedSetCookie,
     world: 'ISOLATED',
     dependencies: [
-        'get-extra-args.fn',
+        'safe-self.fn',
         'set-cookie-helper.fn',
     ],
 });
@@ -3206,7 +3579,7 @@ function trustedSetCookie(
         value,
         expires,
         path,
-        getExtraArgs(Array.from(arguments), 4)
+        safeSelf().getExtraArgs(Array.from(arguments), 4)
     );
 }
 
@@ -3232,6 +3605,183 @@ builtinScriptlets.push({
 });
 function trustedSetLocalStorageItem(key = '', value = '') {
     setLocalStorageItemCore('local', true, key, value);
+}
+
+/*******************************************************************************
+ * 
+ * trusted-replace-fetch-response.js
+ * 
+ * Replaces response text content of fetch requests if all given parameters
+ * match.
+ * 
+ * Reference:
+ * https://github.com/AdguardTeam/Scriptlets/blob/master/src/scriptlets/trusted-replace-fetch-response.js
+ * 
+ **/
+
+builtinScriptlets.push({
+    name: 'trusted-replace-fetch-response.js',
+    requiresTrust: true,
+    fn: trustedReplaceFetchResponse,
+    dependencies: [
+        'match-object-properties.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
+        'should-log.fn',
+    ],
+});
+function trustedReplaceFetchResponse(
+    pattern = '',
+    replacement = '',
+    propsToMatch = ''
+) {
+    const safe = safeSelf();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
+    const logLevel = shouldLog({
+        log: pattern === '' || extraArgs.log,
+    });
+    const log = logLevel ? ((...args) => { safe.uboLog(...args); }) : (( ) => { }); 
+    if ( pattern === '*' ) { pattern = '.*'; }
+    const rePattern = safe.patternToRegex(pattern);
+    const propNeedles = parsePropertiesToMatch(propsToMatch, 'url');
+    self.fetch = new Proxy(self.fetch, {
+        apply: function(target, thisArg, args) {
+            if ( logLevel === true ) {
+                log('trusted-replace-fetch-response:', JSON.stringify(Array.from(args)).slice(1,-1));
+            }
+            const fetchPromise = Reflect.apply(target, thisArg, args);
+            if ( pattern === '' ) { return fetchPromise; }
+            let outcome = 'match';
+            if ( propNeedles.size !== 0 ) {
+                const objs = [ args[0] instanceof Object ? args[0] : { url: args[0] } ];
+                if ( args[1] instanceof Object ) {
+                    objs.push(args[1]);
+                }
+                if ( matchObjectProperties(propNeedles, ...objs) === false ) {
+                    outcome = 'nomatch';
+                }
+                if ( outcome === logLevel || logLevel === 'all' ) {
+                    log(
+                        `trusted-replace-fetch-response (${outcome})`,
+                        `\n\tpropsToMatch: ${JSON.stringify(Array.from(propNeedles)).slice(1,-1)}`,
+                        '\n\tprops:', ...args,
+                    );
+                }
+            }
+            if ( outcome === 'nomatch' ) { return fetchPromise; }
+            return fetchPromise.then(responseBefore => {
+                const response = responseBefore.clone();
+                return response.text().then(textBefore => {
+                    const textAfter = textBefore.replace(rePattern, replacement);
+                    const outcome = textAfter !== textBefore ? 'match' : 'nomatch';
+                    if ( outcome === logLevel || logLevel === 'all' ) {
+                        log(
+                            `trusted-replace-fetch-response (${outcome})`,
+                            `\n\tpattern: ${pattern}`, 
+                            `\n\treplacement: ${replacement}`,
+                        );
+                    }
+                    if ( outcome === 'nomatch' ) { return responseBefore; }
+                    const responseAfter = new Response(textAfter, {
+                        status: responseBefore.status,
+                        statusText: responseBefore.statusText,
+                        headers: responseBefore.headers,
+                    });
+                    Object.defineProperties(responseAfter, {
+                        ok: { value: responseBefore.ok },
+                        redirected: { value: responseBefore.redirected },
+                        type: { value: responseBefore.type },
+                        url: { value: responseBefore.url },
+                    });
+                    return responseAfter;
+                }).catch(reason => {
+                    log('trusted-replace-fetch-response:', reason);
+                    return responseBefore;
+                });
+            }).catch(reason => {
+                log('trusted-replace-fetch-response:', reason);
+                return fetchPromise;
+            });
+        }
+    });
+}
+
+/******************************************************************************/
+
+builtinScriptlets.push({
+    name: 'trusted-replace-xhr-response.js',
+    requiresTrust: true,
+    fn: trustedReplaceXhrResponse,
+    dependencies: [
+        'match-object-properties.fn',
+        'parse-properties-to-match.fn',
+        'safe-self.fn',
+        'should-log.fn',
+    ],
+});
+function trustedReplaceXhrResponse(
+    pattern = '',
+    replacement = '',
+    propsToMatch = ''
+) {
+    const safe = safeSelf();
+    const xhrInstances = new WeakMap();
+    const extraArgs = safe.getExtraArgs(Array.from(arguments), 3);
+    const logLevel = shouldLog({
+        log: pattern === '' && 'all' || extraArgs.log,
+    });
+    const log = logLevel ? ((...args) => { safe.uboLog(...args); }) : (( ) => { }); 
+    if ( pattern === '*' ) { pattern = '.*'; }
+    const rePattern = safe.patternToRegex(pattern);
+    const propNeedles = parsePropertiesToMatch(propsToMatch, 'url');
+    self.XMLHttpRequest = class extends self.XMLHttpRequest {
+        open(method, url, ...args) {
+            const outerXhr = this;
+            const xhrDetails = { method, url };
+            let outcome = 'match';
+            if ( propNeedles.size !== 0 ) {
+                if ( matchObjectProperties(propNeedles, xhrDetails) === false ) {
+                    outcome = 'nomatch';
+                }
+            }
+            if ( outcome === logLevel || outcome === 'all' ) {
+                log(`xhr.open(${method}, ${url}, ${args.join(', ')})`);
+            }
+            if ( outcome === 'match' ) {
+                xhrInstances.set(outerXhr, xhrDetails);
+            }
+            return super.open(method, url, ...args);
+        }
+        get response() {
+            const innerResponse = super.response;
+            const xhrDetails = xhrInstances.get(this);
+            if ( xhrDetails === undefined ) {
+                return innerResponse;
+            }
+            if ( typeof innerResponse !== 'string' ) {
+                xhrDetails.response = innerResponse;
+            }
+            let outerResponse = xhrDetails.response;
+            if ( outerResponse !== undefined ) {
+                return outerResponse;
+            }
+            const textBefore = innerResponse;
+            const textAfter = textBefore.replace(rePattern, replacement);
+            const outcome = textAfter !== textBefore ? 'match' : 'nomatch';
+            if ( outcome === logLevel || logLevel === 'all' ) {
+                log(
+                    `trusted-replace-xhr-response (${outcome})`,
+                    `\n\tpattern: ${pattern}`, 
+                    `\n\treplacement: ${replacement}`,
+                );
+            }
+            xhrDetails.response = textAfter;
+            return textAfter;
+        }
+        get responseText() {
+            return this.response;
+        }
+    };
 }
 
 /******************************************************************************/

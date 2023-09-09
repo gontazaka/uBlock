@@ -41,7 +41,6 @@ const VERSION = 1;
 
 const duplicates = new Set();
 const scriptletCache = new µb.MRUCache(32);
-const reEscapeScriptArg = /[\\'"]/g;
 
 const scriptletDB = new StaticExtFilteringHostnameDB(1, VERSION);
 
@@ -193,10 +192,11 @@ const lookupScriptlet = function(rawToken, mainMap, isolatedMap) {
     }
     targetWorldMap.set(rawToken, [
         'try {',
-        '// >>>> scriptlet start',
-        content,
-        '// <<<< scriptlet end',
+            '// >>>> scriptlet start',
+            content,
+            '// <<<< scriptlet end',
         '} catch (e) {',
+            isDevBuild ? 'console.error(e);' : '',
         '}',
     ].join('\n'));
 };
@@ -206,21 +206,11 @@ const patchScriptlet = function(content, arglist) {
     if ( content.startsWith('function') && content.endsWith('}') ) {
         content = `(${content})({{args}});`;
     }
-    if ( arglist.length === 0 ) {
-        return content.replace('{{args}}', '');
-    }
-    if ( arglist.length === 1 ) {
-        if ( arglist[0].startsWith('{') && arglist[0].endsWith('}') ) {
-            return content.replace('{{args}}', arglist[0]);
-        }
-    }
     for ( let i = 0; i < arglist.length; i++ ) {
         content = content.replace(`{{${i+1}}}`, arglist[i]);
     }
     return content.replace('{{args}}',
-        arglist.map(a => `'${a.replace(reEscapeScriptArg, '\\$&')}'`)
-               .join(', ')
-               .replace(/\$/g, '$$$')
+        JSON.stringify(arglist).slice(1,-1).replace(/\$/g, '$$$')
     );
 };
 
@@ -393,7 +383,10 @@ scriptletFilteringEngine.retrieve = function(request) {
         return { filters: cacheDetails.filters };
     }
 
-    const scriptletGlobals = [];
+    const scriptletGlobals = [
+        [ 'warOrigin', vAPI.getURL('/web_accessible_resources') ],
+        [ 'warSecret', vAPI.warSecret.long() ],
+    ];
 
     if ( isDevBuild === undefined ) {
         isDevBuild = vAPI.webextFlavor.soup.has('devbuild');

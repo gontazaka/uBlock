@@ -2266,27 +2266,9 @@ export class AstFilterParser {
         const parentEnd = this.nodes[parent+NODE_END_INDEX];
         if ( parentEnd === parentBeg ) { return 0; }
         const s = this.getNodeString(parent);
-        let next = 0;
-        // json-based arg?
-        const match = this.rePatternScriptletJsonArgs.exec(s);
-        if ( match !== null ) {
-            next = this.allocTypedNode(
-                NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG,
-                parentBeg,
-                parentEnd
-            );
-            try {
-                void JSON.parse(s);
-            } catch(ex) {
-                this.addNodeFlags(next, NODE_FLAG_ERROR);
-                this.addFlags(AST_FLAG_HAS_ERROR);
-            }
-            return next;
-        }
-        // positional args
-        const head = this.allocHeadNode();
         const argsEnd = s.length;
-        let prev = head;
+        const head = this.allocHeadNode();
+        let prev = head, next = 0;
         let decorationBeg = 0;
         let i = 0;
         for (;;) {
@@ -3382,7 +3364,7 @@ class ExtSelectorCompiler {
             out.push(`.${data.name}`);
             break;
         case 'Combinator':
-            out.push(data.name === ' ' ? ' ' : ` ${data.name} `);
+            out.push(data.name);
             break;
         case 'Identifier':
             if ( this.reInvalidIdentifier.test(data.name) ) { return; }
@@ -3454,6 +3436,35 @@ class ExtSelectorCompiler {
         return out.join('');
     }
 
+    astAppendPart(part, out) {
+        const s = this.astSerializePart(part);
+        if ( s === undefined ) { return false; }
+        const { data } = part;
+        switch ( data.type ) {
+            case 'Combinator':
+                if ( out.length === 0 ) {
+                    if ( s !== ' ' ) {
+                        out.push(s, ' ');
+                    }
+                } else {
+                    out.push(' ');
+                    if ( s !== ' ' ) {
+                        out.push(s, ' ');
+                    }
+                }
+                break;
+            // csstree parses `.promoted*` as valid
+            case 'TypeSelector':
+                if ( s === '*' && out.length !== 0 ) {
+                    const before = out[out.length-1];
+                    if ( before.endsWith(' ') === false ) { return false; }
+                }
+                out.push(s);
+                break;
+        }
+        return true;
+    }
+
     astSerialize(parts, plainCSS = true) {
         const out = [];
         for ( const part of parts ) {
@@ -3461,18 +3472,20 @@ class ExtSelectorCompiler {
             switch ( data.type ) {
             case 'AttributeSelector':
             case 'ClassSelector':
-            case 'Combinator':
             case 'Identifier':
             case 'IdSelector':
             case 'Nth':
             case 'PseudoClassSelector':
-            case 'PseudoElementSelector':
-            case 'TypeSelector': {
+            case 'PseudoElementSelector': {
                 const s = this.astSerializePart(part);
-                if ( typeof s !== 'string' ) { return; }
+                if ( s === undefined ) { return; }
                 out.push(s);
                 break;
             }
+            case 'Combinator':
+            case 'TypeSelector':
+                if ( this.astAppendPart(part, out) === false ) { return; }
+                break;
             case 'Raw':
                 if ( plainCSS ) { return; }
                 out.push(this.astSerializePart(part));
@@ -3497,11 +3510,11 @@ class ExtSelectorCompiler {
         const prelude = [];
         const tasks = [];
         for ( const part of parts ) {
+            if ( out.action !== undefined ) { return; }
             const { data } = part;
             switch ( data.type ) {
             case 'ActionSelector': {
                 if ( details.noaction ) { return; }
-                if ( out.action !== undefined ) { return; }
                 if ( prelude.length !== 0 ) {
                     if ( tasks.length === 0 ) {
                         out.selector = prelude.join('');
@@ -3517,7 +3530,6 @@ class ExtSelectorCompiler {
             }
             case 'AttributeSelector':
             case 'ClassSelector':
-            case 'Combinator':
             case 'IdSelector':
             case 'PseudoClassSelector':
             case 'PseudoElementSelector':
@@ -3525,6 +3537,10 @@ class ExtSelectorCompiler {
                 const component = this.astSerializePart(part);
                 if ( component === undefined ) { return; }
                 prelude.push(component);
+                break;
+            }
+            case 'Combinator': {
+                if ( this.astAppendPart(part, prelude) === false ) { return; }
                 break;
             }
             case 'ProceduralSelector': {

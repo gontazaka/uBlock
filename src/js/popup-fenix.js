@@ -949,7 +949,7 @@ const gotoReport = function() {
     messaging.send('popupPanel', {
         what: 'launchReporter',
         tabId: popupData.tabId,
-        pageURL: popupData.pageURL,
+        pageURL: popupData.rawURL,
         popupPanel,
     });
 
@@ -1157,7 +1157,7 @@ const setFirewallRuleHandler = function(ev) {
 /******************************************************************************/
 
 const reloadTab = function(bypassCache = false) {
-    // Premptively clear the unprocessed-requests status since we know for sure
+    // Preemptively clear the unprocessed-requests status since we know for sure
     // the page is being reloaded in this code path.
     if ( popupData.hasUnprocessedRequest === true )  {
         messaging.send('popupPanel', {
@@ -1172,7 +1172,7 @@ const reloadTab = function(bypassCache = false) {
     messaging.send('popupPanel', {
         what: 'reloadTab',
         tabId: popupData.tabId,
-        url: popupData.pageURL,
+        url: popupData.rawURL,
         select: vAPI.webextFlavor.soup.has('mobile'),
         bypassCache,
     });

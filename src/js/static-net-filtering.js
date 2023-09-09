@@ -103,9 +103,9 @@ const typeNameToTypeValue = {
             'beacon': 10 << TypeBitsOffset,
               'ping': 10 << TypeBitsOffset,
              'other': 11 << TypeBitsOffset,
-             'popup': 12 << TypeBitsOffset, // start of behavorial filtering
+             'popup': 12 << TypeBitsOffset, // start of behavioral filtering
           'popunder': 13 << TypeBitsOffset,
-        'main_frame': 14 << TypeBitsOffset, // start of 1p behavorial filtering
+        'main_frame': 14 << TypeBitsOffset, // start of 1p behavioral filtering
        'generichide': 15 << TypeBitsOffset,
       'specifichide': 16 << TypeBitsOffset,
        'inline-font': 17 << TypeBitsOffset,
@@ -1274,7 +1274,9 @@ class FilterRegex {
             dnrAddRuleError(rule, `regexFilter is not RE2-compatible: ${args[1]}`);
         }
         rule.condition.regexFilter = args[1];
-        rule.condition.isUrlFilterCaseSensitive = args[2] === 1;
+        if ( args[2] === 1 ) {
+            rule.condition.isUrlFilterCaseSensitive = true;
+        }
     }
 
     static keyFromArgs(args) {
@@ -2715,20 +2717,20 @@ class FilterBucket extends FilterCollection {
         const isrccollection = filterData[idata+1];
         const candidates = [];
         this.forEach(idata, iunit => {
-            if ( fc.canCoallesce(iunit) === false ) { return; }
+            if ( fc.canCoalesce(iunit) === false ) { return; }
             candidates.push(iunit);
         });
         if ( candidates.length < min ) { return 0; }
         const idesbucket = FilterBucket.create();
         const idescollection = filterData[idesbucket+1];
-        let coallesced;
+        let coalesced;
         let isrcseq = filterData[isrccollection+1];
         let iprev = 0;
         for (;;) {
             const iunit = filterData[isrcseq+0];
             const inext = filterData[isrcseq+1];
             if ( candidates.includes(iunit) ) {
-                coallesced = fc.coallesce(iunit, coallesced);
+                coalesced = fc.coalesce(iunit, coalesced);
                 // move the sequence slot to new bucket
                 filterData[isrcseq+1] = filterData[idescollection+1];
                 filterData[idescollection+1] = isrcseq;
@@ -2745,7 +2747,7 @@ class FilterBucket extends FilterCollection {
             if ( inext === 0 ) { break; }
             isrcseq = inext;
         }
-        return fc.create(coallesced, idesbucket);
+        return fc.create(coalesced, idesbucket);
     }
 
     static dumpInfo(idata) {
@@ -2802,28 +2804,28 @@ class FilterBucketIfOriginHits extends FilterBucketIf {
         return filterMatch(filterData[idata+2]);
     }
 
-    static canCoallesce(iunit) {
+    static canCoalesce(iunit) {
         return filterHasOriginHit(iunit);
     }
 
-    static coallesce(iunit, coallesced) {
-        if ( coallesced === undefined ) {
-            coallesced = new Set();
+    static coalesce(iunit, coalesced) {
+        if ( coalesced === undefined ) {
+            coalesced = new Set();
         }
         const domainOpt = filterGetDomainOpt(iunit);
         if ( domainOpt.includes('|') ) {
             for ( const hn of domainOptIterator.reset(domainOpt) ) {
-                coallesced.add(hn);
+                coalesced.add(hn);
             }
         } else {
-            coallesced.add(domainOpt);
+            coalesced.add(domainOpt);
         }
-        return coallesced;
+        return coalesced;
     }
 
-    static create(coallesced, ibucket) {
+    static create(coalesced, ibucket) {
         const units = [];
-        compileFromDomainOpt(coallesced, false, units);
+        compileFromDomainOpt(coalesced, false, units);
         const ihittest = filterFromCompiled(units[0]);
         const ipretest = super.create(
             FilterBucketIfOriginHits.fid,
@@ -2843,23 +2845,23 @@ class FilterBucketIfRegexHits extends FilterBucketIf {
         return filterRefs[filterData[idata+2]].test($requestURLRaw);
     }
 
-    static canCoallesce(iunit) {
+    static canCoalesce(iunit) {
         const fc = filterGetClass(iunit);
         if ( fc.hasRegexPattern === undefined ) { return false; }
         if ( fc.hasRegexPattern(iunit) !== true ) { return false; }
         return true;
     }
 
-    static coallesce(iunit, coallesced) {
-        if ( coallesced === undefined ) {
-            coallesced = new Set();
+    static coalesce(iunit, coalesced) {
+        if ( coalesced === undefined ) {
+            coalesced = new Set();
         }
-        coallesced.add(filterGetRegexPattern(iunit));
-        return coallesced;
+        coalesced.add(filterGetRegexPattern(iunit));
+        return coalesced;
     }
 
-    static create(coallesced, ibucket) {
-        const reString = Array.from(coallesced).join('|');
+    static create(coalesced, ibucket) {
+        const reString = Array.from(coalesced).join('|');
         return super.create(
             FilterBucketIfRegexHits.fid,
             ibucket,
@@ -2877,7 +2879,7 @@ registerFilterClass(FilterBucketIfRegexHits);
 /******************************************************************************/
 
 class FilterStrictParty {
-    // TODO: diregard `www.`?
+    // TODO: disregard `www.`?
     static match(idata) {
         return ($requestHostname === $docHostname) === (filterData[idata+1] === 0);
     }
@@ -4349,7 +4351,7 @@ FilterContainer.prototype.dnrFromCompiled = function(op, context, ...args) {
         'ping',
         'other',
     ]);
-    let ruleset = [];
+    const ruleset = [];
     for ( const [ realmBits, realmName ] of realms ) {
         for ( const [ partyBits, partyName ] of partyness ) {
             for ( const typeName in typeNameToTypeValue ) {
@@ -4521,141 +4523,8 @@ FilterContainer.prototype.dnrFromCompiled = function(op, context, ...args) {
         }
     }
 
-    // Assign rule ids
-    const rulesetMap = new Map();
-    {
-        let ruleId = 1;
-        for ( const rule of ruleset ) {
-            rulesetMap.set(ruleId++, rule);
-        }
-    }
-
-    // Merge rules where possible by merging arrays of a specific property.
-    //
-    // https://github.com/uBlockOrigin/uBOL-issues/issues/10#issuecomment-1304822579
-    //   Do not merge rules which have errors.
-    const mergeRules = (rulesetMap, mergeTarget) => {
-        const mergeMap = new Map();
-        const sorter = (_, v) => {
-            if ( Array.isArray(v) ) {
-                return typeof v[0] === 'string' ? v.sort() : v;
-            }
-            if ( v instanceof Object ) {
-                const sorted = {};
-                for ( const kk of Object.keys(v).sort() ) {
-                    sorted[kk] = v[kk];
-                }
-                return sorted;
-            }
-            return v;
-        };
-        const ruleHasher = (rule, target) => {
-            return JSON.stringify(rule, (k, v) => {
-                if ( k.startsWith('_') ) { return; }
-                if ( k === target ) { return; }
-                return sorter(k, v);
-            });
-        };
-        const extractTargetValue = (obj, target) => {
-            for ( const [ k, v ] of Object.entries(obj) ) {
-                if ( Array.isArray(v) && k === target ) { return v; }
-                if ( v instanceof Object ) {
-                    const r = extractTargetValue(v, target);
-                    if ( r !== undefined ) { return r; }
-                }
-            }
-        };
-        const extractTargetOwner = (obj, target) => {
-            for ( const [ k, v ] of Object.entries(obj) ) {
-                if ( Array.isArray(v) && k === target ) { return obj; }
-                if ( v instanceof Object ) {
-                    const r = extractTargetOwner(v, target);
-                    if ( r !== undefined ) { return r; }
-                }
-            }
-        };
-        for ( const [ id, rule ] of rulesetMap ) {
-            if ( rule._error !== undefined ) { continue; }
-            const hash = ruleHasher(rule, mergeTarget);
-            if ( mergeMap.has(hash) === false ) {
-                mergeMap.set(hash, []);
-            }
-            mergeMap.get(hash).push(id);
-        }
-        for ( const ids of mergeMap.values() ) {
-            if ( ids.length === 1 ) { continue; }
-            const leftHand = rulesetMap.get(ids[0]);
-            const leftHandSet = new Set(
-                extractTargetValue(leftHand, mergeTarget) || []
-            );
-            for ( let i = 1; i < ids.length; i++ ) {
-                const rightHandId = ids[i];
-                const rightHand = rulesetMap.get(rightHandId);
-                const rightHandArray =  extractTargetValue(rightHand, mergeTarget);
-                if ( rightHandArray !== undefined ) {
-                    if ( leftHandSet.size !== 0 ) {
-                        for ( const item of rightHandArray ) {
-                            leftHandSet.add(item);
-                        }
-                    }
-                } else {
-                    leftHandSet.clear();
-                }
-                rulesetMap.delete(rightHandId);
-            }
-            const leftHandOwner = extractTargetOwner(leftHand, mergeTarget);
-            if ( leftHandSet.size > 1 ) {
-                //if ( leftHandOwner === undefined ) { debugger; }
-                leftHandOwner[mergeTarget] = Array.from(leftHandSet).sort();
-            } else if ( leftHandSet.size === 0 ) {
-                if ( leftHandOwner !== undefined ) {
-                    leftHandOwner[mergeTarget] = undefined;
-                }
-            }
-        }
-    };
-    mergeRules(rulesetMap, 'resourceTypes');
-    mergeRules(rulesetMap, 'initiatorDomains');
-    mergeRules(rulesetMap, 'requestDomains');
-    mergeRules(rulesetMap, 'removeParams');
-    mergeRules(rulesetMap, 'responseHeaders');
-
-    // Patch case-sensitiveness
-    for ( const rule of rulesetMap.values() ) {
-        const { condition } = rule;
-        if (
-            condition === undefined ||
-            condition.urlFilter === undefined &&
-            condition.regexFilter === undefined
-        ) {
-            continue;
-        }
-        if ( condition.isUrlFilterCaseSensitive === undefined ) {
-            condition.isUrlFilterCaseSensitive = false;
-        } else if ( condition.isUrlFilterCaseSensitive === true ) {
-            condition.isUrlFilterCaseSensitive = undefined;
-        }
-    }
-
-    // Patch id
-    const rulesetFinal = [];
-    {
-        let ruleId = 1;
-        for ( const rule of rulesetMap.values() ) {
-            if ( rule._error === undefined ) {
-                rule.id = ruleId++;
-            } else {
-                rule.id = 0;
-            }
-            rulesetFinal.push(rule);
-        }
-        for ( const invalid of context.invalid ) {
-            rulesetFinal.push({ _error: [ invalid ] });
-        }
-    }
-
     return {
-        ruleset: rulesetFinal,
+        ruleset,
         filterCount: context.filterCount,
         acceptedFilterCount: context.acceptedFilterCount,
         rejectedFilterCount: context.rejectedFilterCount,
@@ -5026,7 +4895,7 @@ FilterContainer.prototype.matchAndFetchModifiers = function(
     }
     if ( toAddImportant.size === 0 && toAdd.size === 0 ) { return; }
 
-    // Remove entries overriden by important block filters.
+    // Remove entries overridden by important block filters.
     if ( toAddImportant.size !== 0 ) {
         for ( const key of toAddImportant.keys() ) {
             toAdd.delete(key);
@@ -5260,7 +5129,7 @@ FilterContainer.prototype.matchRequestReverse = function(type, url) {
  *   Bit 1: lookup allow realm regardless of whether there was a match in
  *          block realm.
  *
- * @returns {integer} 0=no match, 1=block, 2=allow (exeption)
+ * @returns {integer} 0=no match, 1=block, 2=allow (exception)
  */
 FilterContainer.prototype.matchRequest = function(fctxt, modifiers = 0) {
     let typeBits = typeNameToTypeValue[fctxt.type];

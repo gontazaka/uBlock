@@ -492,7 +492,23 @@ body.needSave #revertRules {
 #firewall.hideBlocked > div:not([data-des="*"]).is3p.blocked,
 #firewall.hideAllowed > div:not([data-des="*"]).is3p.totalAllowed,
 #firewall.hideAllowed > div:not([data-des="*"]).is3p.allowed {
-    display: none;
+    max-height: 4px;
+    overflow-y: hidden;
+    pointer-events: none;
+    user-select: none;
+    }
+#firewall.show3pScript:not(.show3pFrame) > div:not([data-des="*"]).is3p:not(.hasScript) *,
+#firewall.show3pFrame:not(.show3pScript) > div:not([data-des="*"]).is3p:not(.hasFrame) *,
+#firewall.show3pScript.show3pFrame > div:not([data-des="*"]).is3p:not(.hasScript):not(.hasFrame) *,
+#firewall.hide3pScript > div:not([data-des="*"]).is3p.hasScript *,
+#firewall.hide3pFrame > div:not([data-des="*"]).is3p.hasFrame *,
+#firewall.showBlocked > div:not([data-des="*"]).is3p:not(.totalBlocked):not(.blocked) *,
+#firewall.showAllowed > div:not([data-des="*"]).is3p:not(.totalAllowed):not(.allowed) *,
+#firewall.hideBlocked > div:not([data-des="*"]).is3p.totalBlocked *,
+#firewall.hideBlocked > div:not([data-des="*"]).is3p.blocked *,
+#firewall.hideAllowed > div:not([data-des="*"]).is3p.totalAllowed *,
+#firewall.hideAllowed > div:not([data-des="*"]).is3p.allowed * {
+    color: transparent !important;
     }
 #firewall > div.isCname > span:first-of-type {
     color: var(--popup-cell-cname-ink);
@@ -542,10 +558,13 @@ body.needSave #revertRules {
     }
 #firewall.expanded > div.isDomain.hasSubdomains.expandException > span:first-of-type > span::before,
 #firewall > div.isDomain.hasSubdomains:not(.expandException) > span:first-of-type > span::before {
-    color: var(--ink-3);
     content: '\003E\A0';
     display: inline-block;
     transform: rotate(0deg);
+    }
+#firewall > div.isDomain.hasSubdomains > span:first-of-type > span::before {
+    content: '\2026\A0';
+    opacity: 0.6;
     }
 #firewall > div[data-des="*"] > span:nth-of-type(3),
 #firewall > div.isSubdomain > span:nth-of-type(3),
