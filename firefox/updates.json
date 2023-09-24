@@ -1,0 +1,17 @@
+{
+  "addons": {
+    "ublock@gontazaka": {
+      "updates": [
+        {
+          "browser_specific_settings": {
+            "gecko": {
+              "strict_min_version": "79.0"
+            }
+          },
+          "update_link": "https://github.com/gontazaka/uBlock/releases/download/1.52.3.0/uBlock._1.52.3.0.firefox.signed.xpi",
+          "version": "1.52.3.0"
+        }
+      ]
+    }
+  }
+}
