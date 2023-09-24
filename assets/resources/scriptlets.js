@@ -1365,6 +1365,13 @@ function jsonPruneXhrResponse(
             if ( xhrDetails === undefined ) {
                 return innerResponse;
             }
+            const responseLength = typeof innerResponse === 'string'
+                ? innerResponse.length
+                : undefined;
+            if ( xhrDetails.lastResponseLength !== responseLength ) {
+                xhrDetails.response = undefined;
+                xhrDetails.lastResponseLength = responseLength;
+            }
             if ( xhrDetails.response !== undefined ) {
                 return xhrDetails.response;
             }
@@ -1467,7 +1474,7 @@ function nanoSetIntervalBooster(
     if ( isNaN(delay) || isFinite(delay) === false ) { delay = 1000; }
     let boost = parseFloat(boostArg);
     boost = isNaN(boost) === false && isFinite(boost)
-        ? Math.min(Math.max(boost, 0.02), 50)
+        ? Math.min(Math.max(boost, 0.001), 50)
         : 0.05;
     self.setInterval = new Proxy(self.setInterval, {
         apply: function(target, thisArg, args) {
@@ -1520,7 +1527,7 @@ function nanoSetTimeoutBooster(
     if ( isNaN(delay) || isFinite(delay) === false ) { delay = 1000; }
     let boost = parseFloat(boostArg);
     boost = isNaN(boost) === false && isFinite(boost)
-        ? Math.min(Math.max(boost, 0.02), 50)
+        ? Math.min(Math.max(boost, 0.001), 50)
         : 0.05;
     self.setTimeout = new Proxy(self.setTimeout, {
         apply: function(target, thisArg, args) {
@@ -2473,74 +2480,6 @@ function golemDe() {
             b();
         }
     }.bind(window);
-}
-
-/******************************************************************************/
-
-builtinScriptlets.push({
-    name: 'adfly-defuser.js',
-    fn: adflyDefuser,
-});
-// https://github.com/reek/anti-adblock-killer/issues/3774#issuecomment-348536138
-// https://github.com/uBlockOrigin/uAssets/issues/883
-function adflyDefuser() {
-    // Based on AdsBypasser
-    // License:
-    //   https://github.com/adsbypasser/adsbypasser/blob/master/LICENSE
-    var isDigit = /^\d$/;
-    var handler = function(encodedURL) {
-        var var1 = "", var2 = "", i;
-        for (i = 0; i < encodedURL.length; i++) {
-            if (i % 2 === 0) {
-                var1 = var1 + encodedURL.charAt(i);
-            } else {
-                var2 = encodedURL.charAt(i) + var2;
-            }
-        }
-        var data = (var1 + var2).split("");
-        for (i = 0; i < data.length; i++) {
-            if (isDigit.test(data[i])) {
-                for (var ii = i + 1; ii < data.length; ii++) {
-                    if (isDigit.test(data[ii])) {
-                        var temp = parseInt(data[i],10) ^ parseInt(data[ii],10);
-                        if (temp < 10) {
-                            data[i] = temp.toString();
-                        }
-                        i = ii;
-                        break;
-                    }
-                }
-            }
-        }
-        data = data.join("");
-        var decodedURL = window.atob(data).slice(16, -16);
-        window.stop();
-        window.onbeforeunload = null;
-        window.location.href = decodedURL;
-    };
-    try {
-        var val;
-        var flag = true;
-        window.Object.defineProperty(window, "ysmm", {
-            configurable: false,
-            set: function(value) {
-                if (flag) {
-                    flag = false;
-                    try {
-                        if (typeof value === "string") {
-                            handler(value);
-                        }
-                    } catch (err) { }
-                }
-                val = value;
-            },
-            get: function() {
-                return val;
-            }
-        });
-    } catch (err) {
-        window.console.error("Failed to set up Adfly bypasser!");
-    }
 }
 
 /******************************************************************************/
@@ -3758,12 +3697,18 @@ function trustedReplaceXhrResponse(
             if ( xhrDetails === undefined ) {
                 return innerResponse;
             }
-            if ( typeof innerResponse !== 'string' ) {
-                xhrDetails.response = innerResponse;
+            const responseLength = typeof innerResponse === 'string'
+                ? innerResponse.length
+                : undefined;
+            if ( xhrDetails.lastResponseLength !== responseLength ) {
+                xhrDetails.response = undefined;
+                xhrDetails.lastResponseLength = responseLength;
             }
-            let outerResponse = xhrDetails.response;
-            if ( outerResponse !== undefined ) {
-                return outerResponse;
+            if ( xhrDetails.response !== undefined ) {
+                return xhrDetails.response;
+            }
+            if ( typeof innerResponse !== 'string' ) {
+                return (xhrDetails.response = innerResponse);
             }
             const textBefore = innerResponse;
             const textAfter = textBefore.replace(rePattern, replacement);
@@ -3775,11 +3720,14 @@ function trustedReplaceXhrResponse(
                     `\n\treplacement: ${replacement}`,
                 );
             }
-            xhrDetails.response = textAfter;
-            return textAfter;
+            return (xhrDetails.response = textAfter);
         }
         get responseText() {
-            return this.response;
+            const response = this.response;
+            if ( typeof response !== 'string' ) {
+                return super.responseText;
+            }
+            return response;
         }
     };
 }
