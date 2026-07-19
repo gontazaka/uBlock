@@ -196,8 +196,8 @@ def get_jwt_auth():
     jwt_payload = {
         'iss': amo_api_key,
         'jti': amo_nonce,
-        'iat': datetime.datetime.utcnow(),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=15),
+        'iat': datetime.datetime.now(datetime.timezone.utc),
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=15),
     }
     jwt_encoded = jwt.encode(jwt_payload, amo_secret)
     if type(jwt_encoded) is str:
