@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,8 @@
 
 /* global CodeMirror, uBlockDashboard */
 
-'use strict';
-
-/******************************************************************************/
-
-import { dom, qs$ } from './dom.js';
 import './codemirror/ubo-static-filtering.js';
+import { dom, qs$ } from './dom.js';
 
 /******************************************************************************/
 
@@ -60,6 +56,7 @@ import './codemirror/ubo-static-filtering.js';
         lineWrapping: true,
         matchBrackets: true,
         maxScanLines: 1,
+        maximizable: false,
         readOnly: vAPI.webextFlavor.soup.has('mobile') ? 'nocursor' : true,
         styleActiveLine: {
             nonEmpty: true,
@@ -68,21 +65,24 @@ import './codemirror/ubo-static-filtering.js';
 
     uBlockDashboard.patchCodeMirrorEditor(cmEditor);
 
-    const hints = await vAPI.messaging.send('dashboard', {
+    vAPI.messaging.send('dashboard', {
         what: 'getAutoCompleteDetails'
+    }).then(hints => {
+        if ( hints instanceof Object === false ) { return; }
+        cmEditor.setOption('uboHints', hints);
     });
-    if ( hints instanceof Object ) {
-        const mode = cmEditor.getMode();
-        cmEditor.setOption('filterOnHeaders', hints.filterOnHeaders === true);
-        if ( mode.setHints instanceof Function ) {
-            mode.setHints(hints);
-        }
-    }
+
+    vAPI.messaging.send('dashboard', {
+        what: 'getTrustedScriptletTokens',
+    }).then(tokens => {
+        cmEditor.setOption('trustedScriptletTokens', tokens);
+    });
 
     const details = await vAPI.messaging.send('default', {
         what : 'getAssetContent',
         url: assetKey,
     });
+    cmEditor.setOption('trustedSource', details.trustedSource === true);
     cmEditor.setValue(details && details.content || '');
 
     if ( subscribeElem !== null ) {

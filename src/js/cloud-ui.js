@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2015-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,8 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* global faIconsInit */
-
-'use strict';
-
-import { i18n, i18n$ } from './i18n.js';
 import { dom, qs$ } from './dom.js';
+import { i18n, i18n$ } from './i18n.js';
 import { faIconsInit } from './fa-icons.js';
 
 /******************************************************************************/

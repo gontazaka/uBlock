@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "uBlock₀",
+    "message": "uBlock Origin",
     "description": "extension name."
   },
   "extShortDesc": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Локални правила: колона с правила, приложими само към текущият сайт. Локалните правила заместват глобалните.",
+    "message": "Локални правила: колона с правила, приложими само към текущият сайт.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -483,6 +483,14 @@
     "message": "Защита от зловреден софтуер, сигурност",
     "description": "Filter lists section name"
   },
+  "3pGroupSocial": {
+    "message": "Социални джаджи",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Известия за бисквитки",
+    "description": "Filter lists section name"
+  },
   "3pGroupAnnoyances": {
     "message": "Досадни неща",
     "description": "Filter lists section name"
@@ -527,17 +535,25 @@
     "message": "Грешка в мрежата възпрепятства обновяването на ресурса.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Един филтър на ред. Това може да бъде обикновен адрес или филтър, съвместим с EasyList. Редовете с представка <code>!</code> ще бъдат игнорирани.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Не добавяйте филтри от ненадеждни източници.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Активиране на моите потребителски филтри",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Разрешаване на потребителски филтри, изискващи доверие",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
-    "message": "Внасяне от файл...",
-    "description": "English: Import and append"
+    "message": "Внасяне и добавяне...",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
-    "message": "Изнасяне във файл",
-    "description": "English: Export"
+    "message": "Изнасяне...",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "ublock-мои-филтри_{{datetime}}.txt",
@@ -580,8 +596,8 @@
     "description": ""
   },
   "rulesExport": {
-    "message": "Изнасяне във файл",
-    "description": ""
+    "message": "Изнасяне във файл...",
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "ublock-мои-правила_{{datetime}}.txt",
@@ -616,12 +632,12 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "Внасяне от файл...",
-    "description": "English: Import and append"
+    "message": "Внасяне и добавяне...",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
-    "message": "Изнасяне във файл",
-    "description": "English: Export"
+    "message": "Изнасяне...",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "ublock-доверени_сайтове_{{datetime}}.txt",
@@ -704,7 +720,7 @@
     "description": "A keyword in the built-in row filtering expression"
   },
   "loggerRowFiltererBuiltinEventful": {
-    "message": "eventful",
+    "message": "изпълнен със събития",
     "description": "A keyword in the built-in row filtering expression: all items corresponding to uBO doing something (blocked, allowed, redirected, etc.)"
   },
   "loggerRowFiltererBuiltinBlocked": {
@@ -881,11 +897,11 @@
   },
   "supportOpenButton": {
     "message": "Отваряне",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
     "message": "Нов доклад",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
     "message": "Намиране на подобни доклади",
@@ -939,10 +955,6 @@
     "message": "По-долу е представена техническа информация, която може да е полезна, когато доброволците се опитват да ви помогнат да разрешите даден проблем.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Важно:</b> Потенциално лична или чувствителна информация се редактира по подразбиране. Редактираната информация може да затрудни решаването на даден проблем.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Докладване на проблем с филтъра",
     "description": "Header of 'Report a filter issue' section in Support pane"
@@ -995,17 +1007,13 @@
     "message": "Отваря нежелани раздели или прозорци",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Води до зловреден софтуер, фишинг",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Маркиране на уеб страницата като &ldquo;NSFW&rdquo; (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">&ldquo;не е безопасна за работа&rdquo;</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Редактиран вид",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Нередактиран вид",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Политика за поверителност",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "Грешка в мрежата: {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "Добавяне на следния адрес към списъците с потребителски филтри?\n\nИме: \"{{title}}\"\nURL адрес: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "Абониране",
@@ -1171,6 +1175,26 @@
     "message": "Продължаване",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "Блокираната страница иска да Ви пренасочи към друг сайт. Ако изберете да продължите, ще отидете директно на: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Причина:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Злонамерена",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Проследяване",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Неблагонадеждна",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "Изнасяне в облачно хранилище",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Превключване на козметичното филтриране",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Превключване на JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Отпуснат режим на блокиране",

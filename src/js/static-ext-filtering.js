@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2017-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,9 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
-/******************************************************************************/
-
 import cosmeticFilteringEngine from './cosmetic-filtering.js';
 import htmlFilteringEngine from './html-filtering.js';
 import httpheaderFilteringEngine from './httpheader-filtering.js';
-import io from './assets.js';
 import logger from './logger.js';
 import scriptletFilteringEngine from './scriptlet-filtering.js';
 
@@ -147,34 +142,24 @@ staticExtFilteringEngine.fromCompiledContent = function(reader, options) {
     htmlFilteringEngine.fromCompiledContent(reader, options);
 };
 
-staticExtFilteringEngine.toSelfie = function(path) {
-    return io.put(
-        `${path}/main`,
-        JSON.stringify({
-            cosmetic: cosmeticFilteringEngine.toSelfie(),
-            scriptlets: scriptletFilteringEngine.toSelfie(),
-            httpHeaders: httpheaderFilteringEngine.toSelfie(),
-            html: htmlFilteringEngine.toSelfie(),
-        })
-    );
+staticExtFilteringEngine.toSelfie = function() {
+    return {
+        cosmetic: cosmeticFilteringEngine.toSelfie(),
+        scriptlets: scriptletFilteringEngine.toSelfie(),
+        httpHeaders: httpheaderFilteringEngine.toSelfie(),
+        html: htmlFilteringEngine.toSelfie(),
+    };
 };
 
-staticExtFilteringEngine.fromSelfie = function(path) {
-    return io.get(`${path}/main`).then(details => {
-        let selfie;
-        try {
-            selfie = JSON.parse(details.content);
-        } catch (ex) {
-        }
-        if ( selfie instanceof Object === false ) { return false; }
-        cosmeticFilteringEngine.fromSelfie(selfie.cosmetic);
-        httpheaderFilteringEngine.fromSelfie(selfie.httpHeaders);
-        htmlFilteringEngine.fromSelfie(selfie.html);
-        if ( scriptletFilteringEngine.fromSelfie(selfie.scriptlets) === false ) {
-            return false;
-        }
-        return true;
-    });
+staticExtFilteringEngine.fromSelfie = async function(selfie) {
+    if ( typeof selfie !== 'object' || selfie === null ) { return false; }
+    cosmeticFilteringEngine.fromSelfie(selfie.cosmetic);
+    httpheaderFilteringEngine.fromSelfie(selfie.httpHeaders);
+    htmlFilteringEngine.fromSelfie(selfie.html);
+    if ( scriptletFilteringEngine.fromSelfie(selfie.scriptlets) === false ) {
+        return false;
+    }
+    return true;
 };
 
 /******************************************************************************/

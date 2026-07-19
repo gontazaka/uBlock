@@ -1,30 +1,12 @@
-uBO Lite (uBOL) is a *permission-less* MV3-based content blocker.
+uBO Lite (uBOL) is an MV3-based content blocker.
 
-The default ruleset corresponds to uBlock Origin's default filterset:
+ഡിഫോൾട്ട് റൂൾസെറ്റ് uBlock Origin-ന്റെ ഡിഫോൾട്ട് ഫിൽട്ടർസെറ്റുമായി യോജിക്കുന്നു:
 
-- uBlock Origin's built-in filter lists
-- EasyList
-- EasyPrivacy
-- Peter Lowe’s Ad and tracking server list
+- uBlock ഒറിജിനിന്റെ ബിൽറ്റ്-ഇൻ ഫിൽട്ടർ ലിസ്റ്റുകൾ
+- ഈസി ലിസ്റ്റ്
+- ഈസി സ്വകാര്യത
+- പീറ്റർ ലോവിന്റെ പരസ്യവും ട്രാക്കിംഗ് സെർവർ ലിസ്റ്റും
 
-You can add more rulesets by visiting the options page -- click the _Cogs_ icon in the popup panel.
+You can enable more rulesets by visiting the options page -- click the _Cogs_ icon in the popup panel.
 
-uBOL is entirely declarative, meaning there is no need for a permanent uBOL process for the filtering to occur, and CSS/JS injection-based content filtering is performed reliably by the browser itself rather than by the extension. This means that uBOL itself does not consume CPU/memory resources while content blocking is ongoing -- uBOL's service worker process is required _only_ when you interact with the popup panel or the option pages.
-
-uBOL does not require broad "read and modify data" permission at install time, hence its limited capabilities out of the box compared to uBlock Origin or other content blockers requiring broad "read and modify data" permissions at install time.
-
-However, uBOL allows you to *explicitly* grant extended permissions on specific sites of your choice so that it can better filter on those sites using cosmetic filtering and scriptlet injections.
-
-To grant extended permissions on a given site, open the popup panel and pick a higher filtering mode such as Optimal or Complete.
-
-The browser will then warn you about the effects of granting the additional permissions requested by the extension on the current site, and you will have to tell the browser whether you accept or decline the request.
-
-If you accept uBOL's request for additional permissions on the current site, it will be able to better filter content for the current site.
-
-You can set the default filtering mode from uBOL's options page. If you pick the Optimal or Complete mode as the default one, you will need to grant uBOL the permission to read and modify data on all websites.
-
-Keep in mind this is still a work in progress, with these end goals:
-
-- No broad host permissions at install time -- extended permissions are granted explicitly by the user on a per-site basis.
-
-- Entirely declarative for reliability and CPU/memory efficiency.
+uBOL പൂർണ്ണമായും ഡിക്ലറേറ്റീവ് ആണ്, അതായത് ഫിൽട്ടറിംഗ് സംഭവിക്കുന്നതിന് ഒരു സ്ഥിരമായ uBOL പ്രക്രിയയുടെ ആവശ്യമില്ല, കൂടാതെ CSS/JS ഇഞ്ചക്ഷൻ അടിസ്ഥാനമാക്കിയുള്ള ഉള്ളടക്ക ഫിൽട്ടറിംഗ്, എക്സ്റ്റൻഷനേക്കാൾ വിശ്വസനീയമായി ബ്രൗസർ തന്നെ നിർവഹിക്കുന്നു. ഉള്ളടക്കം തടയൽ നടന്നുകൊണ്ടിരിക്കുമ്പോൾ uBOL തന്നെ CPU/മെമ്മറി ഉറവിടങ്ങൾ ഉപയോഗിക്കില്ല എന്നാണ് ഇതിനർത്ഥം -- നിങ്ങൾ പോപ്പ്അപ്പ് പാനലുമായോ ഓപ്‌ഷൻ പേജുകളുമായോ സംവദിക്കുമ്പോൾ _only_ uBOL-ന്റെ സേവന വർക്കർ പ്രോസസ്സ് ആവശ്യമാണ്.

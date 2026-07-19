@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Paikalliset säännöt: Sarake säännöille, joita käytetään vain nykyisellä sivustolla.\nPaikalliset säännöt ohittavat yleiset säännöt.",
+    "message": "Paikalliset säännöt: Sarake säännöille, joita käytetään vain nykyisellä sivustolla.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -483,6 +483,14 @@
     "message": "Haittaohjelmasuojaus, tietoturva",
     "description": "Filter lists section name"
   },
+  "3pGroupSocial": {
+    "message": "Sosiaaliset widgetit",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Evästeilmoitukset",
+    "description": "Filter lists section name"
+  },
   "3pGroupAnnoyances": {
     "message": "Ärsykkeet",
     "description": "Filter lists section name"
@@ -527,17 +535,25 @@
     "message": "Verkkovirhe esti resurssin päivityksen.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Yksi suodatin riviä kohden. Suodatin voi olla pelkkä osoite tai EasyList-yhteensopiva suodatin. Rivit, joiden alussa on <code>!</code>, ohitetaan.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Älä lisää suodattimia lähteistä, joihin et luota.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Käytä omia suodattimia",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Salli luottamusta edellyttävät omat suodattimet",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
-    "message": "Tuo ja lisää...",
-    "description": "English: Import and append"
+    "message": "Tuo ja lisää…",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
-    "message": "Vie tiedostoon...",
-    "description": "English: Export"
+    "message": "Vie…",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "omat-staattiset-ublock-suodattimet_{{datetime}}.txt",
@@ -580,15 +596,15 @@
     "description": ""
   },
   "rulesExport": {
-    "message": "Vie tiedostoon...",
-    "description": ""
+    "message": "Vie tiedostoon…",
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "omat-dynaamiset-ublock-saannot_{{datetime}}.txt",
     "description": "default file name to use"
   },
   "rulesHint": {
-    "message": "Lista dynaamisista suodatussäännöistäsi.",
+    "message": "Listaus dynaamisista suodatussäännöistä.",
     "description": "English: List of your dynamic filtering rules."
   },
   "rulesFormatHint": {
@@ -616,12 +632,12 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "Tuo ja lisää...",
-    "description": "English: Import and append"
+    "message": "Tuo ja lisää…",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
-    "message": "Vie tiedostoon...",
-    "description": "English: Export"
+    "message": "Vie…",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "omat-luotetut-ublock-sivustot_{{datetime}}.txt",
@@ -881,14 +897,14 @@
   },
   "supportOpenButton": {
     "message": "Avaa",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
-    "message": "Luo uusi ilmoitus",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "Luo GitHubiin uusi ilmoitus",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
-    "message": "Etsi samankaltaisia ilmoituksia",
+    "message": "Etsi GitHubista vastaavia ilmoituksia",
     "description": "A clickable link in the filter issue reporter section"
   },
   "supportS1H": {
@@ -912,7 +928,7 @@
     "description": "Header of 'Filter issues' section in Support pane"
   },
   "supportS3P1": {
-    "message": "Ilmoita ongelmista suodatuksessa tietyillä sivustoilla <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code>-ongelmaseurannassa</span>. <u>Vaatii GitHub-tilin</u>.",
+    "message": "Ilmoita sivustokohtaisista suodatinongelmista <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code> -ongelmaseurantaan</span>. <u>Vaatii GitHub-tilin</u>.",
     "description": "First paragraph of 'Filter issues' section in Support pane"
   },
   "supportS3P2": {
@@ -932,23 +948,19 @@
     "description": "First paragraph of 'Bug report' section in Support pane"
   },
   "supportS5H": {
-    "message": "Vianmääritystiedot",
+    "message": "Vianselvitystiedot",
     "description": "Header of 'Troubleshooting Information' section in Support pane"
   },
   "supportS5P1": {
-    "message": "Alla on teknisiä tietoja, joista voi olla hyötyä vapaaehtoisille, jotka pyrkivät auttamaan ongelmasi ratkaisussa.",
+    "message": "Alla on teknisiä tietoja, jotka saattavat auttaa ongelmasi ratkonnassa auttavia vapaaehtoisia.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
-  },
-  "supportS5P2": {
-    "message": "<b>Tärkeää:</b> Mahdolliset yksityiset ja arkaluonteiset tiedot poistetaan oletusarvoisesti. Tietojen puuttuminen saattaa vaikeuttaa ongelman ratkaisemista.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
   },
   "supportS6H": {
     "message": "Ilmoita suodatinongelmasta",
     "description": "Header of 'Report a filter issue' section in Support pane"
   },
   "supportS6P1S1": {
-    "message": "Välttääksesi vapaaehtoisten kuormittamisen ylimääräisillä ilmoituksilla, tarkista ensin onko ongelmasta jo ilmoitettu.",
+    "message": "Välttääksesi vapaaehtoisten kuormittamisen ylimääräisillä ilmoituksilla, tarkasta ensin onko ongelmasta jo ilmoitettu. <b>Huomioi:</b> Painikkeen painallus lähettää sivun osoitteen GitHubiin.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
@@ -988,24 +1000,20 @@
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option5": {
-    "message": "Hajoaa, kun uBlock Origin on käytössä",
+    "message": "Ei toimi oikein uBlock Originin ollessa käytössä",
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option6": {
     "message": "Avaa ei-toivottuja välilehtiä tai ikkunoita",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Johtaa badwareen ja tietojenkalasteluun",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Luokittele verkkosivu ns. työpaikalle sopimattomaksi, \"NSFW\" (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">\"Not Safe For Work\"</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Älä sisällytä",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Sisällytä",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Tietosuojakäytäntö",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "Verkkovirhe: {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "Lisätäänkö seuraava URL-osoite omiin suodatinlistoihisi?\n\nOtsikko: \"{{title}}\"\nURL: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "Tilaa",
@@ -1171,6 +1175,26 @@
     "message": "Jatka",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "Estetty sivu ohjautuu eri sivustolle. Jos jatkat, siirryt suoraan osoitteeseen {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Syy:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Haitallinen",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Seuranta",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Huonomaineinen",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "Vie pilvitallennustilaan",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Kytke kosmeettinen suodatus",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Kytke JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Kevennetty estotila",

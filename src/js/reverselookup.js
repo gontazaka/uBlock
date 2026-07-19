@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2015-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,15 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
-/******************************************************************************/
-
-import staticNetFilteringEngine from './static-net-filtering.js';
-import µb from './background.js';
-import { CompiledListWriter } from './static-filtering-io.js';
-import { i18n$ } from './i18n.js';
 import * as sfp from './static-filtering-parser.js';
-
 import {
     domainFromHostname,
     hostnameFromURI,
 } from './uri-utils.js';
+import { CompiledListWriter } from './static-filtering-io.js';
+import { i18n$ } from './i18n.js';
+import staticNetFilteringEngine from './static-net-filtering.js';
+import µb from './background.js';
 
 /******************************************************************************/
 
@@ -62,7 +57,7 @@ const stopWorker = function() {
 };
 
 const workerTTLTimer = vAPI.defer.create(stopWorker);
-const workerTTL = { min: 5 };
+const workerTTL = { min: 1.5 };
 
 const initWorker = function() {
     if ( worker === null ) {
@@ -98,7 +93,7 @@ const initWorker = function() {
     };
 
     for ( const listKey in µb.availableFilterLists ) {
-        if ( µb.availableFilterLists.hasOwnProperty(listKey) === false ) {
+        if ( Object.hasOwn(µb.availableFilterLists, listKey) === false ) {
             continue;
         }
         const entry = µb.availableFilterLists[listKey];
@@ -130,8 +125,7 @@ const fromNetFilter = async function(rawFilter) {
 
     const writer = new CompiledListWriter();
     const parser = new sfp.AstFilterParser({
-        expertMode: true,
-        filterOnHeaders: true,
+        trustedSource: true,
         maxTokenLength: staticNetFilteringEngine.MAX_TOKEN_LENGTH,
         nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
     });
@@ -169,32 +163,36 @@ const fromExtendedFilter = async function(details) {
     const hostname = hostnameFromURI(details.url);
 
     const parser = new sfp.AstFilterParser({
-        expertMode: true,
+        trustedSource: true,
         nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
     });
     parser.parse(details.rawFilter);
-    let compiled;
+    let needle;
     if ( parser.isScriptletFilter() ) {
-        compiled = JSON.stringify(parser.getScriptletArgs());
+        needle = JSON.stringify(parser.getScriptletArgs());
+    } else if ( parser.isResponseheaderFilter() ) {
+        needle = parser.getResponseheaderName();
     }
+
+    const fctxt = µb.filteringContext
+        .duplicate()
+        .setURL(details.url)
+        .setDocHostname(details.dochn)
+        .setTabHostname(details.tabhn);
+    fctxt.setType('generichide');
+    const ignoreGeneric = staticNetFilteringEngine.matchRequest(fctxt, 0b11) === 2;
+    fctxt.setType('specifichide');
+    const ignoreSpecific = staticNetFilteringEngine.matchRequest(fctxt, 0b11) === 2;
 
     worker.postMessage({
         what: 'fromExtendedFilter',
         id,
+        url: details.url,
         domain: domainFromHostname(hostname),
-        hostname,
-        ignoreGeneric:
-            staticNetFilteringEngine.matchRequestReverse(
-                'generichide',
-                details.url
-            ) === 2,
-        ignoreSpecific:
-            staticNetFilteringEngine.matchRequestReverse(
-                'specifichide',
-                details.url
-            ) === 2,
+        ignoreGeneric,
+        ignoreSpecific,
         rawFilter: details.rawFilter,
-        compiled,
+        needle,
     });
 
     return new Promise(resolve => {
@@ -212,13 +210,11 @@ const resetLists = function() {
 
 /******************************************************************************/
 
-const staticFilteringReverseLookup = {
+export const staticFilteringReverseLookup = {
     fromNetFilter,
     fromExtendedFilter,
     resetLists,
     shutdown: stopWorker
 };
-
-export default staticFilteringReverseLookup;
 
 /******************************************************************************/

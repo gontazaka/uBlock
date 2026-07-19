@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin Lite - a comprehensive, MV3-compliant content blocker
     Copyright (C) 2022-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,22 +19,25 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* jshint esversion:11 */
-
-'use strict';
-
-/******************************************************************************/
-
-import { browser } from './ext.js';
-import { fetchJSON } from './fetch.js';
-import { getFilteringModeDetails } from './mode-manager.js';
-import { getEnabledRulesetsDetails } from './ruleset-manager.js';
-
 import * as ut from './utils.js';
 
-/******************************************************************************/
+import {
+    browser,
+    localKeys, localRemove, localWrite,
+    sessionKeys, sessionRead, sessionRemove,
+    webextFlavor,
+} from './ext.js';
+import { ubolErr, ubolLog } from './debug.js';
 
-const isGecko = browser.runtime.getURL('').startsWith('moz-extension://');
+import { fetchJSON } from './fetch.js';
+import { getEnabledRulesetsDetails } from './ruleset-manager.js';
+import { getFilteringModeDetails } from './mode-manager.js';
+import { registerCustomFilters } from './filter-manager.js';
+import { registerJob } from './alarms.js';
+import { registerPreventPopup } from './prevent-popup.js';
+import { registerToolbarIconToggler } from './action.js';
+
+/******************************************************************************/
 
 const resourceDetailPromises = new Map();
 
@@ -60,123 +63,39 @@ function getGenericDetails() {
 
 /******************************************************************************/
 
-// Important: We need to sort the arrays for fast comparison
-const arrayEq = (a = [], b = [], sort = true) => {
-    const alen = a.length;
-    if ( alen !== b.length ) { return false; }
-    if ( sort ) { a.sort(); b.sort(); }
-    for ( let i = 0; i < alen; i++ ) {
-        if ( a[i] !== b[i] ) { return false; }
+const normalizeMatches = matches => {
+    if ( matches.length <= 1 ) { return; }
+    if ( matches.includes('<all_urls>') === false ) {
+        if ( matches.includes('*://*/*') === false ) { return; }
     }
-    return true;
+    matches.length = 0;
+    matches.push('<all_urls>');
 };
 
 /******************************************************************************/
 
-// The extensions API does not always return exactly what we fed it, so we
-// need to normalize some entries to be sure we properly detect changes when
-// comparing registered entries vs. entries to register.
-
-const normalizeRegisteredContentScripts = registered => {
-    for ( const entry of registered ) {
-        const { css = [], js = [] } = entry;
-        for ( let i = 0; i < css.length; i++ ) {
-            const path = css[i];
-            if ( path.startsWith('/') ) { continue; }
-            css[i] = `/${path}`;
-        }
-        for ( let i = 0; i < js.length; i++ ) {
-            const path = js[i];
-            if ( path.startsWith('/') ) { continue; }
-            js[i] = `/${path}`;
-        }
-    }
-    return registered;
-};
-
-/******************************************************************************/
-
-function registerHighGeneric(context, genericDetails) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
-
-    const excludeHostnames = [];
-    const css = [];
-    for ( const details of rulesetsDetails ) {
-        const hostnames = genericDetails.get(details.id);
-        if ( hostnames !== undefined ) {
-            excludeHostnames.push(...hostnames);
-        }
-        const count = details.css?.generichigh || 0;
-        if ( count === 0 ) { continue; }
-        css.push(`/rulesets/scripting/generichigh/${details.id}.css`);
-    }
-
-    if ( css.length === 0 ) { return; }
-
-    const { none, basic, optimal, complete } = filteringModeDetails;
-    const matches = [];
-    const excludeMatches = [];
-    if ( complete.has('all-urls') ) {
-        excludeMatches.push(...ut.matchesFromHostnames(none));
-        excludeMatches.push(...ut.matchesFromHostnames(basic));
-        excludeMatches.push(...ut.matchesFromHostnames(optimal));
-        excludeMatches.push(...ut.matchesFromHostnames(excludeHostnames));
-        matches.push('<all_urls>');
-    } else {
-        matches.push(
-            ...ut.matchesFromHostnames(
-                ut.subtractHostnameIters(
-                    Array.from(complete),
-                    excludeHostnames
-                )
-            )
-        );
-    }
-
-    if ( matches.length === 0 ) { return; }
-
-    const registered = before.get('css-generichigh');
-    before.delete('css-generichigh'); // Important!
-
-    // https://github.com/w3c/webextensions/issues/414#issuecomment-1623992885
-    // Once supported, add:
-    // cssOrigin: 'USER',
-    const directive = {
-        id: 'css-generichigh',
-        css,
-        matches,
-        excludeMatches,
-        runAt: 'document_end',
-    };
-
-    // register
-    if ( registered === undefined ) {
-        context.toAdd.push(directive);
-        return;
-    }
-
-    // update
-    if (
-        arrayEq(registered.css, css, false) === false ||
-        arrayEq(registered.matches, matches) === false ||
-        arrayEq(registered.excludeMatches, excludeMatches) === false
-    ) {
-        context.toRemove.push('css-generichigh');
-        context.toAdd.push(directive);
-    }
+async function resetCSSCache() {
+    const keys = await sessionKeys();
+    return sessionRemove(keys.filter(a => a.startsWith('cache.css.')));
 }
 
 /******************************************************************************/
 
 function registerGeneric(context, genericDetails) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
+    const { filteringModeDetails, rulesetsDetails } = context;
 
-    const excludeHostnames = [];
+    const excludedByFilter = [];
+    const includedByFilter = [];
     const js = [];
     for ( const details of rulesetsDetails ) {
         const hostnames = genericDetails.get(details.id);
-        if ( hostnames !== undefined ) {
-            excludeHostnames.push(...hostnames);
+        if ( hostnames ) {
+            if ( hostnames.unhide ) {
+                excludedByFilter.push(...hostnames.unhide);
+            }
+            if ( hostnames.hide ) {
+                includedByFilter.push(...hostnames.hide);
+            }
         }
         const count = details.css?.generic || 0;
         if ( count === 0 ) { continue; }
@@ -185,129 +104,85 @@ function registerGeneric(context, genericDetails) {
 
     if ( js.length === 0 ) { return; }
 
+    js.unshift('/js/scripting/css-api.js', '/js/scripting/isolated-api.js');
     js.push('/js/scripting/css-generic.js');
 
     const { none, basic, optimal, complete } = filteringModeDetails;
-    const matches = [];
-    const excludeMatches = [];
-    if ( complete.has('all-urls') ) {
-        excludeMatches.push(...ut.matchesFromHostnames(none));
-        excludeMatches.push(...ut.matchesFromHostnames(basic));
-        excludeMatches.push(...ut.matchesFromHostnames(optimal));
-        excludeMatches.push(...ut.matchesFromHostnames(excludeHostnames));
-        matches.push('<all_urls>');
-    } else {
-        matches.push(
+    const includedByMode = [ ...complete ];
+    const excludedByMode = [ ...none, ...basic, ...optimal ];
+
+    if ( complete.has('all-urls') === false ) {
+        const matches = [
             ...ut.matchesFromHostnames(
-                ut.subtractHostnameIters(
-                    Array.from(complete),
-                    excludeHostnames
-                )
-            )
-        );
+                ut.subtractHostnameIters(includedByMode, excludedByFilter)
+            ),
+            ...ut.matchesFromHostnames(
+                ut.intersectHostnameIters(includedByMode, includedByFilter)
+            ),
+        ];
+        if ( matches.length === 0 ) { return; }
+        const directive = {
+            id: 'css-generic-some',
+            js,
+            allFrames: true,
+            matches,
+            runAt: 'document_idle',
+        };
+        context.toAdd.push(directive);
+        return;
     }
 
-    if ( matches.length === 0 ) { return; }
-
-    const registered = before.get('css-generic');
-    before.delete('css-generic'); // Important!
-
-    const directive = {
-        id: 'css-generic',
+    const excludeMatches = [
+        ...ut.matchesFromHostnames(excludedByMode),
+        ...ut.matchesFromHostnames(excludedByFilter),
+    ];
+    const directiveAll = {
+        id: 'css-generic-all',
         js,
-        matches,
-        excludeMatches,
+        allFrames: true,
+        matches: [ '<all_urls>' ],
         runAt: 'document_idle',
     };
-
-    // register
-    if ( registered === undefined ) {
-        context.toAdd.push(directive);
-        return;
+    if ( excludeMatches.length !== 0 ) {
+        directiveAll.excludeMatches = excludeMatches;
     }
+    context.toAdd.push(directiveAll);
 
-    // update
-    if (
-        arrayEq(registered.js, js, false) === false ||
-        arrayEq(registered.matches, matches) === false ||
-        arrayEq(registered.excludeMatches, excludeMatches) === false
-    ) {
-        context.toRemove.push('css-generic');
-        context.toAdd.push(directive);
-    }
-}
-
-/******************************************************************************/
-
-function registerProcedural(context) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
-
-    const js = [];
-    for ( const rulesetDetails of rulesetsDetails ) {
-        const count = rulesetDetails.css?.procedural || 0;
-        if ( count === 0 ) { continue; }
-        js.push(`/rulesets/scripting/procedural/${rulesetDetails.id}.js`);
-    }
-    if ( js.length === 0 ) { return; }
-
-    const { none, basic, optimal, complete } = filteringModeDetails;
     const matches = [
-        ...ut.matchesFromHostnames(optimal),
-        ...ut.matchesFromHostnames(complete),
+        ...ut.matchesFromHostnames(
+            ut.subtractHostnameIters(includedByFilter, excludedByMode)
+        ),
     ];
     if ( matches.length === 0 ) { return; }
-
-    js.push('/js/scripting/css-procedural.js');
-
-    const excludeMatches = [];
-    if ( none.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(none));
-    }
-    if ( basic.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(basic));
-    }
-
-    const registered = before.get('css-procedural');
-    before.delete('css-procedural'); // Important!
-
-    const directive = {
-        id: 'css-procedural',
+    const directiveSome = {
+        id: 'css-generic-some',
         js,
         allFrames: true,
         matches,
-        excludeMatches,
-        runAt: 'document_end',
+        runAt: 'document_idle',
     };
-
-    // register
-    if ( registered === undefined ) {
-        context.toAdd.push(directive);
-        return;
-    }
-
-    // update
-    if (
-        arrayEq(registered.js, js, false) === false ||
-        arrayEq(registered.matches, matches) === false ||
-        arrayEq(registered.excludeMatches, excludeMatches) === false
-    ) {
-        context.toRemove.push('css-procedural');
-        context.toAdd.push(directive);
-    }
+    context.toAdd.push(directiveSome);
 }
 
 /******************************************************************************/
 
-function registerDeclarative(context) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
+async function registerCosmetic(context) {
+    const { filteringModeDetails, rulesetsDetails } = context;
 
-    const js = [];
-    for ( const rulesetDetails of rulesetsDetails ) {
-        const count = rulesetDetails.css?.declarative || 0;
-        if ( count === 0 ) { continue; }
-        js.push(`/rulesets/scripting/declarative/${rulesetDetails.id}.js`);
+    {
+        const keys = await localKeys();
+        localRemove(keys.filter(a => a.startsWith('css.specific.')));
+        // TODO: remove after a few versions after 2026.516.1652
+        localRemove(keys.filter(a => a.startsWith('css.procedural.')));
     }
-    if ( js.length === 0 ) { return; }
+
+    const rulesetIds = [];
+    for ( const rulesetDetails of rulesetsDetails ) {
+        const count = rulesetDetails.css?.specific ?? 0;
+        if ( count === 0 ) { continue; }
+        rulesetIds.push(rulesetDetails.id);
+    }
+    if ( rulesetIds.length === 0 ) { return; }
 
     const { none, basic, optimal, complete } = filteringModeDetails;
     const matches = [
@@ -316,108 +191,57 @@ function registerDeclarative(context) {
     ];
     if ( matches.length === 0 ) { return; }
 
-    js.push('/js/scripting/css-declarative.js');
-
-    const excludeMatches = [];
-    if ( none.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(none));
-    }
-    if ( basic.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(basic));
-    }
-
-    const registered = before.get('css-declarative');
-    before.delete('css-declarative'); // Important!
-
-    const directive = {
-        id: 'css-declarative',
-        js,
-        allFrames: true,
-        matches,
-        excludeMatches,
-        runAt: 'document_start',
-    };
-
-    // register
-    if ( registered === undefined ) {
-        context.toAdd.push(directive);
-        return;
+    {
+        const promises = [];
+        for ( const id of rulesetIds ) {
+            promises.push(
+                fetchJSON(`/rulesets/scripting/specific/${id}`).then(data => {
+                    return localWrite(`css.specific.${id}`, data);
+                })
+            );
+        }
+        await Promise.all(promises);
     }
 
-    // update
-    if (
-        arrayEq(registered.js, js, false) === false ||
-        arrayEq(registered.matches, matches) === false ||
-        arrayEq(registered.excludeMatches, excludeMatches) === false
-    ) {
-        context.toRemove.push('css-declarative');
-        context.toAdd.push(directive);
+    normalizeMatches(matches);
+
+    const js = rulesetIds.map(id => `/rulesets/scripting/specific/${id}.js`);
+    js.unshift('/js/scripting/css-api.js', '/js/scripting/isolated-api.js');
+    if ( webextFlavor === 'safari' ) {
+        js.push('/js/scripting/css-procedural-api.js');
     }
-}
-
-/******************************************************************************/
-
-function registerSpecific(context) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
-
-    const js = [];
-    for ( const rulesetDetails of rulesetsDetails ) {
-        const count = rulesetDetails.css?.specific || 0;
-        if ( count === 0 ) { continue; }
-        js.push(`/rulesets/scripting/specific/${rulesetDetails.id}.js`);
-    }
-    if ( js.length === 0 ) { return; }
-
-    const { none, basic, optimal, complete } = filteringModeDetails;
-    const matches = [
-        ...ut.matchesFromHostnames(optimal),
-        ...ut.matchesFromHostnames(complete),
-    ];
-    if ( matches.length === 0 ) { return; }
-
     js.push('/js/scripting/css-specific.js');
 
     const excludeMatches = [];
-    if ( none.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(none));
+    if ( none.has('all-urls') === false && basic.has('all-urls') === false ) {
+        const toExclude = [
+            ...ut.matchesFromHostnames(none),
+            ...ut.matchesFromHostnames(basic),
+        ];
+        for ( const hn of toExclude ) {
+            excludeMatches.push(hn);
+        }
     }
-    if ( basic.has('all-urls') === false ) {
-        excludeMatches.push(...ut.matchesFromHostnames(basic));
-    }
-
-    const registered = before.get('css-specific');
-    before.delete('css-specific'); // Important!
 
     const directive = {
         id: 'css-specific',
         js,
-        allFrames: true,
         matches,
-        excludeMatches,
+        allFrames: true,
         runAt: 'document_start',
     };
+    if ( excludeMatches.length !== 0 ) {
+        directive.excludeMatches = excludeMatches;
+    }
 
     // register
-    if ( registered === undefined ) {
-        context.toAdd.push(directive);
-        return;
-    }
-
-    // update
-    if (
-        arrayEq(registered.js, js, false) === false ||
-        arrayEq(registered.matches, matches) === false ||
-        arrayEq(registered.excludeMatches, excludeMatches) === false
-    ) {
-        context.toRemove.push('css-specific');
-        context.toAdd.push(directive);
-    }
+    context.toAdd.push(directive);
 }
 
 /******************************************************************************/
 
 function registerScriptlet(context, scriptletDetails) {
-    const { before, filteringModeDetails, rulesetsDetails } = context;
+    const { filteringModeDetails, rulesetsDetails } = context;
 
     const hasBroadHostPermission =
         filteringModeDetails.optimal.has('all-urls') ||
@@ -433,131 +257,140 @@ function registerScriptlet(context, scriptletDetails) {
     ];
 
     for ( const rulesetId of rulesetsDetails.map(v => v.id) ) {
-        const scriptletList = scriptletDetails.get(rulesetId);
-        if ( scriptletList === undefined ) { continue; }
-
-        for ( const [ token, scriptletHostnames ] of scriptletList ) {
-            const id = `${rulesetId}.${token}`;
-            const registered = before.get(id);
+        const worlds = scriptletDetails.get(rulesetId);
+        if ( worlds === undefined ) { continue; }
+        for ( const world of Object.keys(worlds) ) {
+            const id = `${rulesetId}.${world.toLowerCase()}`;
 
             const matches = [];
             const excludeMatches = [];
+            const hostnames = worlds[world];
             let targetHostnames = [];
             if ( hasBroadHostPermission ) {
                 excludeMatches.push(...permissionRevokedMatches);
-                if ( scriptletHostnames.length > 100 ) {
-                    targetHostnames = [ '*' ];
-                } else {
-                    targetHostnames = scriptletHostnames;
-                }
+                targetHostnames = hostnames;
             } else if ( permissionGrantedHostnames.length !== 0 ) {
-                if ( scriptletHostnames.includes('*') ) {
+                if ( hostnames.includes('*') ) {
                     targetHostnames = permissionGrantedHostnames;
                 } else {
                     targetHostnames = ut.intersectHostnameIters(
-                        permissionGrantedHostnames,
-                        scriptletHostnames
+                        hostnames,
+                        permissionGrantedHostnames
                     );
                 }
             }
             if ( targetHostnames.length === 0 ) { continue; }
             matches.push(...ut.matchesFromHostnames(targetHostnames));
-
-            before.delete(id); // Important!
+            normalizeMatches(matches);
 
             const directive = {
                 id,
-                js: [ `/rulesets/scripting/scriptlet/${id}.js` ],
-                allFrames: true,
+                js: [ `/rulesets/scripting/scriptlet/${world.toLowerCase()}/${rulesetId}.js` ],
                 matches,
-                excludeMatches,
+                allFrames: true,
+                matchOriginAsFallback: true,
                 runAt: 'document_start',
+                world,
             };
-
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=1736575
-            //   `MAIN` world not yet supported in Firefox
-            if ( isGecko === false ) {
-                directive.world = 'MAIN';
+            if ( excludeMatches.length !== 0 ) {
+                directive.excludeMatches = excludeMatches;
             }
 
             // register
-            if ( registered === undefined ) {
-                context.toAdd.push(directive);
-                continue;
-            }
-
-            // update
-            if (
-                arrayEq(registered.matches, matches) === false ||
-                arrayEq(registered.excludeMatches, excludeMatches) === false
-            ) {
-                context.toRemove.push(id);
-                context.toAdd.push(directive);
-            }
+            context.toAdd.push(directive);
         }
     }
 }
 
 /******************************************************************************/
 
-async function registerInjectables(origins) {
-    void origins;
+// Issue: Safari appears to completely ignore excludeMatches
+// https://github.com/radiolondra/ExcludeMatches-Test
 
+export async function registerContentScripts() {
     if ( browser.scripting === undefined ) { return false; }
+    registerContentScripts.pendingOp =
+        registerContentScripts.pendingOp.then(( ) => registerContentScripts.register());
+    return registerContentScripts.pendingOp;
+}
+registerContentScripts.pendingOp = Promise.resolve();
 
+registerContentScripts.register = async function register() {
     const [
         filteringModeDetails,
         rulesetsDetails,
         scriptletDetails,
         genericDetails,
-        registered,
     ] = await Promise.all([
         getFilteringModeDetails(),
-        getEnabledRulesetsDetails(),
+        getEnabledRulesetsDetails(true),
         getScriptletDetails(),
         getGenericDetails(),
-        browser.scripting.getRegisteredContentScripts(),
     ]);
-    const before = new Map(
-        normalizeRegisteredContentScripts(registered).map(
-            entry => [ entry.id, entry ]
-        )
-    );
-    const toAdd = [], toRemove = [];
+    const toAdd = [];
     const context = {
         filteringModeDetails,
         rulesetsDetails,
-        before,
         toAdd,
-        toRemove,
     };
 
-    registerDeclarative(context);
-    registerProcedural(context);
-    registerScriptlet(context, scriptletDetails);
-    registerSpecific(context);
-    registerGeneric(context, genericDetails);
-    registerHighGeneric(context, genericDetails);
+    await Promise.all([
+        registerScriptlet(context, scriptletDetails),
+        registerCosmetic(context),
+        registerGeneric(context, genericDetails),
+        registerCustomFilters(context),
+        registerPreventPopup(context),
+        registerToolbarIconToggler(context),
+    ]);
 
-    toRemove.push(...Array.from(before.keys()));
-
-    if ( toRemove.length !== 0 ) {
-        ut.ubolLog(`Unregistered ${toRemove} content (css/js)`);
-        await browser.scripting.unregisterContentScripts({ ids: toRemove })
-            .catch(reason => { console.info(reason); });
+    ubolLog(`Unregistered all content (css/js)`);
+    try {
+        await browser.scripting.unregisterContentScripts();
+    } catch(reason) {
+        ubolErr(`unregisterContentScripts/${reason}`);
     }
 
     if ( toAdd.length !== 0 ) {
-        ut.ubolLog(`Registered ${toAdd.map(v => v.id)} content (css/js)`);
-        await browser.scripting.registerContentScripts(toAdd)
-            .catch(reason => { console.info(reason); });
+        ubolLog(`Registered ${toAdd.map(v => v.id)} content (css/js)`);
+        try {
+            await browser.scripting.registerContentScripts(toAdd);
+        } catch(reason) {
+            ubolErr(`registerContentScripts/${reason}`);
+        }
     }
 
+    await Promise.all([
+        resetCSSCache(),
+        registerJob('pruneCSSCache', Date.now() + 15 * 60 * 1000),
+    ]);
+
     return true;
+};
+
+/******************************************************************************/
+
+export async function getRegisteredContentScripts() {
+    const scripts = await browser.scripting.getRegisteredContentScripts();
+    return scripts.map(a => a.id);
 }
 
 /******************************************************************************/
 
-export {
-    registerInjectables
-};
+export async function pruneCSSCache() {
+    registerJob('pruneCSSCache', Date.now() + 15 * 60 * 1000);
+    const MAX_CACHE_ENTRY_LOW = 256;
+    const MAX_CACHE_ENTRY_HIGH = MAX_CACHE_ENTRY_LOW +
+        Math.max(Math.round(MAX_CACHE_ENTRY_LOW / 8), 8);
+    const keys = await sessionKeys() || [];
+    const cacheKeys = keys.filter(a => a.startsWith('cache.css.'));
+    if ( cacheKeys.length < MAX_CACHE_ENTRY_HIGH ) { return; }
+    const entries = await Promise.all(cacheKeys.map(async a => {
+        const entry = await sessionRead(a) || {};
+        entry.key = a;
+        return entry;
+    }));
+    entries.sort((a, b) => b.t - a.t);
+    sessionRemove(entries.slice(MAX_CACHE_ENTRY_LOW).map(a => a.key));
+}
+
+/******************************************************************************/

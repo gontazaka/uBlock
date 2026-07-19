@@ -226,7 +226,7 @@ body.needSave #revertRules {
     font-size: 1.6em;
     }
 
-#basicTools:not(.canPick) .needPick {
+#basicTools .needPick:not(.canPick) {
     visibility: hidden;
     }
 
@@ -332,6 +332,7 @@ body.needSave #revertRules {
     }
 :root.desktop body.vMin #firewall {
     max-height: 100vh;
+        max-height: 100svh;
     }
 #firewall > * {
     direction: ltr;
@@ -814,7 +815,7 @@ body:not([data-more*="e"]) [data-more="e"] {
     min-width: unset;
     overflow-y: hidden;
     }
-:root.portrait #firewall-vspacer {
+:root.portrait body[data-more*="e"] #firewall-vspacer {
     display: block;
     }
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2017-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,21 +19,18 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
-/******************************************************************************/
-
-import logger from './logger.js';
-import µb from './background.js';
-import { sessionFirewall } from './filtering-engines.js';
 import { StaticExtFilteringHostnameDB } from './static-ext-filtering-db.js';
+import { entityFromHostname } from './uri-utils.js';
+import logger from './logger.js';
+import { sessionFirewall } from './filtering-engines.js';
+import µb from './background.js';
 
 /******************************************************************************/
 
 const pselectors = new Map();
 const duplicates = new Set();
 
-const filterDB = new StaticExtFilteringHostnameDB(2);
+const filterDB = new StaticExtFilteringHostnameDB();
 
 let acceptedCount = 0;
 let discardedCount = 0;
@@ -263,7 +260,7 @@ function logOne(details, exception, selector) {
         .setDocOriginFromURL(details.url)
         .setFilter({
             source: 'extended',
-            raw: `${exception === 0 ? '##' : '#@#'}^${selector}`
+            raw: `${exception === 0 ? '##' : '#@#'}^${selector}`,
         })
         .toLogger();
 }
@@ -341,16 +338,11 @@ htmlFilteringEngine.compile = function(parser, writer) {
     let hasOnlyNegated = true;
     for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
         if ( bad ) { continue; }
-        let kind = isException ? 0b01 : 0b00;
-        if ( not ) {
-            kind ^= 0b01;
-        } else {
+        const prefix = ((isException ? 1 : 0) ^ (not ? 1 : 0)) ? '-' : '+';
+        if ( not === false ) {
             hasOnlyNegated = false;
         }
-        if ( compiled.charCodeAt(0) === 0x7B /* '{' */ ) {
-            kind |= 0b10;
-        }
-        compiledFilters.push([ 64, hn, kind, compiled ]);
+        compiledFilters.push([ 64, hn, `${prefix}${compiled}` ]);
     }
 
     // Not allowed since it's equivalent to forbidden generic HTML filters
@@ -376,68 +368,56 @@ htmlFilteringEngine.fromCompiledContent = function(reader) {
         }
         duplicates.add(fingerprint);
         const args = reader.args();
-        filterDB.store(args[1], args[2], args[3]);
+        filterDB.store(args[1], args[2]);
     }
 };
 
-htmlFilteringEngine.retrieve = function(details) {
-    const hostname = details.hostname;
-
-    const plains = new Set();
-    const procedurals = new Set();
-    const exceptions = new Set();
-    const retrieveSets = [ plains, exceptions, procedurals, exceptions ];
-
-    filterDB.retrieve(hostname, retrieveSets);
-    const entity = details.entity !== ''
-        ? `${hostname.slice(0, -details.domain.length)}${details.entity}`
-        : '*';
-    filterDB.retrieve(entity, retrieveSets, 1);
-
-    if ( plains.size === 0 && procedurals.size === 0 ) { return; }
+htmlFilteringEngine.retrieve = function(fctxt) {
+    const all = new Set();
+    const hostname = fctxt.getHostname();
+    filterDB.retrieveSpecifics(all, hostname);
+    const entity = entityFromHostname(hostname, fctxt.getDomain());
+    filterDB.retrieveSpecifics(all, entity);
+    filterDB.retrieveSpecificsByRegex(all, hostname, fctxt.url);
+    filterDB.retrieveGenerics(all);
+    if ( all.size === 0 ) { return; }
 
     // https://github.com/gorhill/uBlock/issues/2835
     //   Do not filter if the site is under an `allow` rule.
-    if (
-        µb.userSettings.advancedUserEnabled &&
-        sessionFirewall.evaluateCellZY(hostname, hostname, '*') === 2
-    ) {
-        return;
+    if ( µb.userSettings.advancedUserEnabled ) {
+        if ( sessionFirewall.evaluateCellZY(hostname, hostname, '*') === 2 ) { return; }
     }
 
-    const out = { plains, procedurals };
-
-    if ( exceptions.size === 0 ) {
-        return out;
-    }
-
-    for ( const selector of exceptions ) {
-        if ( plains.has(selector) ) {
-            plains.delete(selector);
-            logOne(details, 1, selector);
-            continue;
-        }
-        if ( procedurals.has(selector) ) {
-            procedurals.delete(selector);
-            logOne(details, 1, JSON.parse(selector).raw);
-            continue;
+    // Split filters in different groups
+    const plains = new Set();
+    const procedurals = new Set();
+    for ( const s of all ) {
+        if ( s.charCodeAt(0) === 0x2D /* - */ ) { continue; }
+        const selector = s.slice(1);
+        const isProcedural = selector.startsWith('{');
+        if ( all.has(`-${selector}`) ) {
+            logOne(fctxt, 1, isProcedural ? JSON.parse(selector).raw : selector);
+        } else if ( isProcedural ) {
+            procedurals.add(selector);
+        } else {
+            plains.add(selector);
         }
     }
 
-    if ( plains.size !== 0 || procedurals.size !== 0 ) {
-        return out;
-    }
+    if ( plains.size === 0 && procedurals.size === 0 ) { return; }
+
+    return { plains, procedurals };
 };
 
-htmlFilteringEngine.apply = function(doc, details) {
+htmlFilteringEngine.apply = function(doc, details, selectors) {
     docRegister = doc;
     let modified = false;
-    for ( const selector of details.selectors.plains ) {
+    for ( const selector of selectors.plains ) {
         if ( applyCSSSelector(details, selector) ) {
             modified = true;
         }
     }
-    for ( const selector of details.selectors.procedurals ) {
+    for ( const selector of selectors.procedurals ) {
         if ( applyProceduralSelector(details, selector) ) {
             modified = true;
         }

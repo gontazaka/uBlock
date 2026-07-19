@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,11 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
 import { dom, qs$ } from './dom.js';
 
 /******************************************************************************/
 
-const discardUnsavedData = function(synchronous = false) {
+function discardUnsavedData(synchronous = false) {
     const paneFrame = qs$('#iframe');
     const paneWindow = paneFrame.contentWindow;
     if (
@@ -66,9 +64,9 @@ const discardUnsavedData = function(synchronous = false) {
 
         dom.on(document, 'click', onClick, true);
     });
-};
+}
 
-const loadDashboardPanel = function(pane, first) {
+function loadDashboardPanel(pane, first) {
     const tabButton = qs$(`[data-pane="${pane}"]`);
     if ( tabButton === null || dom.cl.has(tabButton, 'selected') ) { return; }
     const loadPane = ( ) => {
@@ -76,8 +74,12 @@ const loadDashboardPanel = function(pane, first) {
         dom.cl.remove('.tabButton.selected', 'selected');
         dom.cl.add(tabButton, 'selected');
         tabButton.scrollIntoView();
-        qs$('#iframe').contentWindow.location.replace(pane);
+        const iframe = qs$('#iframe');
+        iframe.contentWindow.location.replace(pane);
         if ( pane !== 'no-dashboard.html' ) {
+            iframe.addEventListener('load', ( ) => {
+                qs$('.wikilink').href = iframe.contentWindow.wikilink || '';
+            }, { once: true });
             vAPI.localStorage.setItem('dashboardLastVisitedPane', pane);
         }
     };
@@ -91,11 +93,11 @@ const loadDashboardPanel = function(pane, first) {
         if ( status === false ) { return; }
         loadPane();
     });
-};
+}
 
-const onTabClickHandler = function(ev) {
+function onTabClickHandler(ev) {
     loadDashboardPanel(dom.attr(ev.target, 'data-pane'));
-};
+}
 
 if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
     dom.cl.add(dom.body, 'noDashboard');
@@ -114,7 +116,7 @@ if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
                 if ( iframe.src !== '' ) {
                     iframe.src = '';
                 }
-            } catch(ex) {
+            } catch {
             }
             vAPI.defer.once(250).then(( ) => check());
         };
@@ -149,10 +151,18 @@ if ( self.location.hash.slice(1) === 'no-dashboard.html' ) {
         dom.on('.tabButton', 'click', onTabClickHandler);
 
         // https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
-        dom.on(window, 'beforeunload', ( ) => {
+        dom.on(self, 'beforeunload', ( ) => {
             if ( discardUnsavedData(true) ) { return; }
             event.preventDefault();
             event.returnValue = '';
         });
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
+        dom.on(self, 'hashchange', ( ) => {
+            const pane = self.location.hash.slice(1);
+            if ( pane === '' ) { return; }
+            loadDashboardPanel(pane);
+        });
+
     }
 })();

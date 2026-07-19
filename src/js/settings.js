@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,22 +19,32 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
-import { i18n$ } from './i18n.js';
 import { dom, qs$, qsa$ } from './dom.js';
 import { setAccentColor, setTheme } from './theme.js';
+import { i18n$ } from './i18n.js';
 
 /******************************************************************************/
 
-const handleImportFilePicker = function() {
+function handleImportFilePicker() {
     const file = this.files[0];
     if ( file === undefined || file.name === '' ) { return; }
-    if ( file.type.indexOf('text') !== 0 ) { return; }
+
+    const reportError = ( ) => {
+        window.alert(i18n$('aboutRestoreDataError'));
+    };
+
+    const expectedFileTypes = [
+        'text/plain',
+        'application/json',
+    ];
+    if ( expectedFileTypes.includes(file.type) === false ) {
+        return reportError();
+    }
 
     const filename = file.name;
+    const fr = new FileReader();
 
-    const fileReaderOnLoadHandler = function() {
+    fr.onload = function() {
         let userData;
         try {
             userData = JSON.parse(this.result);
@@ -57,12 +67,11 @@ const handleImportFilePicker = function() {
                 throw 'Invalid';
             }
         }
-        catch (e) {
+        catch {
             userData = undefined;
         }
         if ( userData === undefined ) {
-            window.alert(i18n$('aboutRestoreDataError'));
-            return;
+            return reportError();
         }
         const time = new Date(userData.timeStamp);
         const msg = i18n$('aboutRestoreDataConfirm')
@@ -76,25 +85,23 @@ const handleImportFilePicker = function() {
         });
     };
 
-    const fr = new FileReader();
-    fr.onload = fileReaderOnLoadHandler;
     fr.readAsText(file);
-};
+}
 
 /******************************************************************************/
 
-const startImportFilePicker = function() {
+function startImportFilePicker() {
     const input = qs$('#restoreFilePicker');
     // Reset to empty string, this will ensure an change event is properly
     // triggered if the user pick a file, even if it is the same as the last
     // one picked.
     input.value = '';
     input.click();
-};
+}
 
 /******************************************************************************/
 
-const exportToFile = async function() {
+async function exportToFile() {
     const response = await vAPI.messaging.send('dashboard', {
         what: 'backupUserData',
     });
@@ -110,11 +117,11 @@ const exportToFile = async function() {
         'filename': response.localData.lastBackupFile
     });
     onLocalDataReceived(response.localData);
-};
+}
 
 /******************************************************************************/
 
-const onLocalDataReceived = function(details) {
+function onLocalDataReceived(details) {
     let v, unit;
     if ( typeof details.storageUsed === 'number' ) {
         v = details.storageUsed;
@@ -178,32 +185,32 @@ const onLocalDataReceived = function(details) {
         dom.attr('[data-setting-name="hyperlinkAuditingDisabled"]', 'disabled', '');
         dom.attr('[data-setting-name="webrtcIPAddressHidden"]', 'disabled', '');
     }
-};
+}
 
 /******************************************************************************/
 
-const resetUserData = function() {
+function resetUserData() {
     const msg = i18n$('aboutResetDataConfirm');
     const proceed = window.confirm(msg);
     if ( proceed !== true ) { return; }
     vAPI.messaging.send('dashboard', {
         what: 'resetUserData',
     });
-};
+}
 
 /******************************************************************************/
 
-const synchronizeDOM = function() {
+function synchronizeDOM() {
     dom.cl.toggle(
         dom.body,
         'advancedUser',
         qs$('[data-setting-name="advancedUserEnabled"]').checked === true
     );
-};
+}
 
 /******************************************************************************/
 
-const changeUserSettings = function(name, value) {
+function changeUserSettings(name, value) {
     vAPI.messaging.send('dashboard', {
         what: 'userSettings',
         name,
@@ -226,11 +233,11 @@ const changeUserSettings = function(name, value) {
     default:
         break;
     }
-};
+}
 
 /******************************************************************************/
 
-const onValueChanged = function(ev) {
+function onValueChanged(ev) {
     const input = ev.target;
     const name = dom.attr(input, 'data-setting-name');
     let value = input.value;
@@ -247,14 +254,20 @@ const onValueChanged = function(ev) {
     }
 
     changeUserSettings(name, value);
-};
+}
 
 /******************************************************************************/
 
 // TODO: use data-* to declare simple settings
 
-const onUserSettingsReceived = function(details) {
+function onUserSettingsReceived(details) {
     const checkboxes = qsa$('[data-setting-type="bool"]');
+    const onchange = ev => {
+        const checkbox = ev.target;
+        const name = checkbox.dataset.settingName || '';
+        changeUserSettings(name, checkbox.checked);
+        synchronizeDOM();
+    };
     for ( const checkbox of checkboxes ) {
         const name = dom.attr(checkbox, 'data-setting-name') || '';
         if ( details[name] === undefined ) {
@@ -263,10 +276,7 @@ const onUserSettingsReceived = function(details) {
             continue;
         }
         checkbox.checked = details[name] === true;
-        dom.on(checkbox, 'change', ( ) => {
-            changeUserSettings(name, checkbox.checked);
-            synchronizeDOM();
-        });
+        dom.on(checkbox, 'change', onchange);
     }
 
     if ( details.canLeakLocalIPAddresses === true ) {
@@ -286,6 +296,14 @@ const onUserSettingsReceived = function(details) {
     dom.on('#restoreFilePicker', 'change', handleImportFilePicker);
 
     synchronizeDOM();
+}
+
+/******************************************************************************/
+
+self.wikilink = 'https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings';
+
+self.hasUnsavedData = function() {
+    return false;
 };
 
 /******************************************************************************/

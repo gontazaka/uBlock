@@ -16,7 +16,7 @@
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
-    "message": "Joog",
+    "message": "Halkan joog",
     "description": "Label for button to prevent navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningIgnore": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "JavaScript",
+    "message": "Local rules: this column is for rules which apply to the current site only.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "Malware protection, security",
+    "message": "Ilaalinta Malware-ka, amniga",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "Social widgets",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Cookie notices",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -527,17 +535,25 @@
     "message": "Caadiyan",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Soo deji...",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Do not add filters from untrusted sources.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Enable my custom filters",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Allow custom filters requiring trust",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
     "message": "Hal URL laynkiiba. URL-yada aan ansax ahayn waa la iska indho-tiraa aamusnaan.",
-    "description": "English: Import and append"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "Waqtigii dhacay",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "fiiri nuxurka",
@@ -581,7 +597,7 @@
   },
   "rulesExport": {
     "message": "Xeerarka joogtada ah",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "Xeerarka ku meel gaadhka ah",
@@ -617,11 +633,11 @@
   },
   "whitelistImport": {
     "message": "my-ublock-dynamic-rules_{{datetime}}.txt",
-    "description": "English: Import and append"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "Liiska xeerarka shaandhaynta firfircoon.",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "Xeerka syntax: <code> nooca goobta loo socdo</code> (<a href='https://github.com/gorhill/uBlock/wiki/Dynamic-filtering:-rule-syntax'>full documents</a> ).",
@@ -881,14 +897,14 @@
   },
   "supportOpenButton": {
     "message": "{{Input}} Waqtiga",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
-    "message": "Create new report",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "Create new report on GitHub",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
-    "message": "Find similar reports",
+    "message": "Find similar reports on GitHub",
     "description": "A clickable link in the filter issue reporter section"
   },
   "supportS1H": {
@@ -939,16 +955,12 @@
     "message": "Jawaabaha su'aalaha iyo noocyada kale ee taageerada caawimada waxaa lagu bixiyaa subreddit <code>/r/uBlockOrigin</code>.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "Arrimaha shaandhaynta/mareegaha ayaa jabay",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Report a filter issue",
     "description": "Header of 'Report a filter issue' section in Support pane"
   },
   "supportS6P1S1": {
-    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported.",
+    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported. <b>Note:</b> clicking the button will cause the page's origin to be sent to GitHub.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
@@ -956,7 +968,7 @@
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S2": {
-    "message": "Verify that the issue still exists after reloading the problematic webpage.",
+    "message": "Verify that the issue still exists after reloading the problematic web page.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6URL": {
@@ -995,17 +1007,13 @@
     "message": "Opens unwanted tabs or windows",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Leads to badware, phishing",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Label the web page as “NSFW” (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">“Not Safe For Work”</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Ka warbixi arrimaha shaandhaynta shabakadaha gaarka ah <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code> soo saara raadraacayaasha</span >. Wuxuu u baahan yahay akoon GitHub",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "<b>Muhiim:</b> Iska ilaali isticmaalka xannibaadaha kale ee la midka ah oo ay la socdaan uBlock Origin, sababtoo ah tani waxay sababi kartaa arrimo shaandhaynta shabakadaha gaarka ah.",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "<b>Talooyin:</b> Hubi in liisaska shaandhayntaadu ay cusub yihiin. <span data-url=\"logger-ui.html#_\">Logger</span> waa aaladda koowaad ee lagu baadho arrimaha shaandhada la xiriira.",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "CDN si aan kala sooc lahayn loo soo doortay ayaa la isticmaalaa marka liiska shaandhada loo baahan yahay in la cusboonaysiiyo",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "Ku soo celi faylka",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "my-ublock-backup_{{datetime}}.txt",
@@ -1171,6 +1175,26 @@
     "message": "Proceed",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "The blocked page wants to redirect to another site. If you choose to proceed, you will navigate directly to: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Reason:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Malicious",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Tracker",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Disreputable",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "{{value}} saac kahor",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Toggle cosmetic filtering",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Toggle JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "... ",

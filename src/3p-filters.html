@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="color-scheme" content="light dark" />
 <title>uBlock — Filter lists</title>
 <link rel="stylesheet" type="text/css" href="css/themes/default.css">
 <link rel="stylesheet" type="text/css" href="css/common.css">
@@ -17,11 +18,10 @@
 <div class="body">
 
 <div id="cloudWidget" class="hide" data-cloud-entry="tpFiltersPane"></div>
-<div id="actions">
-    <button id="buttonApply" class="preferred disabled iconified" type="button" data-i18n-title="3pApplyChanges"><span class="fa-icon">check</span><span data-i18n="3pApplyChanges">_</span><span class="hover"></span></button>
+<p id="actions">
+    <button id="buttonApply" class="preferred disabled iconified dontshrink" type="button" data-i18n-title="3pApplyChanges"><span class="fa-icon">check</span><span data-i18n="3pApplyChanges">_</span><span class="hover"></span></button>
     <button id="buttonUpdate" class="preferred disabled iconified" type="button" data-i18n-title="3pUpdateNow"><span class="fa-icon">refresh</span><span data-i18n="3pUpdateNow">_</span><span class="hover"></span></button>
-    <button id="buttonPurgeAll" class="disabled iconified" type="button" data-i18n-title="3pPurgeAll"><span class="fa-icon">clock-o</span><span data-i18n="3pPurgeAll">_</span><span class="hover"></span></button>
-</div>
+</p>
 
 <div>
     <div class="li">
@@ -45,7 +45,7 @@
     <div class="rootstats expandable" data-key="*">
         <span class="fa-icon listExpander">angle-up</span><span id="listsOfBlockedHostsPrompt"></span>
     </div>
-    <div class="searchbar"><input type="search" spellcheck="false"/><span class="fa-icon">search</span></div>
+    <div class="searchfield"><input type="search" spellcheck="false" placeholder="" /><span class="fa-icon">search</span></div>
     <div class="listEntries"></div>
     <div class="li listEntry expandable" data-role="import">
         <span class="detailbar">
@@ -108,7 +108,6 @@
 <script src="js/vapi.js"></script>
 <script src="js/vapi-common.js"></script>
 <script src="js/vapi-client.js"></script>
-<script src="js/vapi-client-extra.js"></script>
 <script src="js/theme.js" type="module"></script>
 <script src="js/i18n.js" type="module"></script>
 <script src="js/dashboard-common.js" type="module"></script>

@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin Lite - a comprehensive, MV3-compliant content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,22 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* jshint esversion:11 */
-
-'use strict';
-
 import { dom } from './dom.js';
 
 /******************************************************************************/
 
-const mql = self.matchMedia('(prefers-color-scheme: dark)');
-const theme = mql instanceof Object && mql.matches === true
-    ? 'dark'
-    : 'light';
-dom.cl.toggle(dom.html, 'dark', theme === 'dark');
-dom.cl.toggle(dom.html, 'light', theme !== 'dark');
+{
+    const mql = self.matchMedia('(prefers-color-scheme: dark)');
+    const theme = mql instanceof Object && mql.matches === true
+        ? 'dark'
+        : 'light';
+    dom.cl.toggle(dom.html, 'dark', theme === 'dark');
+    dom.cl.toggle(dom.html, 'light', theme !== 'dark');
+}
+
+{
+    const mql = self.matchMedia('(hover: hover)');
+    const isTouchScreen = mql.matches !== true;
+    dom.cl.toggle(dom.html, 'mobile', isTouchScreen);
+    dom.cl.toggle(dom.html, 'desktop', isTouchScreen === false);
+}

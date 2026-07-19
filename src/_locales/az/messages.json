@@ -12,7 +12,7 @@
     "description": "English: uBlock₀ — Dashboard"
   },
   "dashboardUnsavedWarning": {
-    "message": "Xəbərdarlıq! Saxlamadığınız dəyişikliklər var",
+    "message": "Xəbərdarlıq: dəyişiklikləriniz yadda saxlanılmayıb!",
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Lokal qaydalar: bu sütun yalnız bu saytda tətbiq olunan qaydalar üçündür.\nLokal qaydalar qlobal qaydalardan üstün tutulur.",
+    "message": "Lokal qaydalar: bu sütun yalnız bu saytda tətbiq olunan qaydalar üçündür.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -276,11 +276,11 @@
     "description": "Example of use: Version 1.26.4"
   },
   "popup3pScriptFilter": {
-    "message": "script",
+    "message": "skript",
     "description": "Appears as an option to filter out firewall rows"
   },
   "popup3pFrameFilter": {
-    "message": "frame",
+    "message": "çərçivə",
     "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "Zərərli domenlər",
+    "message": "Zərərli proqram təminatından qorunma, təhlükəsizlik",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "Sosial media düymələri",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Çərəz bildirişləri",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -500,7 +508,7 @@
     "description": "Filter lists section name"
   },
   "3pImport": {
-    "message": "Əlavə et...",
+    "message": "Əlavə et…",
     "description": "The label for the checkbox used to import external filter lists"
   },
   "3pExternalListsHint": {
@@ -527,17 +535,25 @@
     "message": "Şəbəkə xətası üzündən yeniləmə mümkün olmadı.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Hər sətirdə yalnız bir filtr. Bu, ya domen adı, ya da Adblock Plus formatında yazılmış filtr ola bilər. Əvvəli <code>!</code> ilə başlayan sətirlər nəzərə alınmayacaqdır.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Etibarsız mənbələrdən filtrlər əlavə etməyin.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Xüsusi filtrlərimi aktivləşdir",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Etibarlılıq tələb edən xüsusi filtrləri aktivləşdir",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
-    "message": "İdxal və əlavə et",
-    "description": "English: Import and append"
+    "message": "İdxal və əlavə et…",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "İxrac et",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "my-ublock-static-filters_{{datetime}}.txt",
@@ -576,12 +592,12 @@
     "description": "Will discard manually-edited content and exit manual-edit mode"
   },
   "rulesImport": {
-    "message": "Fayldan götür...",
+    "message": "Fayldan götür…",
     "description": ""
   },
   "rulesExport": {
     "message": "Fayla yaz",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "my-ublock-dynamic-rules_{{datetime}}.txt",
@@ -616,12 +632,12 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "İdxal və əlavə et",
-    "description": "English: Import and append"
+    "message": "İdxal və əlavə et…",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "İxrac et",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "my-ublock-whitelist_{{datetime}}.txt",
@@ -881,11 +897,11 @@
   },
   "supportOpenButton": {
     "message": "Aç",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
     "message": "Yeni hesabat yaradın",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
     "message": "Oxşar hesabat tap",
@@ -939,10 +955,6 @@
     "message": "Aşağıdaki könüllülər sizə probleminizi aradan qaldırmağa çalışırkən faydalı ola biləcək texniki məlumatdır.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Vacib:</b> Gizli və həssas ola biləcək məlumatlar defolt olaraq qısaldılır. Qısaldılmış məlumatlar, bir problemi aradan qaldırmağı çətinləşdirə bilər.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Filter problemini bildir",
     "description": "Header of 'Report a filter issue' section in Support pane"
@@ -952,11 +964,11 @@
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
-    "message": "Filter lists are updated daily. Be sure your issue has not already been addressed in the most recent filter lists.",
+    "message": "Filtr siyahıları hər gün yenilənir. Probleminizin ən son filtr siyahılarında həll edilmədiyinə əmin olun.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S2": {
-    "message": "Verify that the issue still exists after reloading the problematic webpage.",
+    "message": "Problemli veb-səhifəni yenidən yüklədikdən sonra problemin hələ də qaldığından əmin olun.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6URL": {
@@ -995,17 +1007,13 @@
     "message": "Arzuolunmaz tab-vərəqələr və ya pəncərələr açır",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Zərərli proqram və fişinq riski var",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Veb-səhifəni uyğun olmayan (“NSFW”) olaraq işarələ (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">“Not Safe For Work”</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Redact",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Unredact",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Məxfilik siyasəti",
@@ -1079,10 +1087,6 @@
     "message": "Şəbəkə xətası: {{msg}}",
     "description": "English: Network error: {{msg}}"
   },
-  "subscriberConfirm": {
-    "message": "uBlock₀: Aşağıdakı URL ünvanı fərdi filtr siyahılarınıza əlavə edilsin?\n\nAdı: \"{{title}}\"\nURL ünvanı: {{url}}",
-    "description": "No longer used"
-  },
   "subscribeButton": {
     "message": "Abunə ol",
     "description": "For the button used to subscribe to a filter list"
@@ -1124,7 +1128,7 @@
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
   "docblockedTitle": {
-    "message": "Page blocked",
+    "message": "Səhifə əngəlləndi",
     "description": "Used as a title for the document-blocked page"
   },
   "docblockedPrompt1": {
@@ -1152,7 +1156,7 @@
     "description": "English: Close this window"
   },
   "docblockedDontWarn": {
-    "message": "Don't warn me again about this site",
+    "message": "Bu sayt barədə məni xəbərdar etmə",
     "description": "Label for checkbox in document-blocked page"
   },
   "docblockedProceed": {
@@ -1168,8 +1172,28 @@
     "description": "English: Permanently"
   },
   "docblockedDisable": {
-    "message": "Proceed",
+    "message": "Davam et",
     "description": "Button text to navigate to the blocked page"
+  },
+  "docblockedRedirectPrompt": {
+    "message": "Bloklanmış səhifə sizi başqa sayta yönləndirmək istəyir. Əgər davam etsəniz, birbaşa bu ünvana keçəcəksiniz: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Səbəb:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Zərərli",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "İzləyici",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Etibarsız",
+    "description": "An actual reason why a page was blocked"
   },
   "cloudPush": {
     "message": "Bulud yaddaşa göndər",
@@ -1224,7 +1248,7 @@
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
   "contextMenuViewSource": {
-    "message": "View source code…",
+    "message": "Mənbə kodunu nəzərdən keçir...",
     "description": "A context menu entry, to view the source code of the target resource"
   },
   "shortcutCapturePlaceholder": {
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Kozmetik filtrləməni yandır/söndür",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "JavaScript-i Aç/Bağla",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Əngəlləmə rejimini yüngülləşdir",
@@ -1272,11 +1300,11 @@
     "description": "Message used in frame placeholders"
   },
   "linterMainReport": {
-    "message": "Errors: {{count}}",
+    "message": "Xətalar: {{count}}",
     "description": "Summary of number of errors as reported by the linter "
   },
   "unprocessedRequestTooltip": {
-    "message": "Could not filter properly at browser launch. Reload the page to ensure proper filtering.",
+    "message": "Brauzer açılışında filtrləmə düzgün alınmadı. Düzgün filtrləməni təmin etmək üçün səhifəni yenidən yükləyin.",
     "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {

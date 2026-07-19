@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,6 @@
 
     Home: https://github.com/gorhill/uBlock
 */
-
-/* jshint esversion:11 */
-
-'use strict';
 
 /******************************************************************************/
 
@@ -113,6 +109,14 @@ class dom {
         }
     }
 
+    static empty(target) {
+        for ( const elem of normalizeTarget(target) ) {
+            while ( elem.firstElementChild !== null ) {
+                elem.firstElementChild.remove();
+            }
+        }
+    }
+
     // target, type, callback, [options]
     // target, type, subtarget, callback, [options]
     
@@ -152,6 +156,16 @@ class dom {
             elem.removeEventListener(type, callback, options);
         }
     }
+
+    static onFirstShown(fn, elem) {
+        let observer = new IntersectionObserver(entries => {
+            if ( entries.every(a => a.isIntersecting === false) ) { return; }
+            try { fn(); } catch { }
+            observer.disconnect();
+            observer = undefined;
+        });
+        observer.observe(elem);
+    }
 }
 
 dom.cl = class {
@@ -161,9 +175,9 @@ dom.cl = class {
         }
     }
 
-    static remove(target, name) {
+    static remove(target, ...names) {
         for ( const elem of normalizeTarget(target) ) {
-            elem.classList.remove(name);
+            elem.classList.remove(...names);
         }
     }
 

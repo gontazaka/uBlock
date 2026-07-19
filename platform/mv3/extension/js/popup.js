@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin Lite - a comprehensive, MV3-compliant content blocker
     Copyright (C) 2022-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,40 +19,30 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* jshint esversion:11 */
-
-'use strict';
-
-/******************************************************************************/
-
-import {
-    browser,
-    runtime,
-    sendMessage,
-    localRead, localWrite,
-} from './ext.js';
-
+import { browser, runtime, sendMessage } from './ext.js';
 import { dom, qs$ } from './dom.js';
-import { i18n,  i18n$ } from './i18n.js';
+import { i18n$ } from './i18n.js';
 import punycode from './punycode.js';
 
 /******************************************************************************/
 
 const popupPanelData = {};
 const  currentTab = {};
-let tabHostname = '';
+const tabURL = new URL(runtime.getURL('/'));
 
 /******************************************************************************/
 
-function normalizedHostname(hn) {
-    return hn.replace(/^www\./, '');
+function renderAdminRules() {
+    const { disabledFeatures: forbid = [] } = popupPanelData;
+    if ( forbid.length === 0 ) { return; }
+    dom.body.dataset.forbid = forbid.join(' ');
 }
 
 /******************************************************************************/
 
 const BLOCKING_MODE_MAX = 3;
 
-function setFilteringMode(level, commit = false) {
+async function setFilteringMode(level, commit = false) {
     const modeSlider = qs$('.filteringModeSlider');
     modeSlider.dataset.level = level;
     if ( qs$('.filteringModeSlider.moving') === null ) {
@@ -62,22 +52,34 @@ function setFilteringMode(level, commit = false) {
         );
     }
     if ( commit !== true ) { return; }
-    commitFilteringMode();
+    dom.cl.add(dom.body, 'busy');
+    await commitFilteringMode();
+    dom.cl.remove(dom.body, 'busy');
 }
 
 async function commitFilteringMode() {
-    if ( tabHostname === '' ) { return; }
-    const targetHostname = normalizedHostname(tabHostname);
+    if ( tabURL.hostname === '' ) { return; }
+    const targetHostname = tabURL.hostname;
     const modeSlider = qs$('.filteringModeSlider');
     const afterLevel = parseInt(modeSlider.dataset.level, 10);
     const beforeLevel = parseInt(modeSlider.dataset.levelBefore, 10);
     if ( afterLevel > 1 ) {
+        if ( beforeLevel <= 1 ) {
+            sendMessage({
+                what: 'setPendingFilteringMode',
+                tabId: currentTab.id,
+                url: tabURL.href,
+                hostname: targetHostname,
+                beforeLevel,
+                afterLevel,
+            });
+        }
         let granted = false;
         try {
             granted = await browser.permissions.request({
                 origins: [ `*://*.${targetHostname}/*` ],
             });
-        } catch(ex) {
+        } catch {
         }
         if ( granted !== true ) {
             setFilteringMode(beforeLevel);
@@ -97,7 +99,14 @@ async function commitFilteringMode() {
         setFilteringMode(actualLevel);
     }
     if ( actualLevel !== beforeLevel && popupPanelData.autoReload ) {
-        browser.tabs.reload(currentTab.id);
+        const justReload = tabURL.href === currentTab.url;
+        self.setTimeout(( ) => {
+            if ( justReload ) {
+                browser.tabs.reload(currentTab.id);
+            } else {
+                browser.tabs.update(currentTab.id, { url: tabURL.href });
+            }
+        }, 437);
     }
 }
 
@@ -182,93 +191,106 @@ dom.on(
     }
 );
 
-dom.on(
-    '.filteringModeSlider',
-    'mouseenter',
-    '.filteringModeSlider span[data-level]',
-    ev => {
-        const span = ev.target;
-        const level = parseInt(span.dataset.level, 10);
-        dom.text(
-            '#filteringModeText > span:nth-of-type(2)',
-            i18n$(`filteringMode${level}Name`)
-        );
-    }
-);
-
-dom.on(
-    '.filteringModeSlider',
-    'mouseleave',
-    '.filteringModeSlider span[data-level]',
-    ( ) => {
-        dom.text('#filteringModeText > span:nth-of-type(2)', '');
-    }
-);
-
-/******************************************************************************/
-
-// The popup panel is made of sections. Visibility of sections can be
-// toggled on/off.
-
-const maxNumberOfSections = 2;
-
-const sectionBitsFromAttribute = function() {
-    const value = dom.body.dataset.section;
-    if ( value === '' ) { return 0; }
-    let bits = 0;
-    for ( const c of value.split(' ') ) {
-        bits |= 1 << (c.charCodeAt(0) - 97);
-    }
-    return bits;
-};
-
-const sectionBitsToAttribute = function(bits) {
-    if ( typeof bits !== 'number' ) { return; }
-    if ( isNaN(bits) ) { return; }
-    const value = [];
-    for ( let i = 0; i < maxNumberOfSections; i++ ) {
-        const bit = 1 << i;
-        if ( (bits & bit) === 0 ) { continue; }
-        value.push(String.fromCharCode(97 + i));
-    }
-    dom.body.dataset.section = value.join(' ');
-};
-
-async function toggleSections(more) {
-    let currentBits = sectionBitsFromAttribute();
-    let newBits = currentBits;
-    for ( let i = 0; i < maxNumberOfSections; i++ ) {
-        const bit = 1 << (more ? i : maxNumberOfSections - i - 1);
-        if ( more ) {
-            newBits |= bit;
-        } else {
-            newBits &= ~bit;
+if ( dom.cl.has(dom.html, 'mobile') === false ) {
+    dom.on('.filteringModeSlider',
+        'mouseenter',
+        '.filteringModeSlider span[data-level]',
+        ev => {
+            const span = ev.target;
+            const level = parseInt(span.dataset.level, 10);
+            dom.text('#filteringModeText > span:nth-of-type(2)',
+                i18n$(`filteringMode${level}Name`)
+            );
         }
-        if ( newBits !== currentBits ) { break; }
-    }
-    if ( newBits === currentBits ) { return; }
-    sectionBitsToAttribute(newBits);
-    localWrite('popupPanelSections', newBits);
+    );
+
+    dom.on('.filteringModeSlider',
+        'mouseleave',
+        '.filteringModeSlider span[data-level]',
+        ( ) => {
+            dom.text('#filteringModeText > span:nth-of-type(2)', '');
+        }
+    );
 }
 
-localRead('popupPanelSections').then(bits => {
-    sectionBitsToAttribute(bits || 0);
-});
+/******************************************************************************/
 
-dom.on('#moreButton', 'click', ( ) => {
-    toggleSections(true);
-});
-
-dom.on('#lessButton', 'click', ( ) => {
-    toggleSections(false);
+dom.on('#gotoMatchedRules', 'click', ev => {
+    if ( ev.isTrusted !== true ) { return; }
+    if ( ev.button !== 0 ) { return; }
+    sendMessage({
+        what: 'showMatchedRules',
+        tabId: currentTab.id,
+    });
 });
 
 /******************************************************************************/
 
-dom.on('[data-i18n-title="popupTipDashboard"]', 'click', ev => {
+dom.on('#gotoReport', 'click', ev => {
+    if ( ev.isTrusted !== true ) { return; }
+    let url;
+    try {
+        url = new URL(currentTab.url);
+    } catch {
+    }
+    if ( url === undefined ) { return; }
+    const reportURL = new URL(runtime.getURL('/report.html'));
+    reportURL.searchParams.set('tabid', currentTab.id);
+    reportURL.searchParams.set('url', tabURL.href);
+    reportURL.searchParams.set('mode', popupPanelData.level);
+    sendMessage({
+        what: 'gotoURL',
+        url: `${reportURL.pathname}${reportURL.search}`,
+    });
+});
+
+/******************************************************************************/
+
+dom.on('#gotoDashboard', 'click', ev => {
     if ( ev.isTrusted !== true ) { return; }
     if ( ev.button !== 0 ) { return; }
     runtime.openOptionsPage();
+});
+
+/******************************************************************************/
+
+dom.on('#gotoZapper', 'click', ( ) => {
+    if ( browser.scripting === undefined ) { return; }
+    browser.scripting.executeScript({
+        files: [ '/js/scripting/tool-overlay.js', '/js/scripting/zapper.js' ],
+        target: { tabId: currentTab.id },
+    });
+    self.close();
+});
+
+/******************************************************************************/
+
+dom.on('#gotoPicker', 'click', ( ) => {
+    if ( browser.scripting === undefined ) { return; }
+    browser.scripting.executeScript({
+        files: [
+            '/js/scripting/css-procedural-api.js',
+            '/js/scripting/tool-overlay.js',
+            '/js/scripting/picker.js',
+        ],
+        target: { tabId: currentTab.id },
+    });
+    self.close();
+});
+
+/******************************************************************************/
+
+dom.on('#gotoUnpicker', 'click', ( ) => {
+    if ( browser.scripting === undefined ) { return; }
+    browser.scripting.executeScript({
+        files: [
+            '/js/scripting/css-procedural-api.js',
+            '/js/scripting/tool-overlay.js',
+            '/js/scripting/unpicker.js',
+        ],
+        target: { tabId: currentTab.id },
+    });
+    self.close();
 });
 
 /******************************************************************************/
@@ -283,56 +305,44 @@ async function init() {
 
     let url;
     try {
+        const strictBlockURL = runtime.getURL('/strictblock.');
         url = new URL(currentTab.url);
-        tabHostname = url.hostname || '';
-    } catch(ex) {
+        if ( url.href.startsWith(strictBlockURL) ) {
+            url = new URL(url.hash.slice(1));
+        }
+        tabURL.href = url.href || '';
+    } catch {
+        return false;
     }
 
     if ( url !== undefined ) {
         const response = await sendMessage({
             what: 'popupPanelData',
             origin: url.origin,
-            hostname: normalizedHostname(tabHostname),
+            hostname: tabURL.hostname,
         });
         if ( response instanceof Object ) {
             Object.assign(popupPanelData, response);
         }
     }
 
+    renderAdminRules();
+
     setFilteringMode(popupPanelData.level);
 
-    dom.text('#hostname', punycode.toUnicode(tabHostname));
+    dom.text('#hostname', punycode.toUnicode(tabURL.hostname));
 
-    const parent = qs$('#rulesetStats');
-    for ( const details of popupPanelData.rulesetDetails || [] ) {
-        const div = dom.clone('#templates .rulesetDetails');
-        qs$(div, 'h1').append(i18n.patchUnicodeFlags(details.name));
-        const { rules, filters, css } = details;
-        let ruleCount = rules.plain + rules.regex;
-        if ( popupPanelData.hasOmnipotence ) {
-            ruleCount += rules.removeparam + rules.redirect + rules.modifyHeaders;
-        }
-        let specificCount = 0;
-        if ( typeof css.specific === 'number' ) {
-            specificCount += css.specific;
-        }
-        if ( typeof css.declarative === 'number' ) {
-            specificCount += css.declarative;
-        }
-        if ( typeof css.procedural === 'number' ) {
-            specificCount += css.procedural;
-        }
-        dom.text(
-            qs$(div, 'p'),
-            i18n$('perRulesetStats')
-                .replace('{{ruleCount}}', ruleCount.toLocaleString())
-                .replace('{{filterCount}}', filters.accepted.toLocaleString())
-                .replace('{{cssSpecificCount}}', specificCount.toLocaleString())
-        );
-        parent.append(div);
-    }
+    dom.cl.toggle('#gotoMatchedRules', 'enabled',
+        popupPanelData.isSideloaded === true &&
+        popupPanelData.developerMode &&
+        typeof currentTab.id === 'number' &&
+        isNaN(currentTab.id) === false
+    );
 
-    dom.cl.remove(dom.body, 'loading');
+    const isHTTP = url.protocol === 'http:' || url.protocol === 'https:';
+    dom.cl.toggle(dom.root, 'isHTTP', isHTTP);
+
+    dom.cl.toggle('#gotoUnpicker', 'enabled', popupPanelData.hasCustomFilters);
 
     return true;
 }
@@ -340,8 +350,10 @@ async function init() {
 async function tryInit() {
     try {
         await init();
-    } catch(ex) {
+    } catch {
         setTimeout(tryInit, 100);
+    } finally {
+        dom.cl.remove(dom.body, 'loading', 'busy');
     }
 }
 

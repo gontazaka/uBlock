@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,17 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* globals browser */
-
-'use strict';
-
 /******************************************************************************/
-
-import logger from './logger.js';
-import { FilteringContext } from './filtering-context.js';
 
 import {
     domainFromHostname,
     hostnameFromURI,
     originFromURI,
 } from './uri-utils.js';
+
+import { FilteringContext } from './filtering-context.js';
+import logger from './logger.js';
+import { ubologSet } from './console.js';
 
 /******************************************************************************/
 
@@ -48,46 +45,57 @@ const hiddenSettingsDefault = {
     allowGenericProceduralFilters: false,
     assetFetchTimeout: 30,
     autoCommentFilterTemplate: '{{date}} {{origin}}',
-    autoUpdateAssetFetchPeriod: 60,
-    autoUpdateDelayAfterLaunch: 105,
-    autoUpdatePeriod: 2,
+    autoUpdateAssetFetchPeriod: 5,
+    autoUpdateDelayAfterLaunch: 37,
+    autoUpdatePeriod: 1,
     benchmarkDatasetURL: 'unset',
     blockingProfiles: '11111/#F00 11010/#C0F 11001/#00F 00001',
-    cacheStorageAPI: 'unset',
     cacheStorageCompression: true,
-    cacheControlForFirefox1376932: 'no-cache, no-store, must-revalidate',
+    cacheStorageCompressionThreshold: 65536,
+    cacheStorageMultithread: 2,
+    cacheControlForFirefox1376932: 'unset',
     cloudStorageCompression: true,
     cnameIgnoreList: 'unset',
     cnameIgnore1stParty: true,
     cnameIgnoreExceptions: true,
     cnameIgnoreRootDocument: true,
-    cnameMaxTTL: 120,
     cnameReplayFullURL: false,
-    cnameUncloakProxied: false,
     consoleLogLevel: 'unset',
     debugAssetsJson: false,
     debugScriptlets: false,
     debugScriptletInjector: false,
+    differentialUpdate: true,
     disableWebAssembly: false,
+    dnsCacheTTL: 600,
+    dnsResolveEnabled: true,
     extensionUpdateForceReload: false,
     filterAuthorMode: false,
-    filterOnHeaders: false,
     loggerPopupType: 'popup',
     manualUpdateAssetFetchPeriod: 500,
     modifyWebextFlavor: 'unset',
+    noScriptingCSP: 'script-src http: https:',
     popupFontSize: 'unset',
     popupPanelDisabledSections: 0,
-    popupPanelLockedSections: 0,
     popupPanelHeightMode: 0,
+    popupPanelLockedSections: 0,
+    popupPanelOrientation: 'unset',
     requestJournalProcessPeriod: 1000,
-    selfieAfter: 2,
+    requestStatsDisabled: false,
+    selfieDelayInSeconds: 53,
     strictBlockingBypassDuration: 120,
     toolbarWarningTimeout: 60,
+    trustedListPrefixes: 'ublock-',
     uiPopupConfig: 'unset',
     uiStyles: 'unset',
     updateAssetBypassBrowserCache: false,
     userResourcesLocation: 'unset',
 };
+
+if ( vAPI.webextFlavor.soup.has('devbuild') ) {
+    hiddenSettingsDefault.consoleLogLevel = 'info';
+    hiddenSettingsDefault.cacheStorageAPI = 'unset';
+    ubologSet(true);
+}
 
 const userSettingsDefault = {
     advancedUserEnabled: false,
@@ -104,7 +112,7 @@ const userSettingsDefault = {
     externalLists: '',
     firewallPaneMinimized: true,
     hyperlinkAuditingDisabled: true,
-    ignoreGenericCosmeticFilters: vAPI.webextFlavor.soup.has('mobile'),
+    ignoreGenericCosmeticFilters: false,
     importedLists: [],
     largeMediaSize: 50,
     parseAllABPHideFilters: true,
@@ -114,6 +122,7 @@ const userSettingsDefault = {
     showIconBadge: true,
     suspendUntilListsAreLoaded: vAPI.Net.canSuspend(),
     tooltipsDisabled: false,
+    userFiltersTrusted: false,
     webrtcIPAddressHidden: false,
 };
 
@@ -136,10 +145,12 @@ if ( vAPI.webextFlavor.soup.has('firefox') ) {
 }
 
 const µBlock = {  // jshint ignore:line
-    userSettingsDefault: userSettingsDefault,
+    alarmQueue: [],
+
+    userSettingsDefault,
     userSettings: Object.assign({}, userSettingsDefault),
 
-    hiddenSettingsDefault: hiddenSettingsDefault,
+    hiddenSettingsDefault,
     hiddenSettingsAdmin: {},
     hiddenSettings: Object.assign({}, hiddenSettingsDefault),
 
@@ -158,26 +169,19 @@ const µBlock = {  // jshint ignore:line
     netWhitelist: new Map(),
     netWhitelistModifyTime: 0,
     netWhitelistDefault: [
-        'about-scheme',
         'chrome-extension-scheme',
-        'chrome-scheme',
-        'edge-scheme',
         'moz-extension-scheme',
-        'opera-scheme',
-        'vivaldi-scheme',
-        'wyciwyg-scheme',   // Firefox's "What-You-Cache-Is-What-You-Get"
     ],
 
-    localSettings: {
-        blockedRequestCount: 0,
-        allowedRequestCount: 0,
+    requestStats: {
+        blockedCount: 0,
+        allowedCount: 0,
     },
-    localSettingsLastModified: 0,
 
     // Read-only
     systemSettings: {
-        compiledMagic: 56,  // Increase when compiled format changes
-        selfieMagic: 56,    // Increase when selfie format changes
+        compiledMagic: 72,  // Increase when compiled format changes
+        selfieMagic: 72,    // Increase when selfie format changes
     },
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/759#issuecomment-546654501
@@ -251,13 +255,17 @@ const µBlock = {  // jshint ignore:line
     scriptlets: {},
 
     cspNoInlineScript: "script-src 'unsafe-eval' * blob: data:",
-    cspNoScripting: 'script-src http: https:',
     cspNoInlineFont: 'font-src *',
 
     liveBlockingProfiles: [],
     blockingProfileColorCache: new Map(),
+    parsedTrustedListPrefixes: [],
     uiAccentStylesheet: '',
 };
+
+µBlock.isReadyPromise = new Promise(resolve => {
+    µBlock.isReadyResolve = resolve;
+});
 
 µBlock.domainFromHostname = domainFromHostname;
 µBlock.hostnameFromURI = hostnameFromURI;
@@ -296,9 +304,9 @@ const µBlock = {  // jshint ignore:line
         }
         this.fromTabId(tabId); // Must be called AFTER tab context management
         this.realm = '';
-        this.id = details.requestId;
         this.setMethod(details.method);
         this.setURL(details.url);
+        this.setIPAddress(details.ip);
         this.aliasURL = details.aliasURL || undefined;
         this.redirectURL = undefined;
         this.filter = undefined;
@@ -339,7 +347,7 @@ const µBlock = {  // jshint ignore:line
             this.setDocOrigin(origin).setTabOrigin(origin);
             return this;
         }
-        const origin = (this.itype & this.FRAME_ANY) !== 0
+        const origin = this.isDocument()
             ? originFromURI(this.url)
             : this.tabOrigin;
         this.setDocOrigin(origin).setTabOrigin(origin);
@@ -358,8 +366,7 @@ const µBlock = {  // jshint ignore:line
 
     toLogger() {
         const details = {
-            id: this.id,
-            tstamp: Date.now(),
+            tstamp: 0,
             realm: this.realm,
             method: this.getMethodName(),
             type: this.stype,

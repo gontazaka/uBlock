@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2015-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,6 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
 /******************************************************************************/
 
 (( ) => {
@@ -28,12 +26,8 @@
 
 /******************************************************************************/
 
-if (
-    typeof vAPI !== 'object' ||
-    vAPI.domWatcher instanceof Object === false
-) {
-    return;
-}
+if ( typeof vAPI !== 'object' ) { return; }
+if ( vAPI.domWatcher instanceof Object === false ) { return; }
 
 const reHasCSSCombinators = /[ >+~]/;
 const simpleDeclarativeSet = new Set();
@@ -51,40 +45,40 @@ const loggedSelectors = new Set();
 
 const rePseudoElements = /:(?::?after|:?before|:[a-z-]+)$/;
 
-const hasSelector = function(selector, context = document) {
+function hasSelector(selector, context = document) {
     try {
         return context.querySelector(selector) !== null;
     }
-    catch(ex) {
+    catch {
     }
     return false;
-};
+}
 
-const safeMatchSelector = function(selector, context) {
+function safeMatchSelector(selector, context) {
     const safeSelector = rePseudoElements.test(selector)
         ? selector.replace(rePseudoElements, '')
         : selector;
     try {
         return context.matches(safeSelector);
     }
-    catch(ex) {
+    catch {
     }
     return false;
-};
+}
 
-const safeQuerySelector = function(selector, context = document) {
+function safeQuerySelector(selector, context = document) {
     const safeSelector = rePseudoElements.test(selector)
         ? selector.replace(rePseudoElements, '')
         : selector;
     try {
         return context.querySelector(safeSelector);
     }
-    catch(ex) {
+    catch {
     }
     return null;
-};
+}
 
-const safeGroupSelectors = function(selectors) {
+function safeGroupSelectors(selectors) {
     const arr = Array.isArray(selectors)
         ? selectors
         : Array.from(selectors);
@@ -93,11 +87,11 @@ const safeGroupSelectors = function(selectors) {
             ? s.replace(rePseudoElements, '')
             : s;
     }).join(',\n');
-};
+}
 
 /******************************************************************************/
 
-const processDeclarativeSimple = function(node, out) {
+function processDeclarativeSimple(node, out) {
     if ( simpleDeclarativeSet.size === 0 ) { return; }
     if ( simpleDeclarativeStr === undefined ) {
         simpleDeclarativeStr = safeGroupSelectors(simpleDeclarativeSet);
@@ -120,11 +114,11 @@ const processDeclarativeSimple = function(node, out) {
         simpleDeclarativeStr = undefined;
         loggedSelectors.add(selector);
     }
-};
+}
 
 /******************************************************************************/
 
-const processDeclarativeComplex = function(out) {
+function processDeclarativeComplex(out) {
     if ( complexDeclarativeSet.size === 0 ) { return; }
     if ( complexDeclarativeStr === undefined ) {
         complexDeclarativeStr = safeGroupSelectors(complexDeclarativeSet);
@@ -137,7 +131,7 @@ const processDeclarativeComplex = function(out) {
         complexDeclarativeStr = undefined;
         loggedSelectors.add(selector);
     }
-};
+}
 
 /******************************************************************************/
 
@@ -156,7 +150,7 @@ function processProcedural(out) {
 
 /******************************************************************************/
 
-const processExceptions = function(out) {
+function processExceptions(out) {
     if ( exceptionDict.size === 0 ) { return; }
     if ( exceptionStr === undefined ) {
         exceptionStr = safeGroupSelectors(exceptionDict.keys());
@@ -169,18 +163,18 @@ const processExceptions = function(out) {
         exceptionStr = undefined;
         loggedSelectors.add(raw);
     }
-};
+}
 
 /******************************************************************************/
 
-const processProceduralExceptions = function(out) {
+function processProceduralExceptions(out) {
     if ( proceduralExceptionDict.size === 0 ) { return; }
     for ( const exception of proceduralExceptionDict.values() ) {
         if ( exception.test() === false ) { continue; }
         out.push(`#@#${exception.raw}`);
         proceduralExceptionDict.delete(exception.raw);
     }
-};
+}
 
 /******************************************************************************/
 
@@ -313,9 +307,22 @@ const handlers = {
     }
 };
 
+vAPI.domWatcher.addListener(handlers);
+
 /******************************************************************************/
 
-const shutdown = function() {
+const broadcastHandler = msg => {
+    if ( msg.what === 'loggerDisabled' ) {
+        shutdown();
+    }
+};
+
+browser.runtime.onMessage.addListener(broadcastHandler);
+
+/******************************************************************************/
+
+function shutdown() {
+    browser.runtime.onMessage.removeListener(broadcastHandler);
     processTimer.clear();
     attributeObserver.disconnect();
     if ( typeof vAPI !== 'object' ) { return; }
@@ -325,29 +332,7 @@ const shutdown = function() {
     if ( vAPI.domWatcher instanceof Object ) {
         vAPI.domWatcher.removeListener(handlers);
     }
-    if ( vAPI.broadcastListener instanceof Object ) {
-        vAPI.broadcastListener.remove(broadcastListener);
-    }
-};
-
-/******************************************************************************/
-
-const broadcastListener = msg => {
-    if ( msg.what === 'loggerDisabled' ) {
-        shutdown();
-    }
-};
-
-/******************************************************************************/
-
-vAPI.messaging.extend().then(extended => {
-    if ( extended !== true ) {
-        return shutdown();
-    }
-    vAPI.broadcastListener.add(broadcastListener);
-});
-
-vAPI.domWatcher.addListener(handlers);
+}
 
 /******************************************************************************/
 

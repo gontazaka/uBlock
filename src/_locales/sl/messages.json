@@ -16,7 +16,7 @@
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
-    "message": "Ostani",
+    "message": "Ostani tu",
     "description": "Label for button to prevent navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningIgnore": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "Zlonamerne domene",
+    "message": "Zaščita pred zlonamerno programsko opremo, varnost",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "Social widgets",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Cookie notices",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -527,17 +535,25 @@
     "message": "Omrežna napaka je preprečila posodobitev virov.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "En filter na vrstico. Filter je lahko navadno ime gostitelja, ali pa Adblock Plus kompatibilen filter. Vrstice z znakom &lsquo;!&rsquo; bodo ignorirane.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Do not add filters from untrusted sources.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Enable my custom filters",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Allow custom filters requiring trust",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
     "message": "Uvozi in dodaj",
-    "description": "English: Import and append"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "Izvozi",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "moji-ublock-staticni-filtri_{{datetime}}.txt",
@@ -581,7 +597,7 @@
   },
   "rulesExport": {
     "message": "Izvozi v datoteko",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "moji-ublock-dinamicna-pravila_{{datetime}}.txt",
@@ -617,11 +633,11 @@
   },
   "whitelistImport": {
     "message": "Uvozi in dodaj",
-    "description": "English: Import and append"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "Izvozi",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "moj-ublock-seznam-dovoljenih_{{datetime}}.txt",
@@ -881,11 +897,11 @@
   },
   "supportOpenButton": {
     "message": "Odpri",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
     "message": "Ustvari novo poročilo",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
     "message": "Najdi podobna poročila",
@@ -939,10 +955,6 @@
     "message": "Below is technical information that might be useful when volunteers are trying to help you solve a problem.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Important:</b> Potentially private or sensitive information is redacted by default. Redacted information may make it more difficult to solve a problem.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Prijavi napako filtra",
     "description": "Header of 'Report a filter issue' section in Support pane"
@@ -956,7 +968,7 @@
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S2": {
-    "message": "Verify that the issue still exists after reloading the problematic webpage.",
+    "message": "Verify that the issue still exists after reloading the problematic web page.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6URL": {
@@ -995,17 +1007,13 @@
     "message": "Opens unwanted tabs or windows",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Leads to badware, phishing",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Label the web page as “NSFW” (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">“Not Safe For Work”</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Redact",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Unredact",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Pravilnik o zasebnosti",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "Ne morem se povezati do {{url}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "uBlock₀: Dodam sledeči URL na listo lastnih filtrov?\n\nNaslov: \"{{title}}\"\nURL: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "Naročite se",
@@ -1171,6 +1175,26 @@
     "message": "Proceed",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "The blocked page wants to redirect to another site. If you choose to proceed, you will navigate directly to: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Reason:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Malicious",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Tracker",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Disreputable",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "Izvozi v shrambe oblaka",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Preklopi lepotno filtriranje",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Toggle JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Sprostite način blokiranja.",

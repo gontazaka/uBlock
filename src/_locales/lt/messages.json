@@ -16,7 +16,7 @@
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
-    "message": "Pasilikti",
+    "message": "Pasilikti čia",
     "description": "Label for button to prevent navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningIgnore": {
@@ -128,7 +128,7 @@
     "description": "Tooltip used for the logger icon in the panel"
   },
   "popupTipReport": {
-    "message": "Report an issue on this website",
+    "message": "Pranešti apie problemą šioje svetainėje",
     "description": "Tooltip used for the 'chat' icon in the panel"
   },
   "popupTipNoPopups": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Vietinės taisyklės: ši skiltis skirta dabartiniam puslapiui taikomoms taisyklėms.\nVietinės taisyklės nustelbia globalias.",
+    "message": "Vietinės taisyklės: ši skiltis skirta dabartiniam puslapiui taikomoms taisyklėms.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -276,7 +276,7 @@
     "description": "Example of use: Version 1.26.4"
   },
   "popup3pScriptFilter": {
-    "message": "script",
+    "message": "Skriptas",
     "description": "Appears as an option to filter out firewall rows"
   },
   "popup3pFrameFilter": {
@@ -336,7 +336,7 @@
     "description": "English: Color-blind friendly"
   },
   "settingsAppearance": {
-    "message": "Appearance",
+    "message": "Išvaizda",
     "description": "Section for controlling user interface appearance"
   },
   "settingsThemeLabel": {
@@ -400,7 +400,7 @@
     "description": "background information: https://github.com/uBlockOrigin/uBlock-issues/issues/1513"
   },
   "settingsAdvanced": {
-    "message": "Advanced",
+    "message": "Papildomi nustatymai",
     "description": "Section for controlling advanced-user settings"
   },
   "settingsAdvancedSynopsis": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "Kenksmingos sritys",
+    "message": "Apsauga nuo kenkėjiškų programų, saugumas",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "Social widgets",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Cookie notices",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -527,17 +535,25 @@
     "message": "Tinklo klaida sutrukdė atnaujinti resursą.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Vienas filtras eilutėje. Filtras gali būti paprastas serverio adresas, arba su Adblock Plus suderinamas filtras. Eilutės pradėtos <code>!</code> bus ignoruotos.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Do not add filters from untrusted sources.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Enable my custom filters",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Allow custom filters requiring trust",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
     "message": "Importuoti ir papildyti",
-    "description": "English: Import and append"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "Eksportuoti",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "mano-ublock-statiniai-filtrai_{{datetime}}.txt",
@@ -581,7 +597,7 @@
   },
   "rulesExport": {
     "message": "Eksportuoti į failą",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "mano-ublock-dinaminės-taisyklės_{{datetime}}.txt",
@@ -617,11 +633,11 @@
   },
   "whitelistImport": {
     "message": "Importuoti ir papildyti",
-    "description": "English: Import and append"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "Eksportuoti",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "mano-ublock-išimtys_{{datetime}}.txt",
@@ -880,15 +896,15 @@
     "description": "Label for radio-button to pick export text format"
   },
   "supportOpenButton": {
-    "message": "Open",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "Atidaryti",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
-    "message": "Create new report",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "Sukurti naują ataskaitą",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
-    "message": "Find similar reports",
+    "message": "Rasti panašias ataskaitas",
     "description": "A clickable link in the filter issue reporter section"
   },
   "supportS1H": {
@@ -900,7 +916,7 @@
     "description": "First paragraph of 'Documentation' section in Support pane"
   },
   "supportS2H": {
-    "message": "Questions and support",
+    "message": "Klausimai ir pagalba",
     "description": "Header of 'Questions and support' section in Support pane"
   },
   "supportS2P1": {
@@ -924,7 +940,7 @@
     "description": "Third paragraph of 'Filter issues' section in Support pane"
   },
   "supportS4H": {
-    "message": "Bug report",
+    "message": "Klaidos pranešimas",
     "description": "Header of 'Bug report' section in Support pane"
   },
   "supportS4P1": {
@@ -939,16 +955,12 @@
     "message": "Below is technical information that might be useful when volunteers are trying to help you solve a problem.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Important:</b> Potentially private or sensitive information is redacted by default. Redacted information may make it more difficult to solve a problem.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Report a filter issue",
     "description": "Header of 'Report a filter issue' section in Support pane"
   },
   "supportS6P1S1": {
-    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported.",
+    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported. <b>Note:</b> clicking the button will cause the page's origin to be sent to GitHub.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
@@ -956,7 +968,7 @@
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S2": {
-    "message": "Verify that the issue still exists after reloading the problematic webpage.",
+    "message": "Verify that the issue still exists after reloading the problematic web page.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6URL": {
@@ -995,17 +1007,13 @@
     "message": "Opens unwanted tabs or windows",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Leads to badware, phishing",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Label the web page as “NSFW” (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">“Not Safe For Work”</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Redact",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Unredact",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Privatumo politika",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "Tinklo klaida: {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "uBlock₀: Pridėti šį URL į jūsų adaptuotų filtrų sąrašą?\n\nPavadinimas: „{{title}}“\nURL: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "Prenumeruoti",
@@ -1168,8 +1172,28 @@
     "description": "English: Permanently"
   },
   "docblockedDisable": {
-    "message": "Proceed",
+    "message": "Tęsti",
     "description": "Button text to navigate to the blocked page"
+  },
+  "docblockedRedirectPrompt": {
+    "message": "The blocked page wants to redirect to another site. If you choose to proceed, you will navigate directly to: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Reason:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Malicious",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Tracker",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Disreputable",
+    "description": "An actual reason why a page was blocked"
   },
   "cloudPush": {
     "message": "Eksportuoti į nuotolinę saugyklą",
@@ -1240,12 +1264,16 @@
     "description": "Label for buttons used to copy something to the clipboard"
   },
   "genericSelectAll": {
-    "message": "Select all",
+    "message": "Žymėti viską",
     "description": "Label for buttons used to select all text in editor"
   },
   "toggleCosmeticFiltering": {
     "message": "Toggle cosmetic filtering",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Toggle JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Relax blocking mode",
@@ -1272,7 +1300,7 @@
     "description": "Message used in frame placeholders"
   },
   "linterMainReport": {
-    "message": "Errors: {{count}}",
+    "message": "Klaidos: {{count}}",
     "description": "Summary of number of errors as reported by the linter "
   },
   "unprocessedRequestTooltip": {

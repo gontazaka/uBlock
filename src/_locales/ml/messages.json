@@ -16,7 +16,7 @@
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
-    "message": "താമസിക്കുക",
+    "message": "ഇവിടെ തുടരുക",
     "description": "Label for button to prevent navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningIgnore": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "പ്രാദേശിക നിയമങ്ങൾ: ഈ കോളത്തിലെ നിയമങ്ങൾ നിലവിലെ സൈറ്റിലെ മാത്രം പ്രയോഗിക്കുന്ന.\nപ്രാദേശിക നിയമങ്ങൾ ആഗോള നിയമങ്ങൾ അതിലംഘിച്ച് പ്രവർത്തിക്കുന്നതായിരിക്കും.",
+    "message": "പ്രാദേശിക നിയമങ്ങൾ: ഈ കോളത്തിലെ നിയമങ്ങൾ നിലവിലെ സൈറ്റിലെ മാത്രം പ്രയോഗിക്കുന്ന.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -400,7 +400,7 @@
     "description": "background information: https://github.com/uBlockOrigin/uBlock-issues/issues/1513"
   },
   "settingsAdvanced": {
-    "message": "Advanced",
+    "message": "വിപുലമായ ക്രമീകരണങ്ങൾ",
     "description": "Section for controlling advanced-user settings"
   },
   "settingsAdvancedSynopsis": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "മാല്‍വെയര്‍ ഡൊമൈനുകള്‍",
+    "message": "മാൽവെയർ സംരക്ഷണം, സുരക്ഷ",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "Social widgets",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Cookie notices",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -520,24 +528,32 @@
     "description": "used as a tooltip for the clock icon beside a list"
   },
   "3pUpdating": {
-    "message": "അപ്‌ഡേറ്റുചെയ്യുന്നു ...",
+    "message": "അപ്‌ഡേറ്റുചെയ്യുന്നു...",
     "description": "used as a tooltip for the spinner icon beside a list"
   },
   "3pNetworkError": {
     "message": "ഒരു നെറ്റ്‌വർക്ക് പിശക് ഉറവിടം അപ്‌ഡേറ്റുചെയ്യുന്നതിൽ നിന്ന് തടഞ്ഞു.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "ഒരു വരിയില്‍ ഒരു ഫില്‍റ്റര്‍ എന്ന രീതിയില്‍. ഒരു ഫില്‍റ്റര്‍ എന്നത്, ഹോസ്റ്റ് നെയിം, അല്ലെങ്കില്‍ ആഡ് ബ്ലോക്ക് പ്ലസ്‌-നോട്‌ കംപാറ്റബിള്‍ ആയ ഫില്‍റ്റര്‍ എന്നിവ ആകാം. &lsquo;!&rsquo; എന്നിവയില്‍ ആരംഭിക്കുന്ന വരികള്‍ ഇഗ്നോര്‍ ചെയ്യപ്പെടും.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Do not add filters from untrusted sources.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Enable my custom filters",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Allow custom filters requiring trust",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
     "message": "ഇമ്പോര്‍ട്ടും കൂട്ടിചേര്‍ക്കലും ചെയ്യുക",
-    "description": "English: Import and append"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "എക്സ്പോര്‍ട്ട്‌",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "എന്‍റെ-യുബ്ലോക്ക്-സ്റ്റാറ്റിക്ക്-ഫില്‍ട്ടറുകള്‍_{{datetime}}.txt",
@@ -581,7 +597,7 @@
   },
   "rulesExport": {
     "message": "ഫയലിലേക്ക് എക്സ്പോര്‍ട്ട്‌ ചെയ്യുക",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "എന്‍റെ-യുബ്ലോക്ക്-ഡൈനാമിക്-നിയമങ്ങള്‍_{{datetime}}.txt",
@@ -617,11 +633,11 @@
   },
   "whitelistImport": {
     "message": "ഇമ്പോര്‍ട്ടും കൂട്ടിചേര്‍ക്കലും ചെയ്യുക",
-    "description": "English: Import and append"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "എക്സ്പോര്‍ട്ട്‌",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "എന്‍റെ-യുബ്ലോക്ക്-വൈറ്റ്ലിസ്റ്റ്_{{datetime}}.txt",
@@ -880,12 +896,12 @@
     "description": "Label for radio-button to pick export text format"
   },
   "supportOpenButton": {
-    "message": "Open",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "തുറക്കുക",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
     "message": "പുതിയ റിപ്പോർട്ട് നിർമ്മിക്കുക",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
     "message": "സമാനമായ റിപോർട്ടുകൾ കാണുക",
@@ -939,16 +955,12 @@
     "message": "Below is technical information that might be useful when volunteers are trying to help you solve a problem.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Important:</b> Potentially private or sensitive information is redacted by default. Redacted information may make it more difficult to solve a problem.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Report a filter issue",
     "description": "Header of 'Report a filter issue' section in Support pane"
   },
   "supportS6P1S1": {
-    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported.",
+    "message": "To avoid burdening volunteers with duplicate reports, please verify that the issue has not already been reported. <b>Note:</b> clicking the button will cause the page's origin to be sent to GitHub.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
@@ -956,7 +968,7 @@
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S2": {
-    "message": "Verify that the issue still exists after reloading the problematic webpage.",
+    "message": "Verify that the issue still exists after reloading the problematic web page.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6URL": {
@@ -995,17 +1007,13 @@
     "message": "Opens unwanted tabs or windows",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "Leads to badware, phishing",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Label the web page as “NSFW” (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">“Not Safe For Work”</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Redact",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Unredact",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "സ്വകാര്യതാ നയം",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "{{url}} എന്നതിലേക്ക് കണക്റ്റ് ചെയ്യാനാകുന്നില്ല",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "യുബ്ലോക്ക്ഒ: താഴെ പറയുന്ന യുആര്‍എല്‍ താങ്കളുടെ കസ്റ്റം ഫില്‍റ്ററില്‍ ചേര്‍ക്കട്ടേയോ?\n\nടൈറ്റില്‍: \"{{title}}\"\nയുആര്‍എല്‍: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "സബ്‌സ്‌ക്രൈബുചെയ്യുക",
@@ -1171,6 +1175,26 @@
     "message": "Proceed",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "The blocked page wants to redirect to another site. If you choose to proceed, you will navigate directly to: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Reason:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Malicious",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Tracker",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Disreputable",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "ക്ലൌഡ് സ്റ്റോറേജിലേക്ക് എക്സ്പോര്‍ട്ട്‌ ചെയ്യുക",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Toggle cosmetic filtering",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Toggle JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "തടയൽ മോഡ് വിശ്രമിക്കുക",

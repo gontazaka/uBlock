@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2020-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -18,8 +18,6 @@
 
     Home: https://github.com/gorhill/uBlock
 */
-
-'use strict';
 
 /******************************************************************************/
 
@@ -43,7 +41,7 @@ if (
         let reSearch;
         try {
             reSearch = new RegExp(details.pattern, details.flags);
-        } catch(ex) {
+        } catch {
             return;
         }
 
@@ -88,9 +86,12 @@ if (
             content = msg.content;
             break;
 
-        case 'doSearch':
+        case 'doSearch': {
             const response = doSearch(msg);
             self.postMessage({ id: msg.id, response });
+            break;
+        }
+        default:
             break;
         }
     };

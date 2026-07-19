@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin Lite - a comprehensive, MV3-compliant content blocker
     Copyright (C) 2019-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,30 +19,16 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* jshint esversion:11 */
-
-'use strict';
-
-// ruleset: $rulesetId$
-
-/******************************************************************************/
-
 // Important!
 // Isolate from global scope
 (function uBOL_cssSpecificImports() {
 
 /******************************************************************************/
 
-const argsList = self.$argsList$;
-
-const hostnamesMap = new Map(self.$hostnamesMap$);
-
-const entitiesMap = new Map(self.$entitiesMap$);
-
-const exceptionsMap = new Map(self.$exceptionsMap$);
+const rulesetId = self.$rulesetId$;
 
 self.specificImports = self.specificImports || [];
-self.specificImports.push({ argsList, hostnamesMap, entitiesMap, exceptionsMap });
+self.specificImports.push(rulesetId);
 
 /******************************************************************************/
 

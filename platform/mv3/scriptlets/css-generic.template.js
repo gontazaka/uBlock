@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin Lite - a comprehensive, MV3-compliant content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,42 +19,22 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* jshint esversion:11 */
-
-'use strict';
-
-/******************************************************************************/
+// $rulesetId$
 
 // Important!
 // Isolate from global scope
 (function uBOL_cssGenericImport() {
 
-/******************************************************************************/
+const lowlyGeneric = new Map(self.$lowlyGeneric$);
+const highlyGeneric = self.$highlyGeneric$;
+const exceptions = self.$exceptions$;
+const hostnames = self.$hostnames$;
+const hasEntities = self.$hasEntities$;
 
-// $rulesetId$
-
-const toImport = self.$genericSelectorMap$;
-
-const genericSelectorMap = self.genericSelectorMap || new Map();
-
-if ( genericSelectorMap.size === 0 ) {
-    self.genericSelectorMap = new Map(toImport);
-    return;
-}
-
-for ( const toImportEntry of toImport ) {
-    const existing = genericSelectorMap.get(toImportEntry[0]);
-    genericSelectorMap.set(
-        toImportEntry[0],
-        existing === undefined
-            ? toImportEntry[1]
-            : `${existing},${toImportEntry[1]}`
-    );
-}
-
-self.genericSelectorMap = genericSelectorMap;
-
-/******************************************************************************/
+self.genericSelectorMaps = self.genericSelectorMaps ?? [];
+self.genericSelectorMaps.push(lowlyGeneric);
+self.genericDetails = self.genericDetails ?? [];
+self.genericDetails.push({ highlyGeneric, exceptions, hostnames, hasEntities });
 
 })();
 

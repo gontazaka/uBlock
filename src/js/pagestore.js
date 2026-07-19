@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,13 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-'use strict';
-
 /******************************************************************************/
 
-import contextMenu from './contextmenu.js';
-import logger from './logger.js';
-import staticNetFilteringEngine from './static-net-filtering.js';
-import µb from './background.js';
-import webext from './webext.js';
-import { orphanizeString } from './text-utils.js';
-import { redirectEngine } from './redirect-engine.js';
+import {
+    domainFromHostname,
+    hostnameFromURI,
+    isNetworkURI,
+} from './uri-utils.js';
 
 import {
     sessionFirewall,
@@ -37,11 +33,13 @@ import {
     sessionURLFiltering,
 } from './filtering-engines.js';
 
-import {
-    domainFromHostname,
-    hostnameFromURI,
-    isNetworkURI,
-} from './uri-utils.js';
+import contextMenu from './contextmenu.js';
+import logger from './logger.js';
+import { orphanizeString } from './text-utils.js';
+import { redirectEngine } from './redirect-engine.js';
+import staticNetFilteringEngine from './static-net-filtering.js';
+import webext from './webext.js';
+import µb from './background.js';
 
 /*******************************************************************************
 
@@ -55,6 +53,9 @@ To create a log of net requests
 /******************************************************************************/
 
 const NetFilteringResultCache = class {
+    shelfLife = 15000;
+    extensionOriginURL = vAPI.getURL('/');
+
     constructor() {
         this.pruneTimer = vAPI.defer.create(( ) => {
             this.prune();
@@ -174,9 +175,6 @@ const NetFilteringResultCache = class {
     }
 };
 
-NetFilteringResultCache.prototype.shelfLife = 15000;
-NetFilteringResultCache.prototype.extensionOriginURL = vAPI.getURL('/');
-
 /******************************************************************************/
 
 // Frame stores are used solely to associate a URL with a frame id.
@@ -224,20 +222,18 @@ const FrameStore = class {
             return this._cosmeticFilteringBits;
         }
         this._cosmeticFilteringBits = 0b11;
+        const fctxt = µb.filteringContext
+            .duplicate()
+            .fromTabId(tabId)
+            .setURL(this.rawURL)
+            .setDocOriginFromURL(this.rawURL)
+            .setMethod('')
+            .setRealm('network')
         {
-            const result = staticNetFilteringEngine.matchRequestReverse(
-                'specifichide',
-                this.rawURL
-            );
+            fctxt.setType('specifichide');
+            const result = staticNetFilteringEngine.matchRequest(fctxt, 0b11);
             if ( result !== 0 && logger.enabled ) {
-                µb.filteringContext
-                    .duplicate()
-                    .fromTabId(tabId)
-                    .setURL(this.rawURL)
-                    .setDocOriginFromURL(this.rawURL)
-                    .setRealm('network')
-                    .setType('specifichide')
-                    .setFilter(staticNetFilteringEngine.toLogData())
+                fctxt.setFilter(staticNetFilteringEngine.toLogData())
                     .toLogger();
             }
             if ( result === 2 ) {
@@ -245,19 +241,10 @@ const FrameStore = class {
             }
         }
         {
-            const result = staticNetFilteringEngine.matchRequestReverse(
-                'generichide',
-                this.rawURL
-            );
+            fctxt.setType('generichide');
+            const result = staticNetFilteringEngine.matchRequest(fctxt, 0b11);
             if ( result !== 0 && logger.enabled ) {
-                µb.filteringContext
-                    .duplicate()
-                    .fromTabId(tabId)
-                    .setURL(this.rawURL)
-                    .setDocOriginFromURL(this.rawURL)
-                    .setRealm('network')
-                    .setType('generichide')
-                    .setFilter(staticNetFilteringEngine.toLogData())
+                fctxt.setFilter(staticNetFilteringEngine.toLogData())
                     .toLogger();
             }
             if ( result === 2 ) {
@@ -276,17 +263,15 @@ const FrameStore = class {
     }
 
     static factory(frameURL, parentId = -1) {
-        const entry = FrameStore.junkyard.pop();
-        if ( entry === undefined ) {
-            return new FrameStore(frameURL, parentId);
+        const FS = FrameStore;
+        if ( FS.junkyard.length !== 0 ) {
+            return FS.junkyard.pop().init(frameURL, parentId);
         }
-        return entry.init(frameURL, parentId);
+        return new FS(frameURL, parentId);
     }
+    static junkyard = [];
+    static junkyardMax = 50;
 };
-
-// To mitigate memory churning
-FrameStore.junkyard = [];
-FrameStore.junkyardMax = 50;
 
 /******************************************************************************/
 
@@ -314,18 +299,25 @@ const HostnameDetails = class {
     }
     init(hostname) {
         this.hostname = hostname;
+        this.cname = vAPI.net.canonicalNameFromHostname(hostname);
         this.counts.reset();
+        return this;
     }
     dispose() {
-        this.hostname = '';
-        if ( HostnameDetails.junkyard.length < HostnameDetails.junkyardMax ) {
-            HostnameDetails.junkyard.push(this);
-        }
+        const HD = HostnameDetails;
+        if ( HD.junkyard.length >= HD.junkyardMax ) { return; }
+        HD.junkyard.push(this);
     }
+    static factory(hostname) {
+        const HD = HostnameDetails;
+        if ( HD.junkyard.length !== 0 ) {
+            return HD.junkyard.pop().init(hostname);
+        }
+        return new HD(hostname);
+    }
+    static junkyard = [];
+    static junkyardMax = 100;
 };
-
-HostnameDetails.junkyard = [];
-HostnameDetails.junkyardMax = 100;
 
 const HostnameDetailsMap = class extends Map {
     reset() {
@@ -379,11 +371,13 @@ const PageStore = class {
 
         // If we are navigating from-to same site, remember whether large
         // media elements were temporarily allowed.
-        if (
-            typeof this.allowLargeMediaElementsUntil !== 'number' ||
-            tabContext.rootHostname !== this.tabHostname
-        ) {
-            this.allowLargeMediaElementsUntil = Date.now();
+        const now = Date.now();
+        if ( typeof this.allowLargeMediaElementsUntil !== 'number' ) {
+            this.allowLargeMediaElementsUntil = now;
+        } else if ( tabContext.rootHostname !== this.tabHostname ) {
+            if ( this.tabHostname.endsWith('about-scheme') === false ) {
+                this.allowLargeMediaElementsUntil = now;
+            }
         }
 
         this.tabHostname = tabContext.rootHostname;
@@ -530,6 +524,21 @@ const PageStore = class {
         return sender.frameURL;
     }
 
+    getFrameAncestorDetails(frameId) {
+        if ( frameId === 0 ) { return []; }
+        const out = [];
+        for (;;) {
+            const frameStore = this.getFrameStore(frameId);
+            if ( frameStore === null ) { break; }
+            const { domain, hostname } = frameStore;
+            if ( hostname !== undefined ) {
+                out.push({ domain, hostname });
+            }
+            frameId = frameStore.parentId;
+        }
+        return out.slice(1);
+    }
+
     // There is no event to tell us a specific subframe has been removed from
     // the main document. The code below will remove subframes which are no
     // longer present in the root document. Removing obsolete subframes is
@@ -544,7 +553,7 @@ const PageStore = class {
             entries = await webext.webNavigation.getAllFrames({
                 tabId: this.tabId
             });
-        } catch(ex) {
+        } catch {
         }
         if ( Array.isArray(entries) === false ) { return; }
         const toKeep = new Set();
@@ -622,7 +631,7 @@ const PageStore = class {
         ) {
             this.hostnameDetailsMap.set(
                 this.tabHostname,
-                new HostnameDetails(this.tabHostname)
+                HostnameDetails.factory(this.tabHostname)
             );
         }
         return this.hostnameDetailsMap;
@@ -700,7 +709,7 @@ const PageStore = class {
             const hostname = journal[i+0];
             let hnDetails = this.hostnameDetailsMap.get(hostname);
             if ( hnDetails === undefined ) {
-                hnDetails = new HostnameDetails(hostname);
+                hnDetails = HostnameDetails.factory(hostname);
                 this.hostnameDetailsMap.set(hostname, hnDetails);
                 this.contentLastModified = now;
             }
@@ -739,10 +748,8 @@ const PageStore = class {
                 aggregateAllowed += 1;
             }
         }
-        if ( aggregateAllowed !== 0 || aggregateBlocked !== 0 ) {
-            µb.localSettings.blockedRequestCount += aggregateBlocked;
-            µb.localSettings.allowedRequestCount += aggregateAllowed;
-            µb.localSettingsLastModified = now;
+        if ( aggregateAllowed || aggregateBlocked ) {
+            µb.incrementRequestStats(aggregateBlocked, aggregateAllowed);
         }
         journal.length = 0;
     }
@@ -860,7 +867,7 @@ const PageStore = class {
         if ( (fctxt.itype & fctxt.INLINE_ANY) === 0 ) {
             if ( result === 1 ) {
                 this.redirectBlockedRequest(fctxt);
-            } else if ( snfe.hasQuery(fctxt) ) {
+            } else {
                 this.redirectNonBlockedRequest(fctxt);
             }
         }
@@ -874,12 +881,12 @@ const PageStore = class {
         return result;
     }
 
-    filterOnHeaders(fctxt, headers) {
+    filterOnHeaders(fctxt, ...headers) {
         fctxt.filter = undefined;
 
         if ( this.getNetFilteringSwitch(fctxt) === false ) { return 0; }
 
-        let result = staticNetFilteringEngine.matchHeaders(fctxt, headers);
+        let result = staticNetFilteringEngine.matchHeaders(fctxt, ...headers);
         if ( result === 0 ) { return 0; }
 
         const loggerEnabled = logger.enabled;
@@ -922,24 +929,42 @@ const PageStore = class {
     }
 
     redirectBlockedRequest(fctxt) {
-        const directives = staticNetFilteringEngine.redirectRequest(
-            redirectEngine,
-            fctxt
-        );
-        if ( directives === undefined ) { return; }
+        const directives = staticNetFilteringEngine.redirectRequest(redirectEngine, fctxt) || [];
+        if ( this.urlSkippableResources.has(fctxt.itype) ) {
+            staticNetFilteringEngine.urlSkip(fctxt, true, directives);
+        }
+        if ( directives.length === 0 ) { return; }
         if ( logger.enabled !== true ) { return; }
         fctxt.pushFilters(directives.map(a => a.logData()));
         if ( fctxt.redirectURL === undefined ) { return; }
         fctxt.pushFilter({
             source: 'redirect',
-            raw: redirectEngine.resourceNameRegister
+            raw: directives[directives.length-1].value
         });
     }
 
     redirectNonBlockedRequest(fctxt) {
-        const directives = staticNetFilteringEngine.filterQuery(fctxt);
-        if ( directives === undefined ) { return; }
+        const directives = [];
+        staticNetFilteringEngine.transformURL(fctxt, directives);
+        if ( staticNetFilteringEngine.hasQuery(fctxt) ) {
+            staticNetFilteringEngine.filterQuery(fctxt, directives);
+        }
+        if ( this.urlSkippableResources.has(fctxt.itype) ) {
+            staticNetFilteringEngine.urlSkip(fctxt, false, directives);
+        }
+        if ( directives.length === 0 ) { return; }
         if ( logger.enabled !== true ) { return; }
+        fctxt.pushFilters(directives.map(a => a.logData()));
+        if ( fctxt.redirectURL === undefined ) { return; }
+        fctxt.pushFilter({
+            source: 'redirect',
+            raw: fctxt.redirectURL
+        });
+    }
+
+    skipMainDocument(fctxt, blocked) {
+        const directives = staticNetFilteringEngine.urlSkip(fctxt, blocked);
+        if ( directives === undefined ) { return; }
         fctxt.pushFilters(directives.map(a => a.logData()));
         if ( fctxt.redirectURL === undefined ) { return; }
         fctxt.pushFilter({
@@ -1002,10 +1027,29 @@ const PageStore = class {
     }
 
     // The caller is responsible to check whether filtering is enabled or not.
-    filterLargeMediaElement(fctxt, size) {
+    filterLargeMediaElement(fctxt, headers) {
         fctxt.filter = undefined;
-
-        if ( this.allowLargeMediaElementsUntil === 0 ) {
+        if ( this.allowLargeMediaElementsUntil === 0 ) { return 0; }
+        if ( sessionSwitches.evaluateZ('no-large-media', fctxt.getTabHostname() ) !== true ) {
+            this.allowLargeMediaElementsUntil = 0;
+            return 0;
+        }
+        // XHR-based streaming is never blocked but we want to prevent autoplay
+        if ( fctxt.itype === fctxt.XMLHTTPREQUEST ) {
+            const ctype = headers.contentType;
+            if ( ctype.startsWith('audio/') || ctype.startsWith('video/') ) {
+                this.largeMediaTimer.on(500);
+            }
+            return 0;
+        }
+        if ( Date.now() < this.allowLargeMediaElementsUntil ) {
+            if ( fctxt.itype === fctxt.MEDIA ) {
+                const sources = this.allowLargeMediaElementsRegex instanceof RegExp
+                    ? [ this.allowLargeMediaElementsRegex.source ]
+                    : [];
+                sources.push('^' + µb.escapeRegex(fctxt.url));
+                this.allowLargeMediaElementsRegex = new RegExp(sources.join('|'));
+            }
             return 0;
         }
         // Disregard large media elements previously allowed: for example, to
@@ -1016,34 +1060,20 @@ const PageStore = class {
         ) {
             return 0;
         }
-        if ( Date.now() < this.allowLargeMediaElementsUntil ) {
-            const sources = this.allowLargeMediaElementsRegex instanceof RegExp
-                ? [ this.allowLargeMediaElementsRegex.source ]
-                : [];
-            sources.push('^' + µb.escapeRegex(fctxt.url));
-            this.allowLargeMediaElementsRegex = new RegExp(sources.join('|'));
-            return 0;
+        // Regardless of whether a media is blocked, we want to prevent autoplay
+        if ( fctxt.itype === fctxt.MEDIA ) {
+            this.largeMediaTimer.on(500);
         }
-        if (
-            sessionSwitches.evaluateZ(
-                'no-large-media',
-                fctxt.getTabHostname()
-            ) !== true
-        ) {
-            this.allowLargeMediaElementsUntil = 0;
-            return 0;
+        const size = headers.contentLength;
+        if ( isNaN(size) ) {
+            return µb.userSettings.largeMediaSize === 0 ? 1 : 0;
         }
-        if ( (size >>> 10) < µb.userSettings.largeMediaSize ) {
-            return 0;
-        }
-
+        if ( (size >>> 10) < µb.userSettings.largeMediaSize ) { return 0; }
         this.largeMediaCount += 1;
         this.largeMediaTimer.on(500);
-
         if ( logger.enabled ) {
             fctxt.filter = sessionSwitches.toLogData();
         }
-
         return 1;
     }
 
@@ -1070,12 +1100,13 @@ const PageStore = class {
             }
         }
         if ( exceptCname === undefined ) {
-            const result = staticNetFilteringEngine.matchRequestReverse(
-                'cname',
+            fctxt.setType('cname');
+            fctxt.setURL(
                 frameStore instanceof Object
                     ? frameStore.rawURL
                     : fctxt.getDocOrigin()
             );
+            const result = staticNetFilteringEngine.matchRequest(fctxt, 0b11);
             exceptCname = result === 2
                 ? staticNetFilteringEngine.toLogData()
                 : false;
@@ -1112,22 +1143,31 @@ const PageStore = class {
         response.blockedResources =
             this.netFilteringCache.lookupAllBlocked(fctxt.getDocHostname());
     }
+
+    cacheableResults = new Set([
+        µb.FilteringContext.SUB_FRAME
+    ]);
+
+    collapsibleResources = new Set([
+        µb.FilteringContext.IMAGE,
+        µb.FilteringContext.MEDIA,
+        µb.FilteringContext.OBJECT,
+        µb.FilteringContext.SUB_FRAME,
+    ]);
+
+    urlSkippableResources = new Set([
+        µb.FilteringContext.IMAGE,
+        µb.FilteringContext.MAIN_FRAME,
+        µb.FilteringContext.MEDIA,
+        µb.FilteringContext.OBJECT,
+        µb.FilteringContext.OTHER,
+        µb.FilteringContext.SUB_FRAME,
+    ]);
+
+    // To mitigate memory churning
+    static junkyard = [];
+    static junkyardMax = 10;
 };
-
-PageStore.prototype.cacheableResults = new Set([
-    µb.FilteringContext.SUB_FRAME,
-]);
-
-PageStore.prototype.collapsibleResources = new Set([
-    µb.FilteringContext.IMAGE,
-    µb.FilteringContext.MEDIA,
-    µb.FilteringContext.OBJECT,
-    µb.FilteringContext.SUB_FRAME,
-]);
-
-// To mitigate memory churning
-PageStore.junkyard = [];
-PageStore.junkyardMax = 10;
 
 /******************************************************************************/
 

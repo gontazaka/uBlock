@@ -12,6 +12,7 @@ cp -Rl src/css                      $DES/
 cp -Rl src/img                      $DES/
 mkdir -p $DES/js
 cp -Rl src/js/*.js                  $DES/js/
+cp -Rl src/js/resources             $DES/js/
 cp -Rl src/js/codemirror            $DES/js/
 cp -Rl src/js/scriptlets            $DES/js/
 cp -Rl src/js/wasm                  $DES/js/

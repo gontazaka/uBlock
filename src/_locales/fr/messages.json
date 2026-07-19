@@ -16,7 +16,7 @@
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
-    "message": "Rester",
+    "message": "Rester ici",
     "description": "Label for button to prevent navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningIgnore": {
@@ -116,7 +116,7 @@
     "description": "English: Click to open the dashboard"
   },
   "popupTipZapper": {
-    "message": "Entrer en mode Zappeur",
+    "message": "Entrer en mode Zappeur d'élément",
     "description": "Tooltip for the element-zapper icon in the popup panel"
   },
   "popupTipPicker": {
@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Règles locales : Cette colonne concerne des règles qui ne s'appliquent que sur le site actuellement visité.\nLes règles locales supplantent les règles globales.",
+    "message": "Règles locales : Cette colonne concerne des règles qui ne s'appliquent que sur le site actuellement visité.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -483,6 +483,14 @@
     "message": "Protection anti-malware et sécurité",
     "description": "Filter lists section name"
   },
+  "3pGroupSocial": {
+    "message": "Widgets de réseaux sociaux",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "Bannières de cookie",
+    "description": "Filter lists section name"
+  },
   "3pGroupAnnoyances": {
     "message": "Nuisances",
     "description": "Filter lists section name"
@@ -527,17 +535,25 @@
     "message": "Une erreur réseau a empêché la mise à jour de la ressource.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "Une règle par ligne. Une règle peut être un simple nom d'hôte, ou encore une règle compatible EasyList. Les lignes débutant par <code>!</code> seront ignorées.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "Il est recommandé de ne pas ajouter de filtres en provenance de sources non fiables.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "Activer mes filtres personnalisés",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "Faire confiance aux filtres personnalisés",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
     "message": "Importer",
-    "description": "English: Import and append"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "Exporter",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "mes-filtres-statiques-ublock_{{datetime}}.txt",
@@ -581,7 +597,7 @@
   },
   "rulesExport": {
     "message": "Exporter vers un fichier",
-    "description": ""
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "mes-regles-de-filtrage-dynamique-ublock_{{datetime}}.txt",
@@ -617,11 +633,11 @@
   },
   "whitelistImport": {
     "message": "Importer",
-    "description": "English: Import and append"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "Exporter",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "mes-sites-fiables-ublock-{{datetime}}.txt",
@@ -881,14 +897,14 @@
   },
   "supportOpenButton": {
     "message": "Ouvrir",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
-    "message": "Créer un rapport",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "Créer un nouveau rapport sur GitHub",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
-    "message": "Trouver des rapports similaires",
+    "message": "Trouver des rapports similaires sur GitHub",
     "description": "A clickable link in the filter issue reporter section"
   },
   "supportS1H": {
@@ -939,16 +955,12 @@
     "message": "Veuillez trouver ci-dessous les informations techniques pouvant aider les bénévoles à vous assister dans la résolution de problème.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>Important :</b> Les informations potentiellement privées ou sensibles sont retirées par défaut. Ainsi éditées, elles peuvent compliquer la résolution de problème.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "Rapporter un problème de filtre",
     "description": "Header of 'Report a filter issue' section in Support pane"
   },
   "supportS6P1S1": {
-    "message": "Pour éviter d'encombrer les contributeurs avec des rapports en double, veuillez vérifier que le problème n'a pas déjà été rapporté.",
+    "message": "Pour éviter d'encombrer les contributeurs avec des rapports en double, veuillez vérifier que le problème n'a pas déjà été rapporté.\n<b>Note :</b> Cliquer sur le bouton entraînera l'envoi de la page d'origine à GitHub.",
     "description": "A paragraph in the filter issue reporter section"
   },
   "supportS6P2S1": {
@@ -995,17 +1007,13 @@
     "message": "ouvre des onglets ou fenêtres indésirables",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "conduit à/redirige vers des logiciels malveillants, du hameçonnage",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "Marquer le site Web en tant que \"NSFW\" (<a href=\"https://fr.wikipedia.org/wiki/Not_safe_for_work\">\"Not Safe For Work\", c'est-à-dire pour public averti/inapproprié au travail</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "Retirer les informations potentiellement privées ou sensibles",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "Restaurer les informations potentiellement privées ou sensibles",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "Politique de confidentialité",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "Erreur réseau : {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "Ajouter le lien suivant à votre sélection de listes de filtrage ?\n\nTitre : \"{{title}}\"\nLien : {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "Souscrire",
@@ -1171,6 +1175,26 @@
     "message": "Poursuivre",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "La page bloquée souhaite rediriger vers un autre site. Si vous choisissez de continuer, vous vous rendrez à l'adresse suivante : {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "Motif du blocage :",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "Malveillant",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "Pisteur",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "Douteux",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "Exporter vers le stockage dans le nuage",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "Commuter le filtrage esthétique",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "Commuter JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "Détendre le mode de blocage",

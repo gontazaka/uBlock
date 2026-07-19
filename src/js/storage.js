@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uBlock Origin - a browser extension to block requests.
+    uBlock Origin - a comprehensive, efficient content blocker
     Copyright (C) 2014-present Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -19,45 +19,32 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* globals WebAssembly */
-
-'use strict';
-
 /******************************************************************************/
 
-import publicSuffixList from '../lib/publicsuffixlist/publicsuffixlist.js';
-import punycode from '../lib/punycode.js';
-
-import cosmeticFilteringEngine from './cosmetic-filtering.js';
-import io from './assets.js';
-import logger from './logger.js';
-import lz4Codec from './lz4.js';
-import staticExtFilteringEngine from './static-ext-filtering.js';
-import staticFilteringReverseLookup from './reverselookup.js';
-import staticNetFilteringEngine from './static-net-filtering.js';
-import µb from './background.js';
-import { hostnameFromURI } from './uri-utils.js';
-import { i18n, i18n$ } from './i18n.js';
-import { redirectEngine } from './redirect-engine.js';
-import { sparseBase64 } from './base64-custom.js';
-import { ubolog, ubologSet } from './console.js';
 import * as sfp from './static-filtering-parser.js';
 
+import { CompiledListReader, CompiledListWriter } from './static-filtering-io.js';
+import { LineIterator, orphanizeString } from './text-utils.js';
+import { broadcast, filteringBehaviorChanged, onBroadcast } from './broadcast.js';
+import { i18n, i18n$ } from './i18n.js';
 import {
     permanentFirewall,
     permanentSwitches,
     permanentURLFiltering,
 } from './filtering-engines.js';
+import { ubolog, ubologSet } from './console.js';
 
-import {
-    CompiledListReader,
-    CompiledListWriter,
-} from './static-filtering-io.js';
-
-import {
-    LineIterator,
-    orphanizeString,
-} from './text-utils.js';
+import cosmeticFilteringEngine from './cosmetic-filtering.js';
+import { hostnameFromURI } from './uri-utils.js';
+import io from './assets.js';
+import logger from './logger.js';
+import publicSuffixList from '../lib/publicsuffixlist/publicsuffixlist.js';
+import punycode from '../lib/punycode.js';
+import { redirectEngine } from './redirect-engine.js';
+import staticExtFilteringEngine from './static-ext-filtering.js';
+import { staticFilteringReverseLookup } from './reverselookup.js';
+import staticNetFilteringEngine from './static-net-filtering.js';
+import µb from './background.js';
 
 /******************************************************************************/
 
@@ -99,24 +86,80 @@ import {
 /******************************************************************************/
 
 {
-    let localSettingsLastSaved = Date.now();
+    const requestStats = µb.requestStats;
+    let requestStatsDisabled = false;
 
-    const shouldSave = ( ) => {
-        if ( µb.localSettingsLastModified > localSettingsLastSaved ) {
-            µb.saveLocalSettings();
+    µb.loadLocalSettings = async ( ) => {
+        requestStatsDisabled = µb.hiddenSettings.requestStatsDisabled;
+        if ( requestStatsDisabled ) { return; }
+        return Promise.all([
+            vAPI.sessionStorage.get('requestStats'),
+            vAPI.storage.get('requestStats'),
+            vAPI.storage.get([ 'blockedRequestCount', 'allowedRequestCount' ]),
+        ]).then(([ a, b, c ]) => {
+            if ( a instanceof Object && a.requestStats ) { return a.requestStats; }
+            if ( b instanceof Object && b.requestStats ) { return b.requestStats; }
+            if ( c instanceof Object && Object.keys(c).length === 2 ) {
+                return {
+                    blockedCount: c.blockedRequestCount,
+                    allowedCount: c.allowedRequestCount,
+                };
+            }
+            return { blockedCount: 0, allowedCount: 0 };
+        }).then(({ blockedCount, allowedCount }) => {
+            requestStats.blockedCount += blockedCount;
+            requestStats.allowedCount += allowedCount;
+        });
+    };
+
+    const SAVE_DELAY_IN_MINUTES = 3.6;
+    const QUICK_SAVE_DELAY_IN_SECONDS = 23;
+
+    const stopTimers = ( ) => {
+        vAPI.alarms.clear('saveLocalSettings');
+        quickSaveTimer.off();
+        saveTimer.off();
+    };
+
+    const saveTimer = vAPI.defer.create(( ) => {
+        µb.saveLocalSettings();
+    });
+
+    const quickSaveTimer = vAPI.defer.create(( ) => {
+        if ( vAPI.sessionStorage.unavailable !== true ) {
+            vAPI.sessionStorage.set({ requestStats: requestStats });
         }
-        saveTimer.on(saveDelay);
+        if ( requestStatsDisabled ) { return; }
+        saveTimer.on({ min: SAVE_DELAY_IN_MINUTES });
+        vAPI.alarms.createIfNotPresent('saveLocalSettings', {
+            delayInMinutes: SAVE_DELAY_IN_MINUTES + 0.5
+        });
+    });
+
+    µb.incrementRequestStats = (blocked, allowed) => {
+        requestStats.blockedCount += blocked;
+        requestStats.allowedCount += allowed;
+        quickSaveTimer.on({ sec: QUICK_SAVE_DELAY_IN_SECONDS });
     };
 
-    const saveTimer = vAPI.defer.create(shouldSave);
-    const saveDelay = { min: 4 };
-
-    saveTimer.on(saveDelay);
-
-    µb.saveLocalSettings = function() {
-        localSettingsLastSaved = Date.now();
-        return vAPI.storage.set(this.localSettings);
+    µb.saveLocalSettings = ( ) => {
+        stopTimers();
+        if ( requestStatsDisabled ) { return; }
+        return vAPI.storage.set({ requestStats: µb.requestStats });
     };
+
+    onBroadcast(msg => {
+        if ( msg.what !== 'hiddenSettingsChanged' ) { return; }
+        const newState = µb.hiddenSettings.requestStatsDisabled;
+        if ( requestStatsDisabled === newState ) { return; }
+        requestStatsDisabled = newState;
+        if ( newState ) {
+            stopTimers();
+            µb.requestStats.blockedCount = µb.requestStats.allowedCount = 0;
+        } else {
+            µb.loadLocalSettings();
+        }
+    });
 }
 
 /******************************************************************************/
@@ -137,7 +180,7 @@ import {
         for ( const entry of adminSettings ) {
             if ( entry.length < 1 ) { continue; }
             const name = entry[0];
-            if ( usDefault.hasOwnProperty(name) === false ) { continue; }
+            if ( Object.hasOwn(usDefault, name) === false ) { continue; }
             const value = entry.length < 2
                 ? usDefault[name]
                 : this.settingValueFromString(usDefault, name, entry[1]);
@@ -166,8 +209,8 @@ import {
 
     const toRemove = [];
     for ( const key in this.userSettings ) {
-        if ( this.userSettings.hasOwnProperty(key) === false ) { continue; }
-        if ( toSave.hasOwnProperty(key) ) { continue; }
+        if ( Object.hasOwn(this.userSettings, key) === false ) { continue; }
+        if ( Object.hasOwn(toSave, key) ) { continue; }
         toRemove.push(key);
     }
     if ( toRemove.length !== 0 ) {
@@ -204,7 +247,7 @@ import {
             for ( const entry of advancedSettings ) {
                 if ( entry.length < 1 ) { continue; }
                 const name = entry[0];
-                if ( hsDefault.hasOwnProperty(name) === false ) { continue; }
+                if ( Object.hasOwn(hsDefault, name) === false ) { continue; }
                 const value = entry.length < 2
                     ? hsDefault[name]
                     : this.hiddenSettingValueFromString(name, entry[1]);
@@ -238,12 +281,12 @@ import {
     }
 
     for ( const key in hsDefault ) {
-        if ( hsDefault.hasOwnProperty(key) === false ) { continue; }
-        if ( hsAdmin.hasOwnProperty(name) ) { continue; }
+        if ( Object.hasOwn(hsDefault, key) === false ) { continue; }
+        if ( Object.hasOwn(hsAdmin, name) ) { continue; }
         if ( typeof hs[key] !== typeof hsDefault[key] ) { continue; }
         this.hiddenSettings[key] = hs[key];
     }
-    this.fireDOMEvent('hiddenSettingsChanged');
+    broadcast({ what: 'hiddenSettingsChanged' });
 };
 
 // Note: Save only the settings which values differ from the default ones.
@@ -259,7 +302,8 @@ import {
     });
 };
 
-self.addEventListener('hiddenSettingsChanged', ( ) => {
+onBroadcast(msg => {
+    if ( msg.what !== 'hiddenSettingsChanged' ) { return; }
     const µbhs = µb.hiddenSettings;
     ubologSet(µbhs.consoleLogLevel === 'info');
     vAPI.net.setOptions({
@@ -269,7 +313,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         cnameIgnoreRootDocument: µbhs.cnameIgnoreRootDocument,
         cnameMaxTTL: µbhs.cnameMaxTTL,
         cnameReplayFullURL: µbhs.cnameReplayFullURL,
-        cnameUncloakProxied: µbhs.cnameUncloakProxied,
+        dnsCacheTTL: µbhs.dnsCacheTTL,
+        dnsResolveEnabled: µbhs.dnsResolveEnabled,
     });
 });
 
@@ -283,8 +328,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         const matches = /^\s*(\S+)\s+(.+)$/.exec(line);
         if ( matches === null || matches.length !== 3 ) { continue; }
         const name = matches[1];
-        if ( out.hasOwnProperty(name) === false ) { continue; }
-        if ( this.hiddenSettingsAdmin.hasOwnProperty(name) ) { continue; }
+        if ( Object.hasOwn(out, name) === false ) { continue; }
+        if ( Object.hasOwn(this.hiddenSettingsAdmin, name) ) { continue; }
         const value = this.hiddenSettingValueFromString(name, matches[2]);
         if ( value !== undefined ) {
             out[name] = value;
@@ -296,7 +341,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 µb.hiddenSettingValueFromString = function(name, value) {
     if ( typeof name !== 'string' || typeof value !== 'string' ) { return; }
     const hsDefault = this.hiddenSettingsDefault;
-    if ( hsDefault.hasOwnProperty(name) === false ) { return; }
+    if ( Object.hasOwn(hsDefault, name) === false ) { return; }
     let r;
     switch ( typeof hsDefault[name] ) {
     case 'boolean':
@@ -369,10 +414,38 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 /******************************************************************************/
 
 µb.isTrustedList = function(assetKey) {
-    if ( assetKey.startsWith('ublock-') ) { return true; }
-    if ( assetKey === this.userFiltersPath ) { return true; }
+    if ( assetKey === this.userFiltersPath ) {
+        if ( this.userSettings.userFiltersTrusted ) { return true; }
+    }
+    if ( this.parsedTrustedListPrefixes.length === 0 ) {
+        this.parsedTrustedListPrefixes =
+            µb.hiddenSettings.trustedListPrefixes.split(/ +/).map(prefix => {
+                if ( prefix === '' ) { return; }
+                if ( prefix.startsWith('http://') ) { return; }
+                if ( prefix.startsWith('file:///') ) { return prefix; }
+                if ( prefix.startsWith('https://') === false ) {
+                    return prefix.includes('://') ? undefined : prefix;
+                }
+                try {
+                    const url = new URL(prefix);
+                    if ( url.hostname.length > 0 ) { return url.href; }
+                } catch {
+                }
+            }).filter(prefix => prefix !== undefined);
+    }
+    const match = /^[a-z-]+:\/\/[^/]+\//.exec(assetKey);
+    const assetOrigin = match && match[0];
+    for ( const prefix of this.parsedTrustedListPrefixes ) {
+        if ( assetOrigin && prefix.length < assetOrigin.length ) { continue; }
+        if ( assetKey.startsWith(prefix) ) { return true; }
+    }
     return false;
 };
+
+onBroadcast(msg => {
+    if ( msg.what !== 'hiddenSettingsChanged' ) { return; }
+    µb.parsedTrustedListPrefixes = [];
+});
 
 /******************************************************************************/
 
@@ -508,7 +581,6 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     // https://github.com/gorhill/uBlock/issues/1022
     //   Be sure to end with an empty line.
     content = content.trim();
-    if ( content !== '' ) { content += '\n'; }
     this.removeCompiledFilterList(this.userFiltersPath);
     return io.put(this.userFiltersPath, content);
 };
@@ -530,14 +602,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         this.hiddenSettings.autoCommentFilterTemplate.indexOf('{{') !== -1
     ) {
         const d = new Date();
-        // Date in YYYY-MM-DD format - https://stackoverflow.com/a/50130338
-        const ISO8601Date = new Date(d.getTime() +
-            (d.getTimezoneOffset()*60000)).toISOString().split('T')[0];
         const url = new URL(options.docURL);
-        comment =
-            '! ' +
+        comment = '! ' +
             this.hiddenSettings.autoCommentFilterTemplate
-                .replace('{{date}}', ISO8601Date)
+                .replace('{{isodate}}', d.toISOString().split('T')[0])
+                .replace('{{date}}', d.toLocaleDateString(undefined, { dateStyle: 'medium' }))
                 .replace('{{time}}', d.toLocaleTimeString())
                 .replace('{{hostname}}', url.hostname)
                 .replace('{{origin}}', url.origin)
@@ -569,7 +638,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     const compiledFilters = this.compileFilters(filters, {
         assetKey: this.userFiltersPath,
-        isTrusted: true,
+        trustedSource: true,
     });
     const snfe = staticNetFilteringEngine;
     const cfe = cosmeticFilteringEngine;
@@ -593,9 +662,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     // https://www.reddit.com/r/uBlockOrigin/comments/cj7g7m/
     // https://www.reddit.com/r/uBlockOrigin/comments/cnq0bi/
-    vAPI.net.handlerBehaviorChanged();
-
-    vAPI.messaging.broadcast({ what: 'userFiltersUpdated' });
+    filteringBehaviorChanged();
+    broadcast({ what: 'userFiltersUpdated' });
 };
 
 µb.createUserFilters = function(details) {
@@ -605,6 +673,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     cosmeticFilteringEngine.removeFromSelectorCache(
         hostnameFromURI(details.docURL)
     );
+    staticFilteringReverseLookup.resetLists();
+};
+
+µb.userFiltersAreEnabled = function() {
+    return this.selectedFilterLists.includes(this.userFiltersPath);
 };
 
 /******************************************************************************/
@@ -612,8 +685,9 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 µb.autoSelectRegionalFilterLists = function(lists) {
     const selectedListKeys = [ this.userFiltersPath ];
     for ( const key in lists ) {
-        if ( lists.hasOwnProperty(key) === false ) { continue; }
+        if ( Object.hasOwn(lists, key) === false ) { continue; }
         const list = lists[key];
+        if ( list.content !== 'filters' ) { continue; }
         if ( list.off !== true ) {
             selectedListKeys.push(key);
             continue;
@@ -823,24 +897,28 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     let loadingPromise;
     let t0 = 0;
 
+    const elapsed = ( ) => `${Date.now() - t0} ms`;
+
     const onDone = ( ) => {
-        ubolog(`loadFilterLists() took ${Date.now()-t0} ms`);
+        ubolog(`loadFilterLists() All filters in memory at ${elapsed()}`);
 
         staticNetFilteringEngine.freeze();
         staticExtFilteringEngine.freeze();
         redirectEngine.freeze();
         vAPI.net.unsuspend();
-        vAPI.net.handlerBehaviorChanged();
+        filteringBehaviorChanged();
 
-        vAPI.storage.set({ 'availableFilterLists': µb.availableFilterLists });
+        ubolog(`loadFilterLists() All filters ready at ${elapsed()}`);
 
         logger.writeOne({
             realm: 'message',
             type: 'info',
-            text: 'Reloading all filter lists: done'
+            text: `Reloading all filter lists: done, took ${elapsed()}`
         });
 
-        vAPI.messaging.broadcast({
+        vAPI.storage.set({ 'availableFilterLists': µb.availableFilterLists });
+
+        broadcast({
             what: 'staticFilteringDataChanged',
             parseCosmeticFilters: µb.userSettings.parseAllABPHideFilters,
             ignoreGenericCosmeticFilters: µb.userSettings.ignoreGenericCosmeticFilters,
@@ -848,19 +926,19 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         });
 
         µb.selfieManager.destroy();
-        lz4Codec.relinquish();
         µb.compiledFormatChanged = false;
 
         loadingPromise = undefined;
     };
 
     const applyCompiledFilters = (assetKey, compiled) => {
+        ubolog(`loadFilterLists() Loading filters from ${assetKey} at ${elapsed()}`);
         const snfe = staticNetFilteringEngine;
         const sxfe = staticExtFilteringEngine;
         let acceptedCount = snfe.acceptedCount + sxfe.acceptedCount;
         let discardedCount = snfe.discardedCount + sxfe.discardedCount;
         µb.applyCompiledFilters(compiled, assetKey === µb.userFiltersPath);
-        if ( µb.availableFilterLists.hasOwnProperty(assetKey) ) {
+        if ( Object.hasOwn(µb.availableFilterLists, assetKey) ) {
             const entry = µb.availableFilterLists[assetKey];
             entry.entryCount = snfe.acceptedCount + sxfe.acceptedCount -
                 acceptedCount;
@@ -888,13 +966,15 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         µb.selfieManager.destroy();
         staticFilteringReverseLookup.resetLists();
 
+        ubolog(`loadFilterLists() All filters removed at ${elapsed()}`);
+
         // We need to build a complete list of assets to pull first: this is
         // because it *may* happens that some load operations are synchronous:
         // This happens for assets which do not exist, or assets with no
         // content.
         const toLoad = [];
         for ( const assetKey in lists ) {
-            if ( lists.hasOwnProperty(assetKey) === false ) { continue; }
+            if ( Object.hasOwn(lists, assetKey) === false ) { continue; }
             if ( lists[assetKey].off ) { continue; }
             toLoad.push(
                 µb.getCompiledFilterList(assetKey).then(details => {
@@ -908,7 +988,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
                 µb.inMemoryFiltersCompiled =
                     µb.compileFilters(µb.inMemoryFilters.join('\n'), {
                         assetKey: 'in-memory',
-                        isTrusted: true,
+                        trustedSource: true,
                     });
             }
             if ( µb.inMemoryFiltersCompiled !== '' ) {
@@ -923,12 +1003,15 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     µb.loadFilterLists = function() {
         if ( loadingPromise instanceof Promise ) { return loadingPromise; }
+        ubolog('loadFilterLists() Start');
         t0 = Date.now();
         loadedListKeys.length = 0;
-        loadingPromise = Promise.all([
-            this.getAvailableLists().then(lists => onFilterListsReady(lists)),
-            this.loadRedirectResources(),
-        ]).then(( ) => {
+        loadingPromise = this.loadRedirectResources().then(( ) => {
+            ubolog(`loadFilterLists() Redirects/scriptlets ready at ${elapsed()}`);
+            return this.getAvailableLists();
+        }).then(lists => {
+            return onFilterListsReady(lists)
+        }).then(( ) => {
             onDone();
         });
         return loadingPromise;
@@ -938,7 +1021,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 /******************************************************************************/
 
 µb.getCompiledFilterList = async function(assetKey) {
-    const compiledPath = 'compiled/' + assetKey;
+    const compiledPath = `compiled/${assetKey}`;
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/1365
     //   Verify that the list version matches that of the current compiled
@@ -947,11 +1030,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         this.compiledFormatChanged === false &&
         this.badLists.has(assetKey) === false
     ) {
-        const compiledDetails = await io.get(compiledPath);
+        const content = await io.fromCache(compiledPath);
         const compilerVersion = `${this.systemSettings.compiledMagic}\n`;
-        if ( compiledDetails.content.startsWith(compilerVersion) ) {
-            compiledDetails.assetKey = assetKey;
-            return compiledDetails;
+        if ( content.startsWith(compilerVersion) ) {
+            return { assetKey, content };
         }
     }
 
@@ -960,7 +1042,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         return { assetKey, content: '' };
     }
 
-    const rawDetails = await io.get(assetKey, { silent: true });
+    const rawDetails = await io.get(assetKey, {
+        favorLocal: this.readyToFilter !== true,
+        silent: true,
+    });
     // Compiling an empty string results in an empty string.
     if ( rawDetails.content === '' ) {
         rawDetails.assetKey = assetKey;
@@ -976,9 +1061,9 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     const compiledContent = this.compileFilters(rawDetails.content, {
         assetKey,
-        isTrusted: this.isTrustedList(assetKey),
+        trustedSource: this.isTrustedList(assetKey),
     });
-    io.put(compiledPath, compiledContent);
+    io.toCache(compiledPath, compiledContent);
 
     return { assetKey, content: compiledContent };
 };
@@ -988,51 +1073,26 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 µb.extractFilterListMetadata = function(assetKey, raw) {
     const listEntry = this.availableFilterLists[assetKey];
     if ( listEntry === undefined ) { return; }
-    // Metadata expected to be found at the top of content.
-    const head = raw.slice(0, 1024);
     // https://github.com/gorhill/uBlock/issues/313
     // Always try to fetch the name if this is an external filter list.
-    if ( listEntry.group === 'custom' ) {
-        let matches = head.match(/(?:^|\n)(?:!|# )[\t ]*Title[\t ]*:([^\n]+)/i);
-        const title = matches && matches[1].trim() || '';
-        if ( title !== '' && title !== listEntry.title ) {
-            listEntry.title = orphanizeString(title);
-            io.registerAssetSource(assetKey, { title });
-        }
-        matches = head.match(/(?:^|\n)(?:!|# )[\t ]*Homepage[\t ]*:[\t ]*(https?:\/\/\S+)\s/i);
-        const supportURL = matches && matches[1] || '';
-        if ( supportURL !== '' && supportURL !== listEntry.supportURL ) {
-            listEntry.supportURL = orphanizeString(supportURL);
-            io.registerAssetSource(assetKey, { supportURL });
+    if ( listEntry.group !== 'custom' ) { return; }
+    const data = io.extractMetadataFromList(raw, [ 'Title', 'Homepage' ]);
+    const props = {};
+    if ( data.title && data.title !== listEntry.title ) {
+        props.title = listEntry.title = orphanizeString(data.title);
+    }
+    if ( data.homepage && /^https?:\/\/\S+/.test(data.homepage) ) {
+        if ( data.homepage !== listEntry.supportURL ) {
+            props.supportURL = listEntry.supportURL = orphanizeString(data.homepage);
         }
     }
-    // Extract update frequency information
-    const matches = head.match(/(?:^|\n)(?:!|# )[\t ]*Expires[\t ]*:[\t ]*(\d+)[\t ]*([dh])?/i);
-    if ( matches !== null ) {
-        let updateAfter = parseInt(matches[1], 10);
-        if ( isNaN(updateAfter) === false ) {
-            if (matches[2] === 'd') { // day(s)
-                // do nothing
-            } else if (matches[2] === 'h') { // hour(s)
-                updateAfter = updateAfter / 24;
-            } else { // assume hour(s)
-                updateAfter = Math.ceil(updateAfter / 24);
-            }
-            // clamp: 6 hours < updateAfter < 90 days
-            updateAfter = Math.max(updateAfter, 1 / 4);
-            updateAfter = Math.min(updateAfter, 360 / 4); 
-            if ( updateAfter !== listEntry.updateAfter ) {
-                listEntry.updateAfter = updateAfter;
-                io.registerAssetSource(assetKey, { updateAfter });
-            }
-        }
-    }
+    io.registerAssetSource(assetKey, props);
 };
 
 /******************************************************************************/
 
 µb.removeCompiledFilterList = function(assetKey) {
-    io.remove('compiled/' + assetKey);
+    io.remove(`compiled/${assetKey}`);
 };
 
 µb.removeFilterList = function(assetKey) {
@@ -1047,17 +1107,14 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     // Populate the writer with information potentially useful to the
     // client compilers.
+    const trustedSource = details.trustedSource === true;
     if ( details.assetKey ) {
         writer.properties.set('name', details.assetKey);
-        writer.properties.set('isTrusted', details.isTrusted === true);
+        writer.properties.set('trustedSource', trustedSource);
     }
     const assetName = details.assetKey ? details.assetKey : '?';
-    const expertMode =
-        details.assetKey !== this.userFiltersPath ||
-        this.hiddenSettings.filterAuthorMode !== false;
     const parser = new sfp.AstFilterParser({
-        expertMode,
-        filterOnHeaders: µb.hiddenSettings.filterOnHeaders,
+        trustedSource,
         maxTokenLength: staticNetFilteringEngine.MAX_TOKEN_LENGTH,
         nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
     });
@@ -1106,6 +1163,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     }
 
     compiler.finish(writer);
+    parser.finish();
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/1365
     //   Embed version into compiled list itself: it is encoded in as the
@@ -1137,7 +1195,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 µb.loadRedirectResources = async function() {
     try {
         const success = await redirectEngine.resourcesFromSelfie(io);
-        if ( success === true ) { return true; }
+        if ( success === true ) {
+            ubolog('Loaded redirect/scriptlets resources from selfie');
+            return true;
+        }
 
         const fetcher = (path, options = undefined) => {
             if ( path.startsWith('/web_accessible_resources/') ) {
@@ -1161,20 +1222,17 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         const results = await Promise.all(fetchPromises);
         if ( Array.isArray(results) === false ) { return results; }
 
-        let content = '';
+        const content = [];
         for ( let i = 1; i < results.length; i++ ) {
             const result = results[i];
-            if (
-                result instanceof Object === false ||
-                typeof result.content !== 'string' ||
-                result.content === ''
-            ) {
-                continue;
-            }
-            content += '\n\n' + result.content;
+            if ( result instanceof Object === false ) { continue; }
+            if ( typeof result.content !== 'string' ) { continue; }
+            if ( result.content === '' ) { continue; }
+            content.push(result.content);
         }
-
-        redirectEngine.resourcesFromString(content);
+        if ( content.length !== 0 ) {
+            redirectEngine.resourcesFromString(content.join('\n\n'));
+        }
         redirectEngine.selfieFromResources(io);
     } catch(ex) {
         ubolog(ex);
@@ -1213,8 +1271,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     }
 
     try {
-        const result = await io.get(`compiled/${this.pslAssetKey}`);
-        if ( psl.fromSelfie(result.content, sparseBase64) ) { return; }
+        const selfie = await io.fromCache(`selfie/${this.pslAssetKey}`);
+        if ( psl.fromSelfie(selfie) ) {
+            ubolog('Loaded PSL from selfie');
+            return;
+        }
     } catch (reason) {
         ubolog(reason);
     }
@@ -1228,7 +1289,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 µb.compilePublicSuffixList = function(content) {
     const psl = publicSuffixList;
     psl.parse(content, punycode.toASCII);
-    io.put(`compiled/${this.pslAssetKey}`, psl.toSelfie(sparseBase64));
+    ubolog(`Loaded PSL from ${this.pslAssetKey}`);
+    return io.toCache(`selfie/${this.pslAssetKey}`, psl.toSelfie());
 };
 
 /******************************************************************************/
@@ -1243,42 +1305,28 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     //   memory usage at selfie-load time. For some reasons.
 
     const create = async function() {
+        vAPI.alarms.clear('createSelfie');
+        createTimer.off();
         if ( µb.inMemoryFilters.length !== 0 ) { return; }
         if ( Object.keys(µb.availableFilterLists).length === 0 ) { return; }
         await Promise.all([
-            io.put(
-                'selfie/main',
-                JSON.stringify({
-                    magic: µb.systemSettings.selfieMagic,
-                    availableFilterLists: µb.availableFilterLists,
-                })
+            io.toCache('selfie/staticMain', {
+                magic: µb.systemSettings.selfieMagic,
+                availableFilterLists: µb.availableFilterLists,
+            }),
+            io.toCache('selfie/staticExtFilteringEngine',
+                staticExtFilteringEngine.toSelfie()
             ),
-            redirectEngine.toSelfie('selfie/redirectEngine'),
-            staticExtFilteringEngine.toSelfie(
-                'selfie/staticExtFilteringEngine'
-            ),
-            staticNetFilteringEngine.toSelfie(io,
-                'selfie/staticNetFilteringEngine'
+            io.toCache('selfie/staticNetFilteringEngine',
+                staticNetFilteringEngine.toSelfie()
             ),
         ]);
-        lz4Codec.relinquish();
         µb.selfieIsInvalid = false;
+        ubolog('Filtering engine selfie created');
     };
 
     const loadMain = async function() {
-        const details = await io.get('selfie/main');
-        if (
-            details instanceof Object === false ||
-            typeof details.content !== 'string' ||
-            details.content === ''
-        ) {
-            return false;
-        }
-        let selfie;
-        try {
-            selfie = JSON.parse(details.content);
-        } catch(ex) {
-        }
+        const selfie = await io.fromCache('selfie/staticMain');
         if ( selfie instanceof Object === false ) { return false; }
         if ( selfie.magic !== µb.systemSettings.selfieMagic ) { return false; }
         if ( selfie.availableFilterLists instanceof Object === false ) { return false; }
@@ -1292,12 +1340,11 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         try {
             const results = await Promise.all([
                 loadMain(),
-                redirectEngine.fromSelfie('selfie/redirectEngine'),
-                staticExtFilteringEngine.fromSelfie(
-                    'selfie/staticExtFilteringEngine'
+                io.fromCache('selfie/staticExtFilteringEngine').then(selfie =>
+                    staticExtFilteringEngine.fromSelfie(selfie)
                 ),
-                staticNetFilteringEngine.fromSelfie(io,
-                    'selfie/staticNetFilteringEngine'
+                io.fromCache('selfie/staticNetFilteringEngine').then(selfie =>
+                    staticNetFilteringEngine.fromSelfie(selfie)
                 ),
             ]);
             if ( results.every(v => v) ) {
@@ -1307,21 +1354,26 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         catch (reason) {
             ubolog(reason);
         }
+        ubolog('Filtering engine selfie not available');
         destroy();
         return false;
     };
 
-    const destroy = function() {
+    const destroy = function(options = {}) {
         if ( µb.selfieIsInvalid === false ) {
-            io.remove(/^selfie\//);
+            io.remove(/^selfie\/static/, options);
             µb.selfieIsInvalid = true;
+            ubolog('Filtering engine selfie marked for invalidation');
         }
-        createTimer.offon({ min: µb.hiddenSettings.selfieAfter });
+        vAPI.alarms.create('createSelfie', {
+            delayInMinutes: (µb.hiddenSettings.selfieDelayInSeconds + 17) / 60,
+        });
+        createTimer.offon({ sec: µb.hiddenSettings.selfieDelayInSeconds });
     };
 
     const createTimer = vAPI.defer.create(create);
 
-    µb.selfieManager = { load, destroy };
+    µb.selfieManager = { load, create, destroy };
 }
 
 /******************************************************************************/
@@ -1373,8 +1425,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         const µbus = this.userSettings;
         const adminus = data.userSettings;
         for ( const name in µbus ) {
-            if ( µbus.hasOwnProperty(name) === false ) { continue; }
-            if ( adminus.hasOwnProperty(name) === false ) { continue; }
+            if ( Object.hasOwn(µbus, name) === false ) { continue; }
+            if ( Object.hasOwn(adminus, name) === false ) { continue; }
             bin[name] = adminus[name];
             binNotEmpty = true;
         }
@@ -1437,13 +1489,21 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         vAPI.storage.set(bin);
     }
 
-    if (
-        Array.isArray(toOverwrite.filters) &&
-        toOverwrite.filters.length !== 0
-    ) {
-        this.saveUserFilters(toOverwrite.filters.join('\n'));
+    let userFiltersAfter;
+    if ( Array.isArray(toOverwrite.filters) ) {
+        userFiltersAfter = toOverwrite.filters.join('\n').trim();
     } else if ( typeof data.userFilters === 'string' ) {
-        this.saveUserFilters(data.userFilters);
+        userFiltersAfter = data.userFilters.trim();
+    }
+    if ( typeof userFiltersAfter === 'string' ) {
+        const bin = await vAPI.storage.get(this.userFiltersPath);
+        const userFiltersBefore = bin && bin[this.userFiltersPath] || '';
+        if ( userFiltersAfter !== userFiltersBefore ) {
+            await Promise.all([
+                this.saveUserFilters(userFiltersAfter),
+                this.selfieManager.destroy(),
+            ]);
+        }
     }
 };
 
@@ -1481,56 +1541,50 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
 {
     let next = 0;
-    let lastEmergencyUpdate = 0;
 
     const launchTimer = vAPI.defer.create(fetchDelay => {
         next = 0;
-        io.updateStart({ delay: fetchDelay, auto: true });
+        io.updateStart({ fetchDelay, auto: true });
     });
 
-    µb.scheduleAssetUpdater = async function(updateDelay) {
+    µb.scheduleAssetUpdater = async function(details = {}) {
         launchTimer.off();
+        vAPI.alarms.clear('assetUpdater');
 
-        if ( updateDelay === 0 ) {
+        if ( details.now ) {
             next = 0;
+            io.updateStart(details);
             return;
         }
 
-        const now = Date.now();
-        let needEmergencyUpdate = false;
-
-        // Respect cooldown period before launching an emergency update.
-        const timeSinceLastEmergencyUpdate = (now - lastEmergencyUpdate) / 3600000;
-        if ( timeSinceLastEmergencyUpdate > 1 ) {
-            const entries = await io.getUpdateAges({
-                filters: µb.selectedFilterLists,
-                internal: [ '*' ],
-            });
-            for ( const entry of entries ) {
-                if ( entry.ageNormalized < 2 ) { continue; }
-                needEmergencyUpdate = true;
-                lastEmergencyUpdate = now;
-                break;
+        if ( µb.userSettings.autoUpdate === false ) {
+            if ( Boolean(details.updateDelay) === false ) {
+                next = 0;
+                return;
             }
         }
+
+        let updateDelay = details.updateDelay ||
+            this.hiddenSettings.autoUpdatePeriod * 3600000;
+
+        const now = Date.now();
 
         // Use the new schedule if and only if it is earlier than the previous
         // one.
         if ( next !== 0 ) {
-            updateDelay = Math.min(updateDelay, Math.max(next - now, 0));
-        }
-
-        if ( needEmergencyUpdate ) {
-            updateDelay = Math.min(updateDelay, 15000);
+            updateDelay = Math.min(updateDelay, Math.max(next - now, 1));
         }
 
         next = now + updateDelay;
 
-        const fetchDelay = needEmergencyUpdate
-            ? 2000
-            : this.hiddenSettings.autoUpdateAssetFetchPeriod * 1000 || 60000;
+        const fetchDelay = details.fetchDelay ||
+            this.hiddenSettings.autoUpdateAssetFetchPeriod * 1000 ||
+            60000;
 
         launchTimer.on(updateDelay, fetchDelay);
+        vAPI.alarms.create('assetUpdater', {
+            delayInMinutes: Math.ceil(updateDelay / 60000) + 0.25
+        });
     };
 }
 
@@ -1543,7 +1597,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     if ( topic === 'before-asset-updated' ) {
         if ( details.type === 'filters' ) {
             if (
-                this.availableFilterLists.hasOwnProperty(details.assetKey) === false ||
+                Object.hasOwn(this.availableFilterLists, details.assetKey) === false ||
                 this.selectedFilterLists.indexOf(details.assetKey) === -1 ||
                 this.badLists.get(details.assetKey)
             ) {
@@ -1557,9 +1611,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     if ( topic === 'after-asset-updated' ) {
         // Skip selfie-related content.
         if ( details.assetKey.startsWith('selfie/') ) { return; }
-        const cached = typeof details.content === 'string' &&
-                       details.content !== '';
-        if ( this.availableFilterLists.hasOwnProperty(details.assetKey) ) {
+        const cached = typeof details.content === 'string' && details.content !== '';
+        if ( Object.hasOwn(this.availableFilterLists, details.assetKey) ) {
             if ( cached ) {
                 if ( this.selectedFilterLists.indexOf(details.assetKey) !== -1 ) {
                     this.extractFilterListMetadata(
@@ -1567,11 +1620,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
                         details.content
                     );
                     if ( this.badLists.has(details.assetKey) === false ) {
-                        io.put(
-                            'compiled/' + details.assetKey,
+                        io.toCache(`compiled/${details.assetKey}`,
                             this.compileFilters(details.content, {
                                 assetKey: details.assetKey,
-                                isTrusted: this.isTrustedList(details.assetKey),
+                                trustedSource: this.isTrustedList(details.assetKey),
                             })
                         );
                     }
@@ -1586,10 +1638,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         } else if ( details.assetKey === 'ublock-badlists' ) {
             this.badLists = new Map();
         }
-        vAPI.messaging.broadcast({
+        broadcast({
             what: 'assetUpdated',
             key: details.assetKey,
-            cached: cached
+            cached,
         });
         // https://github.com/gorhill/uBlock/issues/2585
         //   Whenever an asset is overwritten, the current selfie is quite
@@ -1600,10 +1652,10 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
     // Update failed.
     if ( topic === 'asset-update-failed' ) {
-        vAPI.messaging.broadcast({
+        broadcast({
             what: 'assetUpdated',
             key: details.assetKey,
-            failed: true
+            failed: true,
         });
         return;
     }
@@ -1619,14 +1671,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
             }
             this.loadFilterLists();
         }
-        if ( this.userSettings.autoUpdate ) {
-            this.scheduleAssetUpdater(
-                this.hiddenSettings.autoUpdatePeriod * 3600000 || 25200000
-            );
-        } else {
-            this.scheduleAssetUpdater(0);
-        }
-        vAPI.messaging.broadcast({
+        this.scheduleAssetUpdater();
+        broadcast({
             what: 'assetsUpdated',
             assetKeys: details.assetKeys
         });

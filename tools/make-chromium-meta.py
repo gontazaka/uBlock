@@ -29,7 +29,7 @@ additional = subprocess.check_output("git diff --exit-code --quiet HEAD; if [ $?
 manifest_out['version_name'] = version + "@" + short_hash + additional
 
 # Development build? If so, modify name accordingly.
-match = re.search('^\d+\.\d+\.\d+\.\d+$', version)
+match = re.search(r'^\d+\.\d+\.\d+\.\d+$', version)
 if match:
     manifest_out['name'] += ' development build'
     manifest_out['short_name'] += ' dev build'

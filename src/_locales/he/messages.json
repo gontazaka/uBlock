@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "חוקים לוקאליים: עמודה זו היא עבור חוקים אשר תקפים לאתר הנוכחי בלבד.\nחוקים לוקאליים דורסים את החוקים הגלובליים.",
+    "message": "חוקים לוקאליים: עמודה זו היא עבור חוקים אשר תקפים לאתר הנוכחי בלבד.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "ביטחון והגנה מפני נוזקה",
+    "message": "הגנה מפני נוזקות, אבטחה",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "יישומונים חברתיים",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "הודעות בקשר לעוגיות",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -527,17 +535,25 @@
     "message": "בעיית רשת מנעה מהמשאב להתעדכן.",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "מסנן אחד לכל שורה. המסנן יכול להיות דומיין פשוט, או מסנן התואם ל- EasyList. שורות עם קידומת <code>!</code> לא יפורשו.",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "אל תוסיף מסננים ממקורות לא מהימנים.",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "אפשור מסננים מותאמים אישית",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "אפשור למסננים מותאמים אישית לדרוש אמון",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
-    "message": "ייבא וצרף",
-    "description": "English: Import and append"
+    "message": "ייבא וצרף…",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
-    "message": "ייצוא",
-    "description": "English: Export"
+    "message": "ייצוא…",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "my-ublock-static-filters_{{datetime}}.txt",
@@ -580,8 +596,8 @@
     "description": ""
   },
   "rulesExport": {
-    "message": "ייצא לקובץ...",
-    "description": ""
+    "message": "ייצא לקובץ…",
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "my-ublock-dynamic-rules_{{datetime}}.txt",
@@ -616,12 +632,12 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "ייבא וצרף",
-    "description": "English: Import and append"
+    "message": "ייבא וצרף…",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
-    "message": "ייצוא",
-    "description": "English: Export"
+    "message": "ייצוא…",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "my-ublock-trusted-sites_{{datetime}}.txt",
@@ -881,14 +897,14 @@
   },
   "supportOpenButton": {
     "message": "לפתוח",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
-    "message": "צור דוח חדש",
-    "description": "Text for button which open an external webpage in Support pane"
+    "message": "צור דוח חדש ב-GitHub",
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
-    "message": "מצא דוחות דומים",
+    "message": "מצא דיווחים דומים ב-GitHub",
     "description": "A clickable link in the filter issue reporter section"
   },
   "supportS1H": {
@@ -938,10 +954,6 @@
   "supportS5P1": {
     "message": "ראה מטה מידע טכני שיכול להיות מועיל למתנדב, כאשר הוא מנסה לעזור לך לפתור בעיה.",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
-  },
-  "supportS5P2": {
-    "message": "<b>חשוב:</b> מידע שהוא פוטנציאלי רגיש או פרטי מוסר בברירת מחדל. המידע שמוסר יכול לגרום לעיכוב בפתרון בעיות.",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
   },
   "supportS6H": {
     "message": "דיווח על בעיית מסנן",
@@ -995,17 +1007,13 @@
     "message": "נפתחים לשוניות או חלונות לא רצויים",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "מוביל לנוזקה, פישינג",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "תיוג דף האינטרנט כ- לב\"ל (<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">'לא בטוח לעבודה'</a>)",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "הסר מידע פרטי או רגיש",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "שחזר מידע פרטי או רגיש",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "מדיניות פרטיות",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "בעיית רשת: {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "הוסף את הכתובת הבאה לרשימת הפילטרים המותאמים אישית שלך?\n\nכותרת: \"{{title}}\"\nכתובת URL: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "הירשם כמנוי",
@@ -1171,6 +1175,26 @@
     "message": "המשך",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "הדף החסום מבקש לעבור לאתר אחר. אם תחליטו להמשיך, תעברו ישירות ל: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "הסיבה:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "זדוני",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "מעקב",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "מפוקפק",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "ייצא לאחסון ענן",
     "description": "tooltip"
@@ -1247,6 +1271,10 @@
     "message": "הפעל/כבה מסננים קוסמטיים",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
   },
+  "toggleJavascript": {
+    "message": "כיבוי/הפעלה של JavaScript",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
+  },
   "relaxBlockingMode": {
     "message": "הרפה את מצב החסימה הנוכחי",
     "description": "Label for keyboard shortcut used to relax blocking mode"
@@ -1276,7 +1304,7 @@
     "description": "Summary of number of errors as reported by the linter "
   },
   "unprocessedRequestTooltip": {
-    "message": "לא ניתן היה לסנן כראוי בעת הפעלת הדפדפן. טען מחדש את הדף כדי להבטיח סינון מתאים.",
+    "message": "לא ניתן היה לסנן כראוי בעת הפעלת הדפדפן. נא לטעון את העמוד מחדש להבטחת סינון ראוי.",
     "description": "A warning which will appear in the popup panel if needed"
   },
   "dummy": {

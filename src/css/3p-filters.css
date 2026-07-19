@@ -7,7 +7,6 @@ body {
     }
 #actions {
     background-color: var(--surface-1);
-    padding: var(--default-gap-small) 0 var(--default-gap-xsmall) 0;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -15,7 +14,8 @@ body {
 #buttonUpdate.active {
     pointer-events: none;
     }
-#buttonUpdate.active .fa-icon svg {
+#buttonUpdate.active .fa-icon svg,
+body.working #buttonUpdate:not(.disabled) .fa-icon svg {
     animation: spin 1s linear infinite;
     transform-origin: 50%;
     }
@@ -24,7 +24,7 @@ body.updating #actions,
 body.working #actions {
     cursor: progress;
     }
-body.updating #actions button,
+body.updating #actions #buttonUpdate,
 body.working #actions button {
     pointer-events: none;
     }
@@ -54,23 +54,9 @@ body.working #actions button {
     transform: rotate(180deg);
     }
 
-#lists .searchbar {
-    align-items: center;
-    column-gap: var(--default-gap-xxsmall);
-    display: inline-flex;
+#lists .searchfield {
     margin-block-start: calc(var(--font-size) * 0.75);
     margin-inline-start: var(--checkbox-size);
-    position: relative;
-    }
-#lists .searchbar input {
-    padding-inline-start: var(--default-gap-large);
-    }
-#lists .searchbar .fa-icon {
-    color: var(--ink-4);
-        fill: var(--ink-4);
-    left: 4px;
-    position: absolute;
-    transform: none;
     }
 #lists.searchMode > .listEntries .listEntries,
 #lists.searchMode > .listEntries .listEntry.searchMatch {
@@ -204,17 +190,22 @@ body.working #actions button {
 #lists .listEntry.checked.cached:not(.obsolete) > .detailbar .iconbar .cache {
     display: inline-flex;
     }
+#lists .listEntry.cached.recent:not(.obsolete) > .detailbar .iconbar .cache {
+    color: var(--dashboard-happy-green);
+        fill: var(--dashboard-happy-green);
+    }
 #lists .iconbar .obsolete {
     color: var(--info2-ink);
         fill: var(--info2-ink);
     }
-body:not(.updating) #lists .listEntry.checked.obsolete > .detailbar .iconbar .obsolete {
+body:not(.updating,.working) #lists .listEntry.checked.obsolete > .detailbar .iconbar .obsolete {
     display: inline-flex;
     }
 #lists .iconbar .updating {
     transform-origin: 50%;
     }
-body.updating #lists .listEntry.checked.obsolete > .detailbar .iconbar .updating {
+body.updating #lists .listEntry.checked.obsolete > .detailbar .iconbar .updating,
+body.working #lists .listEntry.checked.obsolete:not(.cached) > .detailbar .iconbar .updating {
     animation: spin 1s steps(8) infinite;
     display: inline-flex;
     }

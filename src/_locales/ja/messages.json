@@ -220,7 +220,7 @@
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "ローカルルール: この列のルールは現在のサイトだけに適用されます。\nローカルルールはグローバルルールを上書きします。",
+    "message": "ローカルルール: この列にあるルールは、現在のサイトのみに適用されます。",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -480,7 +480,15 @@
     "description": "Filter lists section name"
   },
   "3pGroupMalware": {
-    "message": "マルウェアドメイン",
+    "message": "マルウェアからの保護、セキュリティ",
+    "description": "Filter lists section name"
+  },
+  "3pGroupSocial": {
+    "message": "SNS ウィジェット",
+    "description": "Filter lists section name"
+  },
+  "3pGroupCookies": {
+    "message": "クッキー通知",
     "description": "Filter lists section name"
   },
   "3pGroupAnnoyances": {
@@ -527,17 +535,25 @@
     "message": "ネットワークエラーが発生したため、リソースを更新できませんでした。",
     "description": "used as a tooltip for error icon beside a list"
   },
-  "1pFormatHint": {
-    "message": "1 行につき 1 つのフィルターです。フィルターはただのホスト名でも EasyList と同じ形式でも構いません。<code>!</code> を先頭に付けた行は無視されます。",
-    "description": "Short information about how to create custom filters"
+  "1pTrustWarning": {
+    "message": "信頼できないソースからフィルターを追加しないでください。",
+    "description": "Warning against copy-pasting filters from random sources"
+  },
+  "1pEnableMyFiltersLabel": {
+    "message": "自分のカスタムフィルターを有効化",
+    "description": "Label for the checkbox use to enable/disable 'My filters' list"
+  },
+  "1pTrustMyFiltersLabel": {
+    "message": "信頼が必要なカスタムフィルターを許可する",
+    "description": "Label for the checkbox use to trust the content of 'My filters' list"
   },
   "1pImport": {
-    "message": "インポートして追加",
-    "description": "English: Import and append"
+    "message": "インポートと追加",
+    "description": "Button in the 'My filters' pane"
   },
   "1pExport": {
     "message": "エクスポート",
-    "description": "English: Export"
+    "description": "Button in the 'My filters' pane"
   },
   "1pExportFilename": {
     "message": "my-ublock-static-filters_{{datetime}}.txt",
@@ -580,8 +596,8 @@
     "description": ""
   },
   "rulesExport": {
-    "message": "ファイルにエクスポート",
-    "description": ""
+    "message": "ファイルへエクスポート",
+    "description": "Button in the 'My rules' pane"
   },
   "rulesDefaultFileName": {
     "message": "my-ublock-dynamic-rules_{{datetime}}.txt",
@@ -616,12 +632,12 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "インポートして追加",
-    "description": "English: Import and append"
+    "message": "インポートと追加",
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExport": {
     "message": "エクスポート",
-    "description": "English: Export"
+    "description": "Button in the 'Trusted sites' pane"
   },
   "whitelistExportFilename": {
     "message": "my-ublock-trusted-sites_{{datetime}}.txt",
@@ -881,11 +897,11 @@
   },
   "supportOpenButton": {
     "message": "開く",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportReportSpecificButton": {
     "message": "新しい報告を作成",
-    "description": "Text for button which open an external webpage in Support pane"
+    "description": "Text for button which open an external web page in Support pane"
   },
   "supportFindSpecificButton": {
     "message": "似た報告を探す",
@@ -939,10 +955,6 @@
     "message": "以下の技術情報はボランティアが問題解決の手助けをするときに役立つことがあります。",
     "description": "First paragraph of 'Troubleshooting Information' section in Support pane"
   },
-  "supportS5P2": {
-    "message": "<b>重要:</b> 個人情報や機密情報の可能性のある情報は既定で削除されます。情報が削除されたことによって問題解決が困難になることがあります。",
-    "description": "Second paragraph of 'Troubleshooting Information' section in Support pane"
-  },
   "supportS6H": {
     "message": "フィルターの問題を報告する",
     "description": "Header of 'Report a filter issue' section in Support pane"
@@ -995,17 +1007,13 @@
     "message": "勝手にタブやウィンドウを開きます",
     "description": "An entry in the widget used to select the type of issue"
   },
+  "supportS6Select1Option7": {
+    "message": "悪質ソフトやフィッシングへの誘導",
+    "description": "An entry in the widget used to select the type of issue"
+  },
   "supportS6Checkbox1": {
     "message": "ウェブページに“NSFW” (閲覧注意、<a href=\"https://ja.wikipedia.org/wiki/NSFW\">“Not Safe For Work”</a>) とラベルをつける",
     "description": "A checkbox to use for NSFW sites"
-  },
-  "supportRedact": {
-    "message": "編集済にする",
-    "description": "Text for 'Redact' button"
-  },
-  "supportUnredact": {
-    "message": "無編集にする",
-    "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
     "message": "プライバシーポリシー",
@@ -1078,10 +1086,6 @@
   "errorCantConnectTo": {
     "message": "ネットワークエラー: {{msg}}",
     "description": "English: Network error: {{msg}}"
-  },
-  "subscriberConfirm": {
-    "message": "以下の URL をカスタムフィルターリストに追加しますか？\n\nフィルター名: \"{{title}}\"\nURL: {{url}}",
-    "description": "No longer used"
   },
   "subscribeButton": {
     "message": "購読",
@@ -1171,6 +1175,26 @@
     "message": "続行する",
     "description": "Button text to navigate to the blocked page"
   },
+  "docblockedRedirectPrompt": {
+    "message": "ブロックしたページは別のサイトへリダイレクトしようとしています。続行すると次の URL へ移動します: {{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "docblockedReasonLabel": {
+    "message": "理由:",
+    "description": "The label which prepend the actual reason why a page was blocked"
+  },
+  "docblockedReasonMalicious": {
+    "message": "悪意のある",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonTracker": {
+    "message": "トラッカー",
+    "description": "An actual reason why a page was blocked"
+  },
+  "docblockedReasonDisreputable": {
+    "message": "悪い評判",
+    "description": "An actual reason why a page was blocked"
+  },
   "cloudPush": {
     "message": "クラウドストレージにエクスポートします",
     "description": "tooltip"
@@ -1246,6 +1270,10 @@
   "toggleCosmeticFiltering": {
     "message": "整形フィルタリングの有効/無効を切り替える",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
+  },
+  "toggleJavascript": {
+    "message": "JavaScript の切り替え",
+    "description": "Label for keyboard shortcut used to toggle no-scripting switch"
   },
   "relaxBlockingMode": {
     "message": "ブロッキングモードを緩和する",
