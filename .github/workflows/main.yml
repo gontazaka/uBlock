@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Clone uAssets
@@ -41,16 +41,7 @@ jobs:
       - name: Get release information
         id: release_info
         run: |
-          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-      - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag_name: ${{ steps.release_info.outputs.VERSION }}
-          release_name: ${{ steps.release_info.outputs.VERSION }}
-          prerelease: true
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
       - name: Prepare Build
         env:
           PRIVATEKEY: ${{ secrets.PRIVATEKEY_PEM }}
@@ -68,34 +59,33 @@ jobs:
       #     tools/make-mv3.sh full
       #     echo "MV3PACKAGE=$(basename $(ls dist/build/uBlock🦆_*.mv3.zip))" >> $GITHUB_ENV
 
-      - name: Upload Chromium package
-        id: release_chromium
-        uses: actions/upload-release-asset@v1
+      - name: Create GitHub release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.chromium.crx
-          asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.chromium.crx
-          asset_content_type: application/octet-stream
+          tag_name: ${{ steps.release_info.outputs.VERSION }}
+          name: ${{ steps.release_info.outputs.VERSION }}
+          prerelease: true
+          files: |
+            dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.chromium.crx
+            dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
+
+      - name: Get released asset URLs
+        id: release_assets
+        env:
+          ASSETS_JSON: ${{ steps.create_release.outputs.assets }}
+        run: |
+          echo "CRX_URL=$(echo "$ASSETS_JSON" | jq -r '.[] | select(.name | endswith(".chromium.crx")) | .browser_download_url')" >> $GITHUB_OUTPUT
+          echo "XPI_URL=$(echo "$ASSETS_JSON" | jq -r '.[] | select(.name | endswith(".firefox.xpi")) | .browser_download_url')" >> $GITHUB_OUTPUT
 
       - name: Generate Chromium package metadata
         continue-on-error: true
         run: |
-          node dist/chromium/update-meta.js "${{ steps.release_chromium.outputs.browser_download_url }}" "${{ steps.release_info.outputs.VERSION }}"
+          node dist/chromium/update-meta.js "${{ steps.release_assets.outputs.CRX_URL }}" "${{ steps.release_info.outputs.VERSION }}"
           mkdir -p "${{ env.CHROMIUM_PACKAGE_META_DIR }}"
           cp -f "${{ env.CHROMIUM_UPDATE_XML }}" "${{ env.CHROMIUM_PACKAGE_META_DIR }}/"
-
-      - name: Upload Firefox package
-        id: release_firefox
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/build/uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-          asset_name: uBlock🦆_${{ steps.release_info.outputs.VERSION }}.firefox.xpi
-          asset_content_type: application/octet-stream
 
       - name: Signing Firefox package, Generate metadata
         continue-on-error: true
@@ -104,12 +94,12 @@ jobs:
           AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
           AMO_SECRET: ${{ secrets.AMO_SECRET }}
         run: |
-          python3 dist/firefox/publish-signed-beta.py  "${{ steps.release_info.outputs.VERSION }}" "${{ steps.release_firefox.outputs.browser_download_url }}"
+          python3 dist/firefox/publish-signed-beta.py  "${{ steps.release_info.outputs.VERSION }}" "${{ steps.release_assets.outputs.XPI_URL }}"
           mkdir -p "${{ env.FIREFOX_PACKAGE_META_DIR }}"
           cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_PACKAGE_META_DIR }}/"
 
       - name: Deploy package metadata
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: meta
