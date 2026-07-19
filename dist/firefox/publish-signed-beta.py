@@ -206,69 +206,106 @@ def get_jwt_auth():
         return 'JWT ' + jwt_encoded.decode('UTF-8')
 
 print('Ask AMO to sign self-hosted xpi package...')
+# AMO API v4 was removed; use v5 (upload -> version create -> wait signed).
+# - https://addons-server.readthedocs.io/en/latest/topics/api/addons.html#upload-create
+# - https://addons-server.readthedocs.io/en/latest/topics/api/addons.html#versions-create
+# https://blog.mozilla.org/addons/2019/11/11/security-improvements-in-amo-upload-tools/
+#   "We recommend allowing up to 15 minutes."
+interval = 30                    # check every 30 seconds
+countdown = 120 * 60 / interval  # for at most 120 minutes
+
+# Upload package to AMO for validation
 with open(unsigned_xpi_filepath, 'rb') as f:
-    # https://blog.mozilla.org/addons/2019/11/11/security-improvements-in-amo-upload-tools/
-    #   "We recommend allowing up to 15 minutes."
-    interval = 60                   # check every 60 seconds
-    countdown = 120 * 60 / interval  # for at most 120 minutes
     headers = { 'Authorization': get_jwt_auth(), }
     data = { 'channel': 'unlisted' }
     files = { 'upload': f, }
-    signing_url = 'https://addons.mozilla.org/api/v4/addons/{0}/versions/{1}/'.format(extension_id, ext_version)
-    print('Submitting package to be signed...')
-    response = requests.put(signing_url, headers=headers, data=data, files=files, timeout=(30.0, 600.0))
-    if response.status_code != 202:
-        print('Error: Creating new version failed -- server error {0}'.format(response.status_code))
+    upload_create_url = 'https://addons.mozilla.org/api/v5/addons/upload/'
+    print('Submitting package to be validated...')
+    response = requests.post(upload_create_url, headers=headers, data=data, files=files, timeout=(30.0, 600.0))
+if response.status_code != 201:
+    print('Error: Uploading package failed -- server error {0}'.format(response.status_code))
+    print(response.text)
+    exit(1)
+upload_uuid = response.json()['uuid']
+print('Request for validating package succeeded.')
+
+# Wait for AMO to validate the uploaded package
+print('Waiting for AMO to validate the package...')
+upload_detail_url = 'https://addons.mozilla.org/api/v5/addons/upload/{0}/'.format(upload_uuid)
+while True:
+    time.sleep(interval)
+    print('🦊', end='', flush=True)
+    countdown -= 1
+    if countdown <= 0:
+        print('Error: AMO validation timed out')
+        exit(1)
+    headers = { 'Authorization': get_jwt_auth(), }
+    response = requests.get(upload_detail_url, headers=headers)
+    if response.status_code != 200:
+        print('Error: AMO validation failed -- server error {0}'.format(response.status_code))
         print(response.text)
         exit(1)
-    print('Request for signing self-hosted xpi package succeeded.')
-    signing_request_response = response.json();
-    f.close()
-    print('Waiting for AMO to process the request to sign the self-hosted xpi package...')
-    # Wait for signed package to be ready
-    signing_check_url = signing_request_response['url']
-    while True:
-        time.sleep(interval)
-        print('🦊', end='', flush=True)
-        countdown -= 1
-        if countdown <= 0:
-            print('Error: AMO signing timed out')
-            exit(1)
-        headers = { 'Authorization': get_jwt_auth(), }
-        response = requests.get(signing_check_url, headers=headers)
-        if response.status_code != 200:
-            print('Error: AMO signing failed -- server error {0}'.format(response.status_code))
-            print(response.text)
-            exit(1)
-        signing_check_response = response.json()
-        if not signing_check_response['processed']:
-            continue
-        if not signing_check_response['valid']:
-            print('Error: AMO validation failed')
-            print(response.text)
-            exit(1)
-        if not signing_check_response['files'] or len(signing_check_response['files']) == 0:
-            continue
-        if not signing_check_response['files'][0]['signed']:
-            continue
-        if not signing_check_response['files'][0]['download_url']:
-            print('Error: AMO signing failed')
-            print(response.text)
-            exit(1)
-        print('\r')
-        print('Self-hosted xpi package successfully signed.')
-        download_url = signing_check_response['files'][0]['download_url']
-        print('Downloading signed self-hosted xpi package...')
-        response = requests.get(download_url, headers=headers)
-        if response.status_code != 200:
-            print('Error: Download signed package failed -- server error {0}'.format(response.status_code))
-            print(response.text)
-            exit(1)
-        with open(signed_xpi_filepath, 'wb') as f:
-            f.write(response.content)
-            f.close()
-        print('Signed self-hosted xpi package downloaded.')
-        break
+    upload_detail_response = response.json()
+    if not upload_detail_response['processed']:
+        continue
+    if not upload_detail_response['valid']:
+        print('Error: AMO validation failed')
+        print(json.dumps(upload_detail_response.get('validation'), indent=2))
+        exit(1)
+    print('\r')
+    print('Package successfully validated.')
+    break
+
+# Create a new (unlisted) version from the validated upload
+print('Creating new version from the validated package...')
+version_create_url = 'https://addons.mozilla.org/api/v5/addons/addon/{0}/versions/'.format(extension_id)
+headers = { 'Authorization': get_jwt_auth(), }
+response = requests.post(version_create_url, headers=headers, json={ 'upload': upload_uuid }, timeout=(30.0, 600.0))
+if response.status_code != 201:
+    print('Error: Creating new version failed -- server error {0}'.format(response.status_code))
+    print(response.text)
+    exit(1)
+version_id = response.json()['id']
+print('New version successfully created.')
+
+# Wait for signed package to be ready
+print('Waiting for AMO to process the request to sign the self-hosted xpi package...')
+version_detail_url = 'https://addons.mozilla.org/api/v5/addons/addon/{0}/versions/{1}/'.format(extension_id, version_id)
+while True:
+    time.sleep(interval)
+    print('🦊', end='', flush=True)
+    countdown -= 1
+    if countdown <= 0:
+        print('Error: AMO signing timed out')
+        exit(1)
+    headers = { 'Authorization': get_jwt_auth(), }
+    response = requests.get(version_detail_url, headers=headers)
+    if response.status_code != 200:
+        print('Error: AMO signing failed -- server error {0}'.format(response.status_code))
+        print(response.text)
+        exit(1)
+    version_detail_response = response.json()
+    file_info = version_detail_response.get('file') or {}
+    if file_info.get('status') != 'public':
+        continue
+    download_url = file_info.get('url')
+    if not download_url:
+        print('Error: AMO signing failed -- no download URL')
+        print(response.text)
+        exit(1)
+    print('\r')
+    print('Self-hosted xpi package successfully signed.')
+    print('Downloading signed self-hosted xpi package...')
+    headers = { 'Authorization': get_jwt_auth(), }
+    response = requests.get(download_url, headers=headers)
+    if response.status_code != 200:
+        print('Error: Download signed package failed -- server error {0}'.format(response.status_code))
+        print(response.text)
+        exit(1)
+    with open(signed_xpi_filepath, 'wb') as f:
+        f.write(response.content)
+    print('Signed self-hosted xpi package downloaded.')
+    break
 
 #
 # Upload signed package to GitHub
