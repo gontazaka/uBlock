@@ -41,8 +41,6 @@ if ( vAPI.canWASM === false ) {
     vAPI.canWASM = csp !== undefined && csp.indexOf("'wasm-unsafe-eval'") !== -1;
 }
 
-vAPI.supportsUserStylesheets = vAPI.webextFlavor.soup.has('user_stylesheet');
-
 /******************************************************************************/
 
 vAPI.app = {
@@ -337,14 +335,9 @@ vAPI.Tabs = class {
     }
 
     async insertCSS(tabId, details) {
-        if ( vAPI.supportsUserStylesheets ) {
-            details.cssOrigin = 'user';
-        }
-        try {
-            await webext.tabs.insertCSS(...arguments);
-        }
-        catch {
-        }
+        details.cssOrigin = 'user';
+        try { await webext.tabs.insertCSS(...arguments); }
+        catch { }
     }
 
     async query(queryInfo) {
@@ -358,14 +351,9 @@ vAPI.Tabs = class {
     }
 
     async removeCSS(tabId, details) {
-        if ( vAPI.supportsUserStylesheets ) {
-            details.cssOrigin = 'user';
-        }
-        try {
-            await webext.tabs.removeCSS(...arguments);
-        }
-        catch {
-        }
+        details.cssOrigin = 'user';
+        try { await webext.tabs.removeCSS(...arguments); }
+        catch { }
     }
 
     // Properties of the details object:
