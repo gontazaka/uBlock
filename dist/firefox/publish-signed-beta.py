@@ -212,7 +212,7 @@ print('Ask AMO to sign self-hosted xpi package...')
 # https://blog.mozilla.org/addons/2019/11/11/security-improvements-in-amo-upload-tools/
 #   "We recommend allowing up to 15 minutes."
 interval = 30                    # check every 30 seconds
-countdown = 120 * 60 / interval  # for at most 120 minutes
+countdown = 60 * 60 / interval  # for at most 60 minutes
 
 # Upload package to AMO for validation
 with open(unsigned_xpi_filepath, 'rb') as f:
