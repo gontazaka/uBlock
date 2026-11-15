@@ -11,8 +11,14 @@ echo "*** Packaging assets in $DES... "
 rm -rf $DES
 cp -Rl ./assets $DES/
 
-echo "*** Removing $DES/assets.dev.json"
-rm -f $DES/assets.dev.json
+VERSION=$(cat ./dist/versiongz)
+if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "*** Removing $DES/assets.dev.json"
+    rm -f $DES/assets.dev.json
+else
+    echo "*** Removing $DES/assets.json"
+    rm -f $DES/assets.json
+fi
 
 mkdir -p $DES/thirdparties
 
