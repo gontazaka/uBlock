@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-meta-deploy
+  cancel-in-progress: false
+
 # I used the following project as template to get started:
 # https://github.com/dessant/search-by-image/blob/master/.github/workflows/ci.yml
 
@@ -16,7 +20,7 @@ jobs:
       contents: write # for creating release
     name: Build packages
     runs-on: ubuntu-latest
-    timeout-minutes: 80
+    timeout-minutes: 30
     if: startsWith(github.ref, 'refs/tags/')
     env:
       PACKAGE_META_DIR: dist/meta
@@ -80,6 +84,13 @@ jobs:
           echo "CRX_URL=$(echo "$ASSETS_JSON" | jq -r '.[] | select(.name | endswith(".chromium.crx")) | .browser_download_url')" >> $GITHUB_OUTPUT
           echo "XPI_URL=$(echo "$ASSETS_JSON" | jq -r '.[] | select(.name | endswith(".firefox.xpi")) | .browser_download_url')" >> $GITHUB_OUTPUT
 
+      - name: Restore existing package metadata from meta branch
+        run: |
+          mkdir -p "${{ env.PACKAGE_META_DIR }}"
+          if git fetch --depth=1 origin meta; then
+            git archive FETCH_HEAD | tar -x -C "${{ env.PACKAGE_META_DIR }}"
+          fi
+
       - name: Generate Chromium package metadata
         continue-on-error: true
         run: |
@@ -87,17 +98,24 @@ jobs:
           mkdir -p "${{ env.CHROMIUM_PACKAGE_META_DIR }}"
           cp -f "${{ env.CHROMIUM_UPDATE_XML }}" "${{ env.CHROMIUM_PACKAGE_META_DIR }}/"
 
-      - name: Signing Firefox package, Generate metadata
+      - name: Submit Firefox package for AMO signing
+        id: firefox_sign
         continue-on-error: true
-        timeout-minutes: 70
+        timeout-minutes: 20
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
           AMO_SECRET: ${{ secrets.AMO_SECRET }}
         run: |
-          python3 dist/firefox/publish-signed-beta.py  "${{ steps.release_info.outputs.VERSION }}" "${{ steps.release_assets.outputs.XPI_URL }}"
-          mkdir -p "${{ env.FIREFOX_PACKAGE_META_DIR }}"
-          cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_PACKAGE_META_DIR }}/"
+          python3 dist/firefox/publish-signed-beta.py \
+            --mode submit \
+            --version "${{ steps.release_info.outputs.VERSION }}" \
+            --wait-minutes 5 \
+            --current-updates-json "${{ env.FIREFOX_PACKAGE_META_DIR }}/updates.json"
+          if [ -f "${{ env.FIREFOX_UPDATE_JSON }}" ] && grep -q '"ublock@gontazaka"' "${{ env.FIREFOX_UPDATE_JSON }}" && grep -q '"${{ steps.release_info.outputs.VERSION }}"' "${{ env.FIREFOX_UPDATE_JSON }}"; then
+            mkdir -p "${{ env.FIREFOX_PACKAGE_META_DIR }}"
+            cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_PACKAGE_META_DIR }}/"
+          fi
 
       - name: Deploy package metadata
         uses: peaceiris/actions-gh-pages@v4

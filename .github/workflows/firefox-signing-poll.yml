@@ -1,0 +1,76 @@
+name: Firefox signing poll
+
+on:
+  schedule:
+    # Run every 12 hours at off-peak minute/hours (03:23 and 15:23 UTC = 12:23 and 00:23 JST)
+    - cron: '23 3,15 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Target release tag version (optional; leave empty to check recent unsigned releases)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-meta-deploy
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    permissions:
+      contents: write
+    name: Poll AMO & publish signed Firefox package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PACKAGE_META_DIR: dist/meta
+      FIREFOX_PACKAGE_META_DIR: dist/meta/firefox
+      FIREFOX_UPDATE_JSON: dist/firefox/updates.json
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dist/firefox/requirements.txt
+
+      - name: Restore existing package metadata from meta branch
+        run: |
+          mkdir -p "${{ env.PACKAGE_META_DIR }}"
+          if git fetch --depth=1 origin meta; then
+            git archive FETCH_HEAD | tar -x -C "${{ env.PACKAGE_META_DIR }}"
+          fi
+
+      - name: Check AMO signing status and update release
+        id: poll
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
+          AMO_SECRET: ${{ secrets.AMO_SECRET }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          ARGS=(--mode poll --current-updates-json "${{ env.FIREFOX_PACKAGE_META_DIR }}/updates.json")
+          if [ -n "$INPUT_VERSION" ]; then
+            ARGS+=(--version "$INPUT_VERSION")
+          fi
+          python3 dist/firefox/publish-signed-beta.py "${ARGS[@]}"
+          if [ -f "${{ env.FIREFOX_UPDATE_JSON }}" ] && grep -q '"ublock@gontazaka"' "${{ env.FIREFOX_UPDATE_JSON }}"; then
+            mkdir -p "${{ env.FIREFOX_PACKAGE_META_DIR }}"
+            cp -f "${{ env.FIREFOX_UPDATE_JSON }}" "${{ env.FIREFOX_PACKAGE_META_DIR }}/"
+          fi
+
+      - name: Deploy package metadata
+        if: steps.poll.outputs.updated == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: meta
+          publish_dir: "./${{ env.PACKAGE_META_DIR }}"
+          force_orphan: true

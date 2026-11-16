@@ -141,4 +141,6 @@ python3 -m venv ~/.venvs/selenium && ~/.venvs/selenium/bin/pip install selenium
 
 #### PR 作成後（ユーザー）
 - PR をレビューして master へマージする。
-- master 上で `git tag X.Y.Z.0 && git push origin X.Y.Z.0` を実行し、CI による Release 作成・AMO 署名・meta ブランチ更新を確認する。
+- master 上で `git tag X.Y.Z.0 && git push origin X.Y.Z.0` を実行し、CI（`.github/workflows/main.yml`）による Release 作成・AMO 署名申請・meta ブランチ更新を確認する。
+- AMO の署名審査に数時間〜数日かかる場合は、12時間ごとに定期実行される `.github/workflows/firefox-signing-poll.yml`（または Actions タブからの手動実行 `Firefox signing poll`）が承認完了を検知し、Release アセットの差し替え（`.firefox.xpi` → `.firefox.signed.xpi`）および `meta` ブランチの `firefox/updates.json` 更新を自動で行う。
+
