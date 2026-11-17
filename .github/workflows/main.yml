@@ -40,8 +40,7 @@ jobs:
       # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
       - name: Setup Python
         run: |
-          python -m pip install --upgrade pip
-          pip install -r dist/firefox/requirements.txt
+          pip install -q -r dist/firefox/requirements.txt
       - name: Get release information
         id: release_info
         run: |
@@ -87,9 +86,9 @@ jobs:
       - name: Restore existing package metadata from meta branch
         run: |
           mkdir -p "${{ env.PACKAGE_META_DIR }}"
-          if git fetch --depth=1 origin meta; then
-            git archive FETCH_HEAD | tar -x -C "${{ env.PACKAGE_META_DIR }}"
-          fi
+          git fetch --depth=1 origin meta
+          git archive FETCH_HEAD | tar -x -C "${{ env.PACKAGE_META_DIR }}"
+          test -f "${{ env.PACKAGE_META_DIR }}/chromium/update.xml"
 
       - name: Generate Chromium package metadata
         continue-on-error: true
