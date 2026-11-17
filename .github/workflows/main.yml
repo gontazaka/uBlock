@@ -1,8 +1,10 @@
 name: uBO release
 
 on:
-  create:
-    branches: master
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 permissions:
   contents: read
