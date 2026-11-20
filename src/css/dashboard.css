@@ -118,3 +118,54 @@ body.noDashboard #dashboard-nav {
 :root.mobile #dashboard-nav .logo {
     display: none;
     }
+
+#swipeIndicator {
+    align-items: center;
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-1);
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 20%);
+    color: var(--ink-1);
+    display: inline-flex;
+    font-size: var(--font-size);
+    gap: 0.45em;
+    left: 50%;
+    max-width: 80vw;
+    opacity: 0;
+    padding: 0.45em 0.95em;
+    pointer-events: none;
+    position: fixed;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    transition: opacity 0.14s ease, border-color 0.12s ease, transform 0.14s ease, visibility 0.14s ease;
+    user-select: none;
+    visibility: hidden;
+    z-index: 15;
+    }
+#swipeIndicator.visible {
+    opacity: 0.58;
+    transform: translate(-50%, -50%) scale(1);
+    visibility: visible;
+    }
+#swipeIndicator.visible.ready {
+    border-color: var(--dashboard-tab-active-ink);
+    opacity: 0.92;
+    }
+#swipeIndicator .swipe-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    }
+#swipeIndicator .swipe-arrow {
+    display: none;
+    font-size: 1.25em;
+    font-weight: 700;
+    line-height: 1;
+    }
+#swipeIndicator.dir-prev .swipe-arrow-prev,
+#swipeIndicator.dir-next .swipe-arrow-next {
+    display: inline;
+    }
+#swipeIndicator.visible.ready .swipe-arrow {
+    color: var(--dashboard-tab-active-ink);
+    }
