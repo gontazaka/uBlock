@@ -103,6 +103,7 @@ const SWIPE_FLICK_MIN_DISTANCE = 72;
 const SWIPE_FLICK_MIN_VELOCITY = 0.45;
 const SWIPE_FLICK_MAX_DURATION = 300;
 const SWIPE_INDICATOR_HIDE_DELAY = 150;
+const SWIPE_SCROLL_EPSILON = 2;
 const SWIPE_IGNORE_SELECTOR = [
     '.CodeMirror',
     'textarea',
@@ -160,6 +161,26 @@ function getCommitDistance(viewportWidth) {
     return Math.max(96, Math.min(160, viewportWidth * 0.28));
 }
 
+function getRootHorizontalScroll(doc, win) {
+    const scroller = doc.scrollingElement || doc.documentElement;
+    if ( scroller === null ) {
+        return { scrollLeft: 0, maxScrollLeft: 0 };
+    }
+    const scrollLeft = Math.max(0, scroller.scrollLeft, win.scrollX || 0);
+    const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    return { scrollLeft, maxScrollLeft };
+}
+
+function canRootScrollInDirection(state, delta) {
+    if ( state.startMaxScrollLeft <= SWIPE_SCROLL_EPSILON ) {
+        return false;
+    }
+    if ( delta > 0 ) {
+        return state.startScrollLeft < state.startMaxScrollLeft - SWIPE_SCROLL_EPSILON;
+    }
+    return state.startScrollLeft > SWIPE_SCROLL_EPSILON;
+}
+
 function shouldIgnoreSwipeTarget(target, rootDoc) {
     const win = rootDoc.defaultView;
     if ( win === null || target === null ) { return true; }
@@ -199,6 +220,15 @@ function attachSwipeNavigation(iframe) {
         hideSwipeIndicator(immediate);
     };
 
+    const onScroll = ( ) => {
+        if ( state === null || state.axis === 'scroll' ) { return; }
+        const { scrollLeft } = getRootHorizontalScroll(doc, win);
+        if ( Math.abs(scrollLeft - state.startScrollLeft) > 1 ) {
+            state.axis = 'scroll';
+            hideSwipeIndicator();
+        }
+    };
+
     const onTouchStart = ev => {
         if (
             dom.cl.has(dom.body, 'noDashboard') ||
@@ -231,11 +261,14 @@ function attachSwipeNavigation(iframe) {
             reset();
             return;
         }
+        const { scrollLeft, maxScrollLeft } = getRootHorizontalScroll(doc, win);
         state = {
             startX: touch.clientX,
             startY: touch.clientY,
             startTime: performance.now(),
             viewportWidth,
+            startScrollLeft: scrollLeft,
+            startMaxScrollLeft: maxScrollLeft,
             axis: null,
         };
     };
@@ -244,6 +277,12 @@ function attachSwipeNavigation(iframe) {
         if ( state === null ) { return; }
         if ( ev.touches.length !== 1 ) {
             reset();
+            return;
+        }
+        const { scrollLeft } = getRootHorizontalScroll(doc, win);
+        if ( Math.abs(scrollLeft - state.startScrollLeft) > 1 ) {
+            state.axis = 'scroll';
+            hideSwipeIndicator();
             return;
         }
         const touch = ev.touches[0];
@@ -263,6 +302,10 @@ function attachSwipeNavigation(iframe) {
             return;
         }
         const delta = dx < 0 ? 1 : -1;
+        if ( canRootScrollInDirection(state, delta) ) {
+            hideSwipeIndicator();
+            return;
+        }
         const targetTab = getAdjacentTab(delta);
         if ( targetTab === null ) {
             hideSwipeIndicator();
@@ -281,6 +324,11 @@ function attachSwipeNavigation(iframe) {
             hideSwipeIndicator();
             return;
         }
+        const { scrollLeft } = getRootHorizontalScroll(doc, win);
+        if ( Math.abs(scrollLeft - current.startScrollLeft) > 1 ) {
+            hideSwipeIndicator();
+            return;
+        }
         const touch = ev.changedTouches[0];
         const dx = touch.clientX - current.startX;
         const dy = touch.clientY - current.startY;
@@ -293,6 +341,10 @@ function attachSwipeNavigation(iframe) {
             return;
         }
         const delta = dx < 0 ? 1 : -1;
+        if ( canRootScrollInDirection(current, delta) ) {
+            hideSwipeIndicator();
+            return;
+        }
         const targetTab = getAdjacentTab(delta);
         if ( targetTab === null ) {
             hideSwipeIndicator();
@@ -318,6 +370,7 @@ function attachSwipeNavigation(iframe) {
         reset();
     };
 
+    win.addEventListener('scroll', onScroll, { passive: true });
     doc.addEventListener('touchstart', onTouchStart, { passive: true });
     doc.addEventListener('touchmove', onTouchMove, { passive: true });
     doc.addEventListener('touchend', onTouchEnd, { passive: true });
