@@ -2,8 +2,8 @@ name: Firefox signing poll
 
 on:
   schedule:
-    # Run every 12 hours at off-peak minute/hours (03:23 and 15:23 UTC = 12:23 and 00:23 JST)
-    - cron: '23 3,15 * * *'
+    # Run every day at off-peak minute/hours (03:23 UTC = 12:23 JST)
+    - cron: '23 3 * * *'
   workflow_dispatch:
     inputs:
       version:
